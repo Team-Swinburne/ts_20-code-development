@@ -3,6 +3,16 @@
 // MICHAEL COCHRANE & PATRICK CURTAIN
 // REVISION 0 (29/02/2020)
 
+/* 
+To correct limited 64k flash issue: https://github.com/platformio/platform-ststm32/issues/195. Ensure device is 128k model. 
+Use the following platformIO initialisation:
+	[env:genericSTM32F103C8]
+	platform = ststm32@4.6.0
+	board = genericSTM32F103C8
+	framework = mbed
+	board_upload.maximum_size = 120000
+*/
+
 //-----------------------------------------------
 
 /*	
@@ -72,7 +82,7 @@ PC_15/OSC32OUT (3.3V)*
 Serial pc(PA_9, PA_10);                 //TX, RX
 
 // I2C Interface
-I2C 			      	i2c1(PB_7, PB_6);     //SDA, SCL
+I2C 			      	i2c1(PB_7, PB_6);     	//SDA, SCL
 
 // I2C Addresses
 #define PDOC_ADC     0x04A
@@ -83,7 +93,7 @@ I2C 			      	i2c1(PB_7, PB_6);     //SDA, SCL
 //SCL 4B
 
 // CANBUS Interface
-CAN 			    	  can1(PB_8, PB_9);     // TXD, RXD
+CAN 			    	can1(PB_8, PB_9);     // TXD, RXD
 DigitalOut				can1_rx_led(PB_1);
 DigitalOut 				can1_tx_led(PB_0);
 CANMessage 				can1_msg;
@@ -93,7 +103,7 @@ CANMessage 				can1_msg;
 #define PRECHARGE_CONTROLLER_ANALOGUE_ID			0x441
 #define PRECHARGE_CONTROLLER_DIGITAL_ID				0x442
 
-#define DISCHARGE_MODULE_HEARTBEAT_ID				0x450
+#define DISCHARGE_MODULE_HEARTBEAT_ID			 	0x450
 // Throttle Controller
 // Brake Module
 // Orion BMS 2
@@ -101,20 +111,30 @@ CANMessage 				can1_msg;
 // Dash
 // Motor Controller
 
+#define TC_CHARGER_STATUS_ID						0x18FF50E5
+
 //-----------------------------------------------
 // Globals
 //-----------------------------------------------
 
-int8_t  heartbeat_state 			                 = 0;
+int8_t  heartbeat_state 			               = 0;
 int	    heartbeat_counter 			               = 0;
+bool 	error_present							   = 1; // (1 - Default)
+bool 	warning_present 						   = 0;
+bool	precharge_button_active					   = 0;
+bool 	charge_mode_activated					   = 0; 
+int 	discharge_state							   = 2;	// (2 - Default)
+
+int16_t mc_voltage								   = 0;
+int16_t battery_voltage 						   = 0;
 
 // Program Interval Timer Instances
 Ticker ticker_heartbeat;
 Ticker ticker_can_transmit;
 
 // Interval Periods
-#define	HEARTRATE			                          1
-#define CAN_BROADCAST_INTERVAL                  0.005
+#define	HEARTRATE			                        1
+#define CAN_BROADCAST_INTERVAL                  	0.05
 
 //-----------------------------------------------
 // GPIO 
@@ -166,6 +186,16 @@ CAN RECEIVE
 	*/
 void CAN1_receive(){
 	can1_rx_led = !can1_rx_led;
+	if (can1.read(can1_msg)){
+		switch(can1_msg.id){
+			case DISCHARGE_MODULE_HEARTBEAT_ID:
+				discharge_state = can1_msg.data[0];
+				break;
+			case TC_CHARGER_STATUS_ID:
+				charge_mode_activated = 1;
+				printf("Entering charge mode. Cycle power to exit charge mode\r\n");
+		}
+	}
 }
 
 	/*
@@ -201,6 +231,101 @@ void read_adcs(){
 	wait(0.5);
 }
 
+//-----------------------------------------------
+// Daemons
+//-----------------------------------------------
+
+void errord(){
+	error_present = 0;
+	if (IMD_ok == 0){
+		error_present = 1;
+		pc.printf("FAULT: Isolation fault detected, please check wiring!\r\n");
+	}
+	if (PDOC_ok == 0){
+		error_present = 1;
+		pc.printf("FAULT: PDOC failure detected, please allow to cool and check for\
+		short circuit!\r\n");
+	}
+	if (discharge_enable == 0 && charge_enable == 0)
+		error_present = 1;
+		pc.printf("FAULT: Orion charge && discharge not available, check Orion status\r\n");
+	// ADD ADDITIONAL BATTERY CHECKS
+	if (error_present)
+		AMS_ok = 0;
+	else
+		AMS_ok = 1;
+}
+
+void warnd(){
+	warning_present = 0;
+	if (discharge_state > 2 && heartbeat_state != 0){
+		warning_present = 1;
+		pc.printf("Discharge reported active, please check wiring to discharge.\r\n");
+	}
+	if (TS_ok == 0){
+		warning_present = 1;
+		pc.printf("Tractive loop not completed, check all MSDs, HV Plugs, or additional connectors.\r\n");
+	}
+	if (AIR_neg_feedback != AIR_neg_relay){
+		warning_present = 1;
+		pc.printf("Negative AIR mismatch, check for welding or wiring failure\r\n");
+	}
+	if (AIR_pos_feedback != AIR_pos_relay){
+		warning_present = 1;
+		pc.printf("Positive AIR mismatch, check for welding or wiring failure\r\n");
+	}
+	if (pcb_temperature > 60){
+		warning_present = 1;
+		pc.printf("PCB too hot, you should probably check that, but don't take my word\
+		for it, i'm just a hot MCU looking to have some fun!");
+	}
+}
+
+void stated(){
+	int precharge_timeout = 0;
+
+	switch(heartbeat_state){
+		case 0:	// Fail State (Default){
+			AIR_neg_relay = 0;
+			precharge_relay = 0;
+			AIR_pos_relay = 0;
+			AMS_ok = 0;
+			break;
+		case 1: // Idle State
+			if (precharge_button_active || charge_mode_activated){
+				pc.printf("Beginging precharge sequence\r\n");
+				heartbeat_state = 2;
+			}
+			break;
+		case 2: // Precharging State
+			AIR_neg_relay = 1;
+			precharge_relay = 0;
+			AIR_pos_relay = 0;
+
+			wait(0.5);	// Safeguard for discharge relay
+			precharge_timeout = heartbeat_counter;
+			
+			precharge_relay = 1;
+			if (battery_voltage*0.95 > mc_voltage){
+				pc.printf("Precharge within 95%, safe to close postive contactor\r\n");
+				wait(0.1);
+				heartbeat_state = 3;
+			}
+			if (heartbeat_counter > precharge_timeout + 5){
+				pc.printf("Precharge timed out, check for discharge relay failure,\
+				or higher than expected resistance before continuing\r\n");
+				heartbeat_state = 0;
+			}
+			break;
+		case 3: // Precharged State
+			AIR_neg_relay = 1;
+			precharge_relay = 1;
+			AIR_pos_relay = 1;
+			break;
+	}
+}
+
+
 	/*
 SETUP
 	Initialisation of CANBUS, ADC, and PIT. 
@@ -221,8 +346,13 @@ int main() {
     setup();
     pc.printf("Starting\r\n");
     while(1) {
+		stated();
+		errord();
+		if ((heartbeat_counter % 10) == 0)
+			warnd();	
         read_adcs(); 
     }
 
+	printf("Is this a BSOD?");
     return 0;
 }

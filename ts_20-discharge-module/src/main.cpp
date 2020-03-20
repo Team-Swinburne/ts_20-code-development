@@ -1,5 +1,5 @@
 // TEAM SWINBURNE - TS_20
-// PRECHARGE CONTROLLER
+// DISCHARGE MODULE
 // MICHAEL COCHRANE & PATRICK CURTAIN
 // REVISION 0 (29/02/2020)
 
@@ -14,11 +14,12 @@ Use the following platformIO initialisation:
 
 //-----------------------------------------------
 
-The precharge controller is a PCB designed by Team Swinburne to control the precharge sequences of 
-a Formula SAE vehicle, and safely manage the health of the accumulator. This PCB integrates the
-precharge resistor array, precharge relay, overtemperature safety control, safety interlock for the AMS, 
-interface for isolation monitoring device (IMD), and the ability to detect the voltage of the battery and motor
-controller.
+The Discharge Module is a custom PCB developed for use by Team Swinburne in ts_20. It is intended to complement the functionality
+of the Precharge Controller. At its core it is a relay and a resistor that disengages when the negative AIR shuts, and high
+voltage becomes active, the state of which controlled by the Precharge Controller. Additionally, the module also integrates a 
+resistor divider and additional circuitry for the TSAL (Tractive System Active Light). For the ts_20 Discharge Module, a
+microcontroller has been added to relay the state of the discharge to avoid a voltage divider situation (Precharge and discharge
+resistors both active).
 
 //-----------------------------------------------
 
@@ -79,7 +80,7 @@ PC_15/OSC32OUT (3.3V)*
 Serial pc(PA_2, PA_3);                 		//TX, RX
 
 // I2C Interface
-I2C i2c1(PB_7, PB_6);     						//SDA, SCL
+I2C i2c1(PB_7, PB_6);     					//SDA, SCL
 
 // I2C Addresses
 #define PDOC_ADC     						0x4A
@@ -151,16 +152,7 @@ DigitalOut can1_rx_led(PB_1);
 DigitalOut can1_tx_led(PB_0);
 AnalogIn   pcb_temperature(PA_0);
 
-DigitalOut AIR_neg_relay(PA_8);
-DigitalOut precharge_relay(PA_5); //pa_9
-DigitalOut AIR_pos_relay(PA_6); //pa_10
-DigitalOut AMS_ok(PB_13);
-
-DigitalIn IMD_data(PA_15);
-DigitalIn AIR_power(PB_3);
-DigitalIn AIR_neg_feedback(PB_10);
-DigitalIn AIR_pos_feedback(PB_11);
-DigitalIn IMD_ok(PB_12);
+DigitalIn discharge_release(PB_11);
 DigitalIn PDOC_ok(PB_15);
 
 //-----------------------------------------------
@@ -176,7 +168,7 @@ void heartbeat(){
 	heartbeat_counter++;
 	led1 = !led1;
 	char TX_data[2] = {(char)heartbeat_state, (char)heartbeat_counter};
-	if(can1.write(CANMessage(PRECHARGE_CONTROLLER_HEARTBEAT_ID, &TX_data[0], 2))) 
+	if(can1.write(CANMessage(DISCHARGE_MODULE_HEARTBEAT_ID, &TX_data[0], 2))) 
 	{
        	pc.printf("Heartbeat Success! State: %d Counter: %d\r\n", heartbeat_state, heartbeat_counter);
     }else
@@ -191,19 +183,6 @@ CAN RECEIVE
 	*/
 void CAN1_receive(){
 	can1_rx_led = !can1_rx_led;
-
-	CANMessage can1_msg;
-	
-	if (can1.read(can1_msg)){
-		switch(can1_msg.id){
-			case DISCHARGE_MODULE_HEARTBEAT_ID:
-				discharge_state = can1_msg.data[0];
-				break;
-			case TC_CHARGER_STATUS_ID:
-				charge_mode_activated = 1;
-				printf("Entering charge mode. Cycle power to exit charge mode\r\n");
-		}
-	}
 }
 
 /* CAN TRANSMIT
@@ -218,10 +197,8 @@ void CAN1_transmit(){
 	TX_data[3] = (char)(pdoc_ref_temperature && 255);
 	TX_data[4] = (char)(mc_voltage >> 8);
 	TX_data[5] = (char)(mc_voltage && 255);
-	TX_data[6] = (char)(battery_voltage >> 8);
-	TX_data[7] = (char)(battery_voltage && 255);
 
-	if(can1.write(CANMessage(PRECHARGE_CONTROLLER_ANALOGUE_ID, &TX_data[0], 8))) {
+	if(can1.write(CANMessage(DISCHARGE_MODULE_ANALOGUE_ID, &TX_data[0], 8))) {
        can1_tx_led = !can1_tx_led;
     } else {
 		printf("MESSAGE FAIL!\r\n");
@@ -232,19 +209,16 @@ void CAN1_transmit(){
 	TX_data[2] = warning_present;
 	TX_data[3] = warning_code; // add stuff for imd period and frequency.
 	
-	if (can1.write(CANMessage(PRECHARGE_CONTROLLER_ERROR_ID, &TX_data[0], 4))) {
+	if (can1.write(CANMessage(DISCHARGE_MODULE_ERROR_ID, &TX_data[0], 4))) {
        can1_tx_led = !can1_tx_led;
     } else {
 		printf("MESSAGE FAIL!\r\n");
 	}
 
 	TX_data[0] = PDOC_ok;
-	TX_data[1] = IMD_ok;
-	TX_data[2] = AIR_power;
-	TX_data[3] = AIR_neg_feedback;
-	TX_data[4] = AIR_pos_feedback;
+	TX_data[1] = discharge_release;
 
-	if (can1.write(CANMessage(PRECHARGE_CONTROLLER_PERIPHERAL_ID, &TX_data[0], 5))) {
+	if (can1.write(CANMessage(DISCHARGE_CONTROLLER_PERIPHERAL_ID, &TX_data[0], 2))) {
        can1_tx_led = !can1_tx_led;
     } else {
 		printf("MESSAGE FAIL!\r\n");
@@ -257,21 +231,21 @@ void CAN1_transmit(){
 // Daemons
 //-----------------------------------------------
 
+void stated(){
+	if (error_present > 0){
+		heartbeat_state = discharge_release + 1; 
+	}
+}
+
 void errord(){
 	error_present = 0;
 	error_code = 0;
-	if (IMD_ok == 0){
-		error_present = 1;
-		error_code = error_code + 0b00000001;
-		pc.printf("FAULT: Isolation fault detected, please check wiring!\r\n");
-	}
 	if (PDOC_ok == 0){
 		error_present = 1;
 		error_code = error_code + 0b00000010;
 		pc.printf("FAULT: PDOC failure detected, please allow to cool and check for\
 		short circuit!\r\n");
 	}
-	// ADD ADDITIONAL BATTERY CHECKS CHECK IF ORION PRESENT ETC.
 	if (error_present)
 		heartbeat_state = 0;
 }
@@ -284,16 +258,6 @@ void warnd(){
 		warning_code = warning_code + 0b00000001;
 		pc.printf("Discharge reported active, please check wiring to discharge.\r\n");
 	}
-	if (AIR_neg_feedback != AIR_neg_relay){
-		warning_present = 1;
-		warning_code = warning_code + 0b00000100;
-		pc.printf("Negative AIR mismatch, check for welding or wiring failure\r\n");
-	}
-	if (AIR_pos_feedback != AIR_pos_relay){
-		warning_present = 1;
-		warning_code = warning_code + 0b00001000;
-		pc.printf("Positive AIR mismatch, check for welding or wiring failure\r\n");
-	}
 	if (pcb_temperature > 60){
 		warning_present = 1;
 		warning_code = warning_code + 0b00010000;
@@ -302,72 +266,17 @@ void warnd(){
 	}
 }
 
-void stated(){
-	int precharge_timeout = 0;
-
-	switch(heartbeat_state){
-		case 0:	// Fail State (Default){
-			AIR_neg_relay = 0;
-			precharge_relay = 0;
-			AIR_pos_relay = 0;
-			AMS_ok = 0;
-			break;
-		case 1: // Idle State
-			if (precharge_button_state || charge_mode_activated){
-				pc.printf("Beginging precharge sequence\r\n");
-				heartbeat_state = 2;
-			}
-			break;
-		case 2: // Precharging State
-			AIR_neg_relay = 1;
-			precharge_relay = 0;
-			AIR_pos_relay = 0;
-
-			wait(0.5);	// Safeguard for discharge relay
-			precharge_timeout = heartbeat_counter;
-			
-			precharge_relay = 1;
-			if (battery_voltage*0.95 > mc_voltage){
-				pc.printf("Precharge within 95%, safe to close postive contactor\r\n");
-				wait(0.1);
-				heartbeat_state = 3;
-			}
-			if (heartbeat_counter > precharge_timeout + 5){
-				pc.printf("Precharge timed out, check for discharge relay failure,\
-				or higher than expected resistance before continuing\r\n");
-				heartbeat_state = 0;
-			}
-			break;
-		case 3: // Precharged State
-			AIR_neg_relay = 1;
-			precharge_relay = 1;
-			AIR_pos_relay = 1;
-			break;
-	}
-}
-
 void updateanalogd(){
 	char reg[3];
 	char data[2];
 	if(!i2c1.read(PDOC_ADC << 1, data, 2)){
-		led1 = !led1;
 		int16_t output = (int16_t)((data[0] << 8) | data[1]);
 		// pc.printf("Reading: %d", output);
 		float voltage = ((float)output * 6.144)/32767;
 		pdoc_temperature = voltage * 10;
 	}
 
-	if(!i2c1.read(BATT_HV_SENSE_ADC << 1, data, 2)){
-		led1 = !led1;
-		int16_t output = (int16_t)((data[0] << 8) | data[1]);
-		// pc.printf("Reading: %d", output);
-		float voltage = ((float)output * 6.144)/32767;
-		// pc.printf(" -- Converted to %f\r\n", convert);
-		battery_voltage = voltage * 10;
-	}
-
 	if(!i2c1.read(MC_HV_SENSE_ADC << 1, data, 2)){
-		led1 = !led1;
 		int16_t output = (int16_t)((data[0] << 8) | data[1]);
 		// pc.printf("Reading: %d", output);
 		float voltage = ((float)output * 6.144)/32767;
@@ -380,21 +289,12 @@ void initialiseADC(){
 	char cmd[1];
     
 	if(!i2c1.write(PDOC_ADC << 1, adc_initial_config, 2)){
-		led1 = !led1;
 		pc.printf("PDOC ADC Write Success!\r\n");
 	} else {
 		pc.printf("PDOC ADC Write Fail\r\n");
 	}
 
-	if(!i2c1.write(BATT_HV_SENSE_ADC << 1, adc_initial_config, 2)){
-		led1 = !led1;
-		pc.printf("BATT ADC Write Success!\r\n");
-	} else {
-		pc.printf("BATT ADC Write Fail\r\n");
-	}
-
 	if(!i2c1.write(MC_HV_SENSE_ADC << 1, adc_initial_config, 2)){
-		led1 = !led1;
 		pc.printf("MC ADC Write Success!\r\n");
 	} else {
 		pc.printf("MC ADC Write Fail\r\n");
@@ -403,21 +303,12 @@ void initialiseADC(){
 	cmd[0] = 0x00;
 
 	if(!i2c1.write(PDOC_ADC << 1, cmd, 1)){
-		led1 = !led1;
 		pc.printf("PDOC ADC Write Success!\r\n");
 	} else {
 		pc.printf("PDOC ADC Write Fail\r\n");
 	}
 
-	if(!i2c1.write(BATT_HV_SENSE_ADC << 1, cmd, 1)){
-		led1 = !led1;
-		pc.printf("BATT ADC Write Success!\r\n");
-	} else {
-		pc.printf("BATT ADC Write Fail\r\n");
-	}
-
 	if(!i2c1.write(MC_HV_SENSE_ADC << 1, cmd, 1)){
-		led1 = !led1;
 		pc.printf("MC ADC Write Success!\r\n");
 	} else {
 		pc.printf("MC ADC Write Fail\r\n");

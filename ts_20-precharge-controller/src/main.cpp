@@ -17,7 +17,7 @@ Use the following platformIO initialisation:
 The precharge controller is a PCB designed by Team Swinburne to control the precharge sequences of 
 a Formula SAE vehicle, and safely manage the health of the accumulator. This PCB integrates the
 precharge resistor array, precharge relay, overtemperature safety control, safety interlock for the AMS, 
-interface for isolation monitoring device (IMD), and the ability to detect the voltage of the battery and motor
+an interface for the isolation monitoring device (IMD), and the ability to detect the voltage of the battery and motor
 controller.
 
 //-----------------------------------------------
@@ -72,7 +72,7 @@ PC_15/OSC32OUT (3.3V)*
 #include <CAN.h>
 
 //-----------------------------------------------
-// INTERFACES
+// Interfaces
 //-----------------------------------------------
 
 // UART Interface
@@ -81,7 +81,7 @@ Serial pc(PA_2, PA_3);                 		//TX, RX
 // I2C Interface
 I2C i2c1(PB_7, PB_6);     						//SDA, SCL
 
-// I2C Addresses
+// I2C Addressess
 #define PDOC_ADC     						0x4A
 #define MC_HV_SENSE_ADC						0x49
 #define BATT_HV_SENSE_ADC					0x48
@@ -206,9 +206,10 @@ void CAN1_receive(){
 	}
 }
 
-/* CAN TRANSMIT
+/* 
+CAN TRANSMIT
 	Outgoing messages sent periodically (CAN_BROADCAST_INTERVAL).
-	*/
+*/
 void CAN1_transmit(){
     char TX_data[8] = {0};
 
@@ -250,8 +251,6 @@ void CAN1_transmit(){
 		printf("MESSAGE FAIL!\r\n");
 	}
 }
-
-
 
 //-----------------------------------------------
 // Daemons
@@ -375,6 +374,10 @@ void updateanalogd(){
 		mc_voltage = voltage * 10;
 	}
 }
+
+//-----------------------------------------------
+// Initialisations
+//-----------------------------------------------
 
 void initialiseADC(){
 	char cmd[1];

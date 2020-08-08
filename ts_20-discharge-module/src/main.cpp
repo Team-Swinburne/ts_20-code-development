@@ -1,6 +1,6 @@
 // TEAM SWINBURNE - TS_20
 // DISCHARGE MODULE
-// MICHAEL COCHRANE & PATRICK CURTAIN
+// PATRICK CURTAIN
 // REVISION 0 (29/02/2020)
 
 /* 
@@ -77,7 +77,7 @@ PC_15/OSC32OUT (3.3V)*
 //-----------------------------------------------
 
 // UART Interface
-Serial pc(PA_2, PA_3);                 		//TX, RX
+Serial pc(PA_2, PA_3);              	   //TX, RX
 
 // I2C Interface
 I2C i2c1(PB_7, PB_6);     					//SDA, SCL
@@ -89,11 +89,6 @@ I2C i2c1(PB_7, PB_6);     					//SDA, SCL
 
 // I2C Config Register
 const char adc_initial_config[3] = {0x01, 0b11000000, 0b10000000};
-
-//GND 48
-//VDD 49
-//SDA 4A
-//SCL 4B
 
 // CANBUS Interface
 CAN can1(PB_8, PB_9);     						// TXD, RXD
@@ -201,7 +196,7 @@ void CAN1_transmit(){
 	if(can1.write(CANMessage(DISCHARGE_MODULE_ANALOGUE_ID, &TX_data[0], 8))) {
        can1_tx_led = !can1_tx_led;
     } else {
-		printf("MESSAGE FAIL!\r\n");
+		// printf("MESSAGE FAIL!\r\n");
 	}
 	
 	TX_data[0] = error_present;
@@ -212,7 +207,7 @@ void CAN1_transmit(){
 	if (can1.write(CANMessage(DISCHARGE_MODULE_ERROR_ID, &TX_data[0], 4))) {
        can1_tx_led = !can1_tx_led;
     } else {
-		printf("MESSAGE FAIL!\r\n");
+		// printf("MESSAGE FAIL!\r\n");
 	}
 
 	TX_data[0] = PDOC_ok;
@@ -221,7 +216,7 @@ void CAN1_transmit(){
 	if (can1.write(CANMessage(DISCHARGE_CONTROLLER_PERIPHERAL_ID, &TX_data[0], 2))) {
        can1_tx_led = !can1_tx_led;
     } else {
-		printf("MESSAGE FAIL!\r\n");
+		// printf("MESSAGE FAIL!\r\n");
 	}
 }
 
@@ -290,12 +285,14 @@ void initialiseADC(){
     
 	if(!i2c1.write(PDOC_ADC << 1, adc_initial_config, 2)){
 		pc.printf("PDOC ADC Write Success!\r\n");
+		led1 = !led1;
 	} else {
 		pc.printf("PDOC ADC Write Fail\r\n");
 	}
 
 	if(!i2c1.write(MC_HV_SENSE_ADC << 1, adc_initial_config, 2)){
 		pc.printf("MC ADC Write Success!\r\n");
+		led1 = !led1;
 	} else {
 		pc.printf("MC ADC Write Fail\r\n");
 	}
@@ -304,6 +301,7 @@ void initialiseADC(){
 
 	if(!i2c1.write(PDOC_ADC << 1, cmd, 1)){
 		pc.printf("PDOC ADC Write Success!\r\n");
+		led1 = !led1;
 	} else {
 		pc.printf("PDOC ADC Write Fail\r\n");
 	}

@@ -79,7 +79,7 @@ PC_15/OSC32OUT (3.3V)*
 Serial pc(PA_2, PA_3);                 		//TX, RX
 
 // I2C Interface
-I2C i2c1(PB_7, PB_6);     						//SDA, SCL
+I2C i2c1(PB_7, PB_6);     					//SDA, SCL
 
 // I2C Addressess
 #define PDOC_ADC     						0x4A
@@ -152,8 +152,8 @@ DigitalOut can1_tx_led(PB_0);
 AnalogIn   pcb_temperature(PA_0);
 
 DigitalOut AIR_neg_relay(PA_8);
-DigitalOut precharge_relay(PA_5); //pa_9
-DigitalOut AIR_pos_relay(PA_6); //pa_10
+DigitalOut precharge_relay(PA_9); //pa_
+DigitalOut AIR_pos_relay(PA_10); //pa_10
 DigitalOut AMS_ok(PB_13);
 
 DigitalIn IMD_data(PA_15);
@@ -187,7 +187,7 @@ void heartbeat(){
 
 	/*
 CAN RECEIVE
-	Message box for CAN messages to be interpreted.
+	Message box for CANBUS.
 	*/
 void CAN1_receive(){
 	can1_rx_led = !can1_rx_led;
@@ -225,7 +225,7 @@ void CAN1_transmit(){
 	if(can1.write(CANMessage(PRECHARGE_CONTROLLER_ANALOGUE_ID, &TX_data[0], 8))) {
        can1_tx_led = !can1_tx_led;
     } else {
-		printf("MESSAGE FAIL!\r\n");
+		// printf("MESSAGE FAIL!\r\n");
 	}
 	
 	TX_data[0] = error_present;
@@ -236,7 +236,7 @@ void CAN1_transmit(){
 	if (can1.write(CANMessage(PRECHARGE_CONTROLLER_ERROR_ID, &TX_data[0], 4))) {
        can1_tx_led = !can1_tx_led;
     } else {
-		printf("MESSAGE FAIL!\r\n");
+		// printf("MESSAGE FAIL!\r\n");
 	}
 
 	TX_data[0] = PDOC_ok;
@@ -248,7 +248,7 @@ void CAN1_transmit(){
 	if (can1.write(CANMessage(PRECHARGE_CONTROLLER_PERIPHERAL_ID, &TX_data[0], 5))) {
        can1_tx_led = !can1_tx_led;
     } else {
-		printf("MESSAGE FAIL!\r\n");
+		// printf("MESSAGE FAIL!\r\n");
 	}
 }
 
@@ -285,17 +285,17 @@ void warnd(){
 	}
 	if (AIR_neg_feedback != AIR_neg_relay){
 		warning_present = 1;
-		warning_code = warning_code + 0b00000100;
+		warning_code = warning_code + 0b0000010;
 		pc.printf("Negative AIR mismatch, check for welding or wiring failure\r\n");
 	}
 	if (AIR_pos_feedback != AIR_pos_relay){
 		warning_present = 1;
-		warning_code = warning_code + 0b00001000;
+		warning_code = warning_code + 0b00000100;
 		pc.printf("Positive AIR mismatch, check for welding or wiring failure\r\n");
 	}
 	if (pcb_temperature > 60){
 		warning_present = 1;
-		warning_code = warning_code + 0b00010000;
+		warning_code = warning_code + 0b00001000;
 		pc.printf("PCB too hot, you should probably check that, but don't take my word\
 		for it, i'm just a hot MCU looking to have some fun! ;) ");
 	}
@@ -456,8 +456,10 @@ int main() {
     while(1) {
 		stated();
 		errord();
+		updateanalogd();
 		if ((heartbeat_counter % 10) == 0)
 			warnd();
+		wait(0.10);
     }
 
 	printf("Is this a BSOD?");

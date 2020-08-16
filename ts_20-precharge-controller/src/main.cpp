@@ -95,7 +95,7 @@ const char adc_initial_config[3] = {0x01, 0b11000000, 0b10000000};
 //SCL 4B
 
 // CANBUS Interface
-CAN can1(PB_8, PB_9);     						// TXD, RXD
+CAN can1(PB_8, PB_9);     						// RXD, TXD
 
 // CANBUS Addresses
 #define PRECHARGE_CONTROLLER_HEARTBEAT_ID 			0x440
@@ -446,12 +446,14 @@ void setup(){
 //-----------------------------------------------
 
 int main() {
+	__disable_irq();
     pc.printf("Starting ts_20 Precharge Controller (STM32F103C8T6 128k) \
 	\r\nCOMPILED: %s: %s\r\n",__DATE__, __TIME__);
 	setup();
 
 	pc.printf("Finished Startup\r\n");
 	wait(1);
+	__enable_irq();
 
     while(1) {
 		stated();

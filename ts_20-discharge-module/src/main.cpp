@@ -91,7 +91,7 @@ I2C i2c1(PB_7, PB_6);     					//SDA, SCL
 const char adc_initial_config[3] = {0x01, 0b11000000, 0b10000000};
 
 // CANBUS Interface
-CAN can1(PB_8, PB_9);     						// TXD, RXD
+CAN can1(PB_8, PB_9);     						// RXD, TXD
 
 // CANBUS Addresses
 #define PRECHARGE_CONTROLLER_HEARTBEAT_ID 			0x440
@@ -193,10 +193,10 @@ void CAN1_transmit(){
 	TX_data[4] = (char)(mc_voltage >> 8);
 	TX_data[5] = (char)(mc_voltage && 255);
 
-	if(can1.write(CANMessage(DISCHARGE_MODULE_ANALOGUE_ID, &TX_data[0], 8))) {
+	if(can1.write(CANMessage(DISCHARGE_MODULE_ANALOGUE_ID, &TX_data[0], 6))) {
        can1_tx_led = !can1_tx_led;
     } else {
-		// printf("MESSAGE FAIL!\r\n");
+		printf("MESSAGE FAIL!\r\n");
 	}
 	
 	TX_data[0] = error_present;
@@ -207,7 +207,7 @@ void CAN1_transmit(){
 	if (can1.write(CANMessage(DISCHARGE_MODULE_ERROR_ID, &TX_data[0], 4))) {
        can1_tx_led = !can1_tx_led;
     } else {
-		// printf("MESSAGE FAIL!\r\n");
+		printf("MESSAGE FAIL!\r\n");
 	}
 
 	TX_data[0] = PDOC_ok;
@@ -216,7 +216,7 @@ void CAN1_transmit(){
 	if (can1.write(CANMessage(DISCHARGE_CONTROLLER_PERIPHERAL_ID, &TX_data[0], 2))) {
        can1_tx_led = !can1_tx_led;
     } else {
-		// printf("MESSAGE FAIL!\r\n");
+		printf("MESSAGE FAIL!\r\n");
 	}
 }
 
@@ -332,12 +332,14 @@ void setup(){
 //-----------------------------------------------
 
 int main() {
-    pc.printf("Starting ts_20 Precharge Controller (STM32F103C8T6 128k) \
+	__disable_irq();
+    pc.printf("Starting ts_20 Discharge Controller (STM32F103C8T6 128k) \
 	\r\nCOMPILED: %s: %s\r\n",__DATE__, __TIME__);
 	setup();
 
 	pc.printf("Finished Startup\r\n");
 	wait(1);
+	__enable_irq();
 
     while(1) {
 		stated();

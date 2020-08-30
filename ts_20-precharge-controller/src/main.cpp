@@ -117,6 +117,89 @@ CAN can1(PB_8, PB_9);     						// RXD, TXD
 #define TC_CHARGER_STATUS_ID						0x18FF50E5
 
 //-----------------------------------------------
+// Classes
+//-----------------------------------------------
+
+class PCB_Temp {
+public:
+	PCB_Temp(PinName pin)	: _sensor(pin){
+		_temperature = PCB_Temp::read();
+	}
+
+	int read(){
+		return resistanceToTemperature(voltageToResistance(_sensor.read()));
+	}
+
+private:
+	const float r2 = 10000;
+	const float vin = 5;
+
+	const int BETA = 3400;
+	const float R2 = 10000;
+	const float T2 = 21;
+
+	float _resistance;
+	int _temperature; 
+	AnalogIn _sensor;
+
+	float voltageToResistance(float vout){
+		return r2/((vin/vout)-1);
+	}
+
+	int resistanceToTemperature(float R1){
+		return  (BETA * T2)/(T2 * log(R1/R2) + BETA);
+	}
+};
+
+class IMD_Data {
+public: 
+	IMD_Data(PinName pin) 	: _interrupt(pin) {}
+
+	void start(){
+		_t1 = 0;
+		_interrupt.rise(this, &IMD_Data::setPeriod);
+		_interrupt.fall(this, &IMD_Data::setDutyCycle);
+		_t.start();
+	}
+
+	void setPeriod(){
+		_t3 = _t.read();
+		_T1 = _t1 - _t3;
+		_F1 = 1/_T1;
+	}
+
+	void setDutyCycle(){
+		_t2 = _t.read();
+		_T2 = _t2 - _t1;
+		_dutyCycle = _T2/_T1;
+	}
+
+	int readPeriod(){
+		// Return ms * 100
+		return _T2 * 100;
+	}
+
+	int readDutyCycle(){
+		return _dutyCycle;
+	}
+
+private:
+	InterruptIn _interrupt;
+
+	volatile float	_t1;
+	volatile float 	_t2;
+	volatile float 	_t3;
+	
+	volatile float 	_T1;
+	volatile float 	_T2;
+
+	volatile int	_F1;
+	volatile int	_dutyCycle;
+
+	Timer _t;
+};
+
+//-----------------------------------------------
 // Globals
 //-----------------------------------------------
 
@@ -149,14 +232,14 @@ Ticker ticker_can_transmit;
 DigitalOut led1(PC_13);
 DigitalOut can1_rx_led(PB_1);
 DigitalOut can1_tx_led(PB_0);
-AnalogIn   pcb_temperature(PA_0);
+PCB_Temp   pcb_temperature(PA_0);
 
 DigitalOut AIR_neg_relay(PA_8);
 DigitalOut precharge_relay(PA_9); //pa_
 DigitalOut AIR_pos_relay(PA_10); //pa_10
 DigitalOut AMS_ok(PB_13);
 
-DigitalIn IMD_data(PA_15);
+IMD_Data  imd_interface(PA_15);
 DigitalIn AIR_power(PB_3);
 DigitalIn AIR_neg_feedback(PB_10);
 DigitalIn AIR_pos_feedback(PB_11);
@@ -175,8 +258,8 @@ HEARTBEAT
 void heartbeat(){
 	heartbeat_counter++;
 	led1 = !led1;
-	char TX_data[2] = {(char)heartbeat_state, (char)heartbeat_counter};
-	if(can1.write(CANMessage(PRECHARGE_CONTROLLER_HEARTBEAT_ID, &TX_data[0], 2))) 
+	char TX_data[3] = {(char)heartbeat_state, (char)heartbeat_counter, (char)pcb_temperature.PCB_Temp::read()};
+	if(can1.write(CANMessage(PRECHARGE_CONTROLLER_HEARTBEAT_ID, &TX_data[0], 3))) 
 	{
        	pc.printf("Heartbeat Success! State: %d Counter: %d\r\n", heartbeat_state, heartbeat_counter);
     }else
@@ -232,6 +315,8 @@ void CAN1_transmit(){
 	TX_data[1] = error_code;
 	TX_data[2] = warning_present;
 	TX_data[3] = warning_code; // add stuff for imd period and frequency.
+	TX_data[4] = imd_interface.readPeriod();
+	TX_data[5] = imd_interface.readDutyCycle();
 	
 	if (can1.write(CANMessage(PRECHARGE_CONTROLLER_ERROR_ID, &TX_data[0], 4))) {
        can1_tx_led = !can1_tx_led;
@@ -293,7 +378,7 @@ void warnd(){
 		warning_code = warning_code + 0b00000100;
 		pc.printf("Positive AIR mismatch, check for welding or wiring failure\r\n");
 	}
-	if (pcb_temperature > 60){
+	if (pcb_temperature.PCB_Temp::read() > 60){
 		warning_present = 1;
 		warning_code = warning_code + 0b00001000;
 		pc.printf("PCB too hot, you should probably check that, but don't take my word\
@@ -375,6 +460,11 @@ void updateanalogd(){
 	}
 }
 
+int readTemperature(float voltage){
+	// Convert to resistance
+	
+}
+
 //-----------------------------------------------
 // Initialisations
 //-----------------------------------------------
@@ -438,6 +528,7 @@ void setup(){
 	ticker_heartbeat.attach(&heartbeat, HEARTRATE);
 	ticker_can_transmit.attach(&CAN1_transmit, CAN_BROADCAST_INTERVAL);
 
+	imd_interface.start();
 	initialiseADC();
 }
 

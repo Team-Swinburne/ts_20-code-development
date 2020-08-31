@@ -128,27 +128,27 @@ public:
 	}
 
 	int read(){
-		return resistanceToTemperature(voltageToResistance(_sensor.read()));
+		return resistanceToTemperature(voltageToResistance(3.3*_sensor.read()));
 	}
 
 private:
-	const float r2 = 10000;
-	const float vin = 5;
+	const float r1 = 10000;
+	const float vin = 4.35;
 
-	const int BETA = 3400;
+	const float BETA = 3430;
 	const float R2 = 10000;
-	const float T2 = 21;
+	const float T2 = 25 + 270;
 
 	float _resistance;
-	int _temperature; 
+	int _temperature;
 	AnalogIn _sensor;
 
 	float voltageToResistance(float vout){
-		return r2/((vin/vout)-1);
+		return r1/((vin/vout)-1);
 	}
 
 	int resistanceToTemperature(float R1){
-		return  (BETA * T2)/(T2 * log(R1/R2) + BETA);
+		return ((BETA * T2)/(T2 * log(R1/R2) + BETA))-270;
 	}
 };
 
@@ -553,7 +553,7 @@ int main() {
 		updateanalogd();
 		if ((heartbeat_counter % 10) == 0)
 			warnd();
-		wait(0.10);
+		wait(1);
     }
 
 	printf("Is this a BSOD?");

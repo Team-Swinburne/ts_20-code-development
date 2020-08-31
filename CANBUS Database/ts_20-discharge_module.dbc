@@ -1,0 +1,62 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_: Discharge_Module
+
+
+BO_ 1104 DISCHARGE_MODULE_HEARTBEAT: 4 Discharge_Module
+ SG_ discharge_heartbeat_state : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ discharge_heartbeat_counter : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ discharge_pcb_temperature : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 1105 DISCHARGE_MODULE_ERROR: 4 Discharge_Module
+ SG_ discharge_error_present : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ discharge_warning_present : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ precharge_PDOC_ok : 8|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ precharge_pre_dis_mismatch : 25|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ precharge_positive_AIR_mismatch : 27|1@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 1106 DISCHARGE_MODULE_ANALOGUE: 8 Discharge_Module
+ SG_ discharge_pdoc_temperature : 0|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ discharge_pdoc_ref_temperature : 16|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ discharge_mc_voltage : 32|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ discharge_battery_voltage : 48|16@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 1107 DISCHARGE_MODULE_PERIPHERAL: 5 Discharge_Module
+ SG_ discharge_release : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+
+
+
+

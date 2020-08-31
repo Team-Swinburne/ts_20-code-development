@@ -15,14 +15,14 @@ Use the following platformIO initialisation:
 //-----------------------------------------------
 
 The precharge controller is a PCB designed by Team Swinburne to control the precharge sequences of 
-a Formula SAE vehicle, and safely manage the health of the accumulator. This PCB integrates the
-precharge resistor array, precharge relay, overtemperature safety control, safety interlock for the AMS, 
+a Formula SAE vehicle, mointor the health of the accumulator based on various inputs and react accordingly. This PCB 
+integrates the precharge resistor array, precharge relay, over-temperature safety control (PDOc), safety interlock for the AMS, 
 an interface for the isolation monitoring device (IMD), and the ability to detect the voltage of the battery and motor
 controller.
 
 //-----------------------------------------------
 
-Based on STM32F103T6R8 "Blue Pill".
+Based on STM32F103C8 "Blue Pill".
 
 PA_0/ADC0/CTS2/T2C1E/WKUP (PWM) (3.3V)
 PA_1/ADC/RT52/T2C2 (PWM) (3.3V)
@@ -107,6 +107,7 @@ CAN can1(PB_8, PB_9);     						// RXD, TXD
 #define DISCHARGE_MODULE_ERROR_ID					0x451
 #define DISCHARGE_MODULE_ANALOGUE_ID				0x452
 #define DISCHARGE_CONTROLLER_PERIPHERAL_ID			0x453
+
 // Throttle Controller
 // Brake Module
 // Orion BMS 2
@@ -203,28 +204,28 @@ private:
 // Globals
 //-----------------------------------------------
 
-int8_t  heartbeat_state 			               = 0;
-int	    heartbeat_counter 			               = 0;
-bool 	error_present							   = 1; // (1 - Default)
-int8_t	error_code								   = 0;
-bool 	warning_present 						   = 0;
-int8_t  warning_code							   = 0;
-bool	precharge_button_state					   = 0;
-bool 	charge_mode_activated					   = 0; 
-int 	discharge_state							   = 2;	// (2 - Default)
+static int8_t  	heartbeat_state 			= 0;
+static int	    heartbeat_counter 			= 0;
+static bool 	error_present				= 1; 	// (1 - Default)
+static int8_t	error_code					= 0;
+static bool 	warning_present 			= 0;
+static int8_t  	warning_code				= 0;
+static bool		precharge_button_state		= 0;
+static bool 	charge_mode_activated		= 0; 
+static int 		discharge_state				= 2;	// (2 - Default)
 
-int16_t pdoc_temperature						   = 0;
-int16_t pdoc_ref_temperature					   = 0;
-int16_t mc_voltage								   = 0;
-int16_t battery_voltage 						   = 0;
+static int16_t pdoc_temperature				= 0;
+static int16_t pdoc_ref_temperature			= 0;
+static int16_t mc_voltage					= 0;
+static int16_t battery_voltage 				= 0;
 
-// Program Interval Timer Instances
+// Program Interrupt Timer Instances
 Ticker ticker_heartbeat;
 Ticker ticker_can_transmit;
 
 // Interval Periods
-#define	HEARTRATE			                        1
-#define CAN_BROADCAST_INTERVAL                  	0.05
+#define	HEARTRATE			 				1
+#define CAN_BROADCAST_INTERVAL              0.05
 
 //-----------------------------------------------
 // GPIO 
@@ -239,7 +240,7 @@ DigitalOut precharge_relay(PA_9); //pa_
 DigitalOut AIR_pos_relay(PA_10); //pa_10
 DigitalOut AMS_ok(PB_13);
 
-IMD_Data  imd_interface(PA_15);
+IMD_Data  IMD_interface(PA_15);
 DigitalIn AIR_power(PB_3);
 DigitalIn AIR_neg_feedback(PB_10);
 DigitalIn AIR_pos_feedback(PB_11);
@@ -295,6 +296,19 @@ CAN TRANSMIT
 */
 void CAN1_transmit(){
     char TX_data[8] = {0};
+		
+	TX_data[0] = error_present;
+	TX_data[1] = error_code;
+	TX_data[2] = warning_present;
+	TX_data[3] = warning_code; // add stuff for imd period and frequency.
+	TX_data[4] = IMD_interface.IMD_Data::readPeriod();
+	TX_data[5] = IMD_interface.IMD_Data::readDutyCycle();
+	
+	if (can1.write(CANMessage(PRECHARGE_CONTROLLER_ERROR_ID, &TX_data[0], 4))) {
+       can1_tx_led = !can1_tx_led;
+    } else {
+		// printf("MESSAGE FAIL!\r\n");
+	}
 
 	TX_data[0] = (char)(pdoc_temperature >> 8);
 	TX_data[1] = (char)(pdoc_temperature && 255);
@@ -310,25 +324,13 @@ void CAN1_transmit(){
     } else {
 		// printf("MESSAGE FAIL!\r\n");
 	}
-	
-	TX_data[0] = error_present;
-	TX_data[1] = error_code;
-	TX_data[2] = warning_present;
-	TX_data[3] = warning_code; // add stuff for imd period and frequency.
-	TX_data[4] = imd_interface.readPeriod();
-	TX_data[5] = imd_interface.readDutyCycle();
-	
-	if (can1.write(CANMessage(PRECHARGE_CONTROLLER_ERROR_ID, &TX_data[0], 4))) {
-       can1_tx_led = !can1_tx_led;
-    } else {
-		// printf("MESSAGE FAIL!\r\n");
-	}
 
-	TX_data[0] = PDOC_ok;
-	TX_data[1] = IMD_ok;
-	TX_data[2] = AIR_power;
-	TX_data[3] = AIR_neg_feedback;
-	TX_data[4] = AIR_pos_feedback;
+	TX_data[0] = precharge_relay;
+	TX_data[1] = IMD_interface.readPeriod();
+	TX_data[2] = IMD_interface.readDutyCycle();
+	TX_data[3] = AIR_power;
+	TX_data[4] = AIR_neg_feedback;
+	TX_data[5] = AIR_pos_feedback;
 
 	if (can1.write(CANMessage(PRECHARGE_CONTROLLER_PERIPHERAL_ID, &TX_data[0], 5))) {
        can1_tx_led = !can1_tx_led;
@@ -363,26 +365,30 @@ void errord(){
 void warnd(){
 	warning_present = 0;
 	warning_code = 0;
-	if (discharge_state > 2 && heartbeat_state != 0){
+	if (pcb_temperature.PCB_Temp::read() > 60){
 		warning_present = 1;
 		warning_code = warning_code + 0b00000001;
-		pc.printf("Discharge reported active, please check wiring to discharge.\r\n");
+		// PCB Overtemperature
+		pc.printf("PCB too hot, you should probably check that, but don't take my word\
+		for it, i'm just a hot MCU looking to have some fun! ;) ");
+	}
+	if (discharge_state > 2 && heartbeat_state != 0){
+		warning_present = 1;
+		warning_code = warning_code + 0b00000010;
+		// Discharge/Precharge Mismatch
+		pc.printf("Discharge reported active during drive, please check wiring to discharge.\r\n");
 	}
 	if (AIR_neg_feedback != AIR_neg_relay){
 		warning_present = 1;
-		warning_code = warning_code + 0b0000010;
+		warning_code = warning_code + 0b0000100;
+		// Negative AIR Mismatch
 		pc.printf("Negative AIR mismatch, check for welding or wiring failure\r\n");
 	}
 	if (AIR_pos_feedback != AIR_pos_relay){
 		warning_present = 1;
-		warning_code = warning_code + 0b00000100;
-		pc.printf("Positive AIR mismatch, check for welding or wiring failure\r\n");
-	}
-	if (pcb_temperature.PCB_Temp::read() > 60){
-		warning_present = 1;
 		warning_code = warning_code + 0b00001000;
-		pc.printf("PCB too hot, you should probably check that, but don't take my word\
-		for it, i'm just a hot MCU looking to have some fun! ;) ");
+		// Positive AIR Mismatch
+		pc.printf("Positive AIR mismatch, check for welding or wiring failure\r\n");
 	}
 }
 
@@ -460,11 +466,6 @@ void updateanalogd(){
 	}
 }
 
-int readTemperature(float voltage){
-	// Convert to resistance
-	
-}
-
 //-----------------------------------------------
 // Initialisations
 //-----------------------------------------------
@@ -528,7 +529,7 @@ void setup(){
 	ticker_heartbeat.attach(&heartbeat, HEARTRATE);
 	ticker_can_transmit.attach(&CAN1_transmit, CAN_BROADCAST_INTERVAL);
 
-	imd_interface.start();
+	IMD_interface.IMD_Data::start();
 	initialiseADC();
 }
 

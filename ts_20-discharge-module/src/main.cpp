@@ -186,6 +186,17 @@ void CAN1_receive(){
 void CAN1_transmit(){
     char TX_data[8] = {0};
 
+	TX_data[0] = error_present;
+	TX_data[1] = error_code;
+	TX_data[2] = warning_present;
+	TX_data[3] = warning_code; // add stuff for imd period and frequency.
+	
+	if (can1.write(CANMessage(DISCHARGE_MODULE_ERROR_ID, &TX_data[0], 4))) {
+       can1_tx_led = !can1_tx_led;
+    } else {
+		printf("MESSAGE FAIL!\r\n");
+	}
+
 	TX_data[0] = (char)(pdoc_temperature >> 8);
 	TX_data[1] = (char)(pdoc_temperature && 255);
 	TX_data[2] = (char)(pdoc_ref_temperature >> 8);
@@ -198,20 +209,8 @@ void CAN1_transmit(){
     } else {
 		printf("MESSAGE FAIL!\r\n");
 	}
-	
-	TX_data[0] = error_present;
-	TX_data[1] = error_code;
-	TX_data[2] = warning_present;
-	TX_data[3] = warning_code; // add stuff for imd period and frequency.
-	
-	if (can1.write(CANMessage(DISCHARGE_MODULE_ERROR_ID, &TX_data[0], 4))) {
-       can1_tx_led = !can1_tx_led;
-    } else {
-		printf("MESSAGE FAIL!\r\n");
-	}
 
-	TX_data[0] = PDOC_ok;
-	TX_data[1] = discharge_release;
+	TX_data[0] = discharge_release;
 
 	if (can1.write(CANMessage(DISCHARGE_CONTROLLER_PERIPHERAL_ID, &TX_data[0], 2))) {
        can1_tx_led = !can1_tx_led;
@@ -248,16 +247,18 @@ void errord(){
 void warnd(){
 	warning_present = 0;
 	warning_code = 0;
-	if (discharge_state > 2 && heartbeat_state != 0){
-		warning_present = 1;
-		warning_code = warning_code + 0b00000001;
-		pc.printf("Discharge reported active, please check wiring to discharge.\r\n");
-	}
 	if (pcb_temperature > 60){
 		warning_present = 1;
-		warning_code = warning_code + 0b00010000;
+		warning_code = warning_code + 0b0000001;
+		// PCB Overtemperature
 		pc.printf("PCB too hot, you should probably check that, but don't take my word\
 		for it, i'm just a hot MCU looking to have some fun! ;) ");
+	}
+	if (discharge_state > 2 && heartbeat_state != 0){
+		warning_present = 1;
+		warning_code = warning_code + 0b00000010;
+		// Discharge/Precharge Mismatch
+		pc.printf("Discharge reported active, please check wiring to discharge.\r\n");
 	}
 }
 

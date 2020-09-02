@@ -113,6 +113,41 @@ CAN can1(PB_8, PB_9);     						// RXD, TXD
 #define TC_CHARGER_STATUS_ID						0x18FF50E5
 
 //-----------------------------------------------
+// Classes
+//-----------------------------------------------
+
+class PCB_Temp {
+public:
+	PCB_Temp(PinName pin)	: _sensor(pin){
+		_temperature = PCB_Temp::read();
+	}
+
+	int read(){
+		return resistanceToTemperature(voltageToResistance(3.3*_sensor.read()));
+	}
+
+private:
+	const float r1 = 10000;
+	const float vin = 4.35;
+
+	const float BETA = 3430;
+	const float R2 = 10000;
+	const float T2 = 25 + 270;
+
+	float _resistance;
+	int _temperature;
+	AnalogIn _sensor;
+
+	float voltageToResistance(float vout){
+		return r1/((vin/vout)-1);
+	}
+
+	int resistanceToTemperature(float R1){
+		return ((BETA * T2)/(T2 * log(R1/R2) + BETA))-270;
+	}
+};
+
+//-----------------------------------------------
 // Globals
 //-----------------------------------------------
 
@@ -145,7 +180,7 @@ Ticker ticker_can_transmit;
 DigitalOut led1(PC_13);
 DigitalOut can1_rx_led(PB_1);
 DigitalOut can1_tx_led(PB_0);
-AnalogIn   pcb_temperature(PA_0);
+PCB_Temp   pcb_temperature(PA_0);
 
 DigitalIn discharge_release(PB_11);
 DigitalIn PDOC_ok(PB_15);
@@ -162,8 +197,8 @@ HEARTBEAT
 void heartbeat(){
 	heartbeat_counter++;
 	led1 = !led1;
-	char TX_data[2] = {(char)heartbeat_state, (char)heartbeat_counter};
-	if(can1.write(CANMessage(DISCHARGE_MODULE_HEARTBEAT_ID, &TX_data[0], 2))) 
+	char TX_data[3] = {(char)heartbeat_state, (char)heartbeat_counter, (char)pcb_temperature.PCB_Temp::read()};
+	if(can1.write(CANMessage(DISCHARGE_MODULE_HEARTBEAT_ID, &TX_data[0], 3))) 
 	{
        	pc.printf("Heartbeat Success! State: %d Counter: %d\r\n", heartbeat_state, heartbeat_counter);
     }else
@@ -247,7 +282,7 @@ void errord(){
 void warnd(){
 	warning_present = 0;
 	warning_code = 0;
-	if (pcb_temperature > 60){
+	if (pcb_temperature.PCB_Temp::read() > 60){
 		warning_present = 1;
 		warning_code = warning_code + 0b0000001;
 		// PCB Overtemperature

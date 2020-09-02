@@ -214,10 +214,10 @@ static bool		precharge_button_state		= 0;
 static bool 	charge_mode_activated		= 0; 
 static int 		discharge_state				= 2;	// (2 - Default)
 
-static int16_t pdoc_temperature				= 0;
-static int16_t pdoc_ref_temperature			= 0;
-static int16_t mc_voltage					= 0;
-static int16_t battery_voltage 				= 0;
+static int16_t  pdoc_temperature			= 0;
+static int16_t  pdoc_ref_temperature		= 0;
+static int16_t  mc_voltage					= 0;
+static int16_t  battery_voltage 			= 0;
 
 // Program Interrupt Timer Instances
 Ticker ticker_heartbeat;

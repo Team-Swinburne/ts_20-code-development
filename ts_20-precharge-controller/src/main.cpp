@@ -72,14 +72,6 @@ PC_15/OSC32OUT (3.3V)*
 #include <CAN.h>
 
 //-----------------------------------------------
-// Constants
-//----------------------------
-
-// Absolute limits, failsafe for Orion status message failure.
-const int MINIMUM_CELL_VOLTAGE = 27;
-const int MAXIMUM_CELL_VOLTAGE = 43;
-
-//-----------------------------------------------
 // Interfaces
 //-----------------------------------------------
 
@@ -121,6 +113,7 @@ CAN can1(PB_8, PB_9);     						// RXD, TXD
 // Orion BMS 2
 #define ORION_BMS_STATUS_ID							0x200
 #define ORION_BMS_VOLTAGE_ID						0x201
+#define ORION_BMS_TEMPERATURE_ID					0x202
 // Orion TEM
 // Dash
 // Motor Controller
@@ -214,6 +207,11 @@ private:
 // Globals
 //-----------------------------------------------
 
+// Voltage Limits
+const int MINIMUM_CELL_VOLTAGE = 27;
+const int MAXIMUM_CELL_VOLTAGE = 43;
+const int MAXIMUM_CELL_TEMPERATURE = 65;
+
 static int8_t  	heartbeat_state 			= 0;
 static int	    heartbeat_counter 			= 0;
 static bool 	error_present				= 1; 	// (1 - Default)
@@ -228,6 +226,7 @@ static bool 	orion_connected	 			= 0;	// (0 - Default)
 
 static int 		orion_low_voltage			= 0;
 static int 		orion_high_voltage			= 0;
+static int 		orion_high_temperature		= 0;
 
 static int16_t  pdoc_temperature			= 0;
 static int16_t  pdoc_ref_temperature		= 0;
@@ -316,6 +315,10 @@ void CAN1_receive(){
 			case ORION_BMS_VOLTAGE_ID:
 				orion_low_voltage = can1_msg.data[0];
 				orion_high_voltage = can1_msg.data[2];
+				break;
+
+			case ORION_BMS_TEMPERATURE_ID:
+				orion_high_temperature = can1_msg.data[2];
 				break;
 			
 			//Need to add temperature check as well, but wait until that is sorted!
@@ -421,8 +424,11 @@ void errord(){
 		error_code = error_code + 0b000010000;
 		pc.printf("FAULT: Orion reports overvoltage fault!\r\n");
 	}
-
-	// ADD ADDITIONAL BATTERY CHECKS CHECK IF ORION PRESENT ETC.
+	if (orion_high_temperature > MAXIMUM_CELL_TEMPERATURE){
+		error_present = 1;
+		error_code = error_code + 0b000100000;
+		pc.printf("FAULT: Orion reports overtemperature fault!\r\n");
+	}
 	if (error_present)
 		heartbeat_state = 0;
 }

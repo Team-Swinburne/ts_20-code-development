@@ -53,6 +53,7 @@ BO_ 1089 PRECHARGE_CONTROLLER_ERROR: 4 Precharge_Controller
  SG_ precharge_orion_disconnected : 10|1@1+ (1,0) [0|0] "" Vector__XXX
  SG_ precharge_cell_undervoltage : 11|1@1+ (1,0) [0|0] "" Vector__XXX
  SG_ precharge_cell_overvoltage : 12|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ precharge_cell_overtemperature : 13|1@1+ (1,0) [0|0] "" Vector__XXX
 
 BO_ 1090 PRECHARGE_CONTROLLER_ANALOGUE: 8 Precharge_Controller
  SG_ precharge_pdoc_temperature : 0|16@1+ (1,0) [0|0] "" Vector__XXX

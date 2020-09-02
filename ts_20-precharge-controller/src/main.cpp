@@ -72,6 +72,14 @@ PC_15/OSC32OUT (3.3V)*
 #include <CAN.h>
 
 //-----------------------------------------------
+// Constants
+//----------------------------
+
+// Absolute limits, failsafe for Orion status message failure.
+const int MINIMUM_CELL_VOLTAGE = 27;
+const int MAXIMUM_CELL_VOLTAGE = 43;
+
+//-----------------------------------------------
 // Interfaces
 //-----------------------------------------------
 
@@ -111,6 +119,8 @@ CAN can1(PB_8, PB_9);     						// RXD, TXD
 // Throttle Controller
 // Brake Module
 // Orion BMS 2
+#define ORION_BMS_STATUS_ID							0x200
+#define ORION_BMS_VOLTAGE_ID						0x201
 // Orion TEM
 // Dash
 // Motor Controller
@@ -213,6 +223,11 @@ static int8_t  	warning_code				= 0;
 static bool		precharge_button_state		= 0;
 static bool 	charge_mode_activated		= 0; 
 static int 		discharge_state				= 2;	// (2 - Default)
+static int 		orion_timeout_counter		= 0;
+static bool 	orion_connected	 			= 0;	// (0 - Default)
+
+static int 		orion_low_voltage			= 0;
+static int 		orion_high_voltage			= 0;
 
 static int16_t  pdoc_temperature			= 0;
 static int16_t  pdoc_ref_temperature		= 0;
@@ -222,10 +237,12 @@ static int16_t  battery_voltage 			= 0;
 // Program Interrupt Timer Instances
 Ticker ticker_heartbeat;
 Ticker ticker_can_transmit;
+Ticker ticker_orion_watchdog;
 
 // Interval Periods
 #define	HEARTRATE			 				1
 #define CAN_BROADCAST_INTERVAL              0.05
+#define ORION_TIMEOUT						0.1
 
 //-----------------------------------------------
 // GPIO 
@@ -283,9 +300,30 @@ void CAN1_receive(){
 			case DISCHARGE_MODULE_HEARTBEAT_ID:
 				discharge_state = can1_msg.data[0];
 				break;
+
+			case ORION_BMS_STATUS_ID:{
+				// Big endian & MSB
+				// 0b000000, 0000001	Discharge Relay Enabled
+				// 0b000000, 0000010	Charge Relay Enabled
+				// 0b000000, 0000100	Charge Safety Enabled
+				// Use bitwise operator to mask out all except relevent statuses.
+				int relay_status = can1_msg.data[1] & 0b0000000000000111;
+				if (relay_status > 0)
+					orion_connected = true;		
+				break;
+			}
+			
+			case ORION_BMS_VOLTAGE_ID:
+				orion_low_voltage = can1_msg.data[0];
+				orion_high_voltage = can1_msg.data[2];
+				break;
+			
+			//Need to add temperature check as well, but wait until that is sorted!
+
 			case TC_CHARGER_STATUS_ID:
 				charge_mode_activated = 1;
 				printf("Entering charge mode. Cycle power to exit charge mode\r\n");
+				break;
 		}
 	}
 }
@@ -343,6 +381,16 @@ void CAN1_transmit(){
 // Daemons
 //-----------------------------------------------
 
+void orion_watchdog(){
+	if (heartbeat_state > 0){
+		if ((orion_timeout_counter/10) >= ORION_TIMEOUT){
+			orion_connected = false;
+		}
+		orion_timeout_counter += 1;
+	}
+}
+
+
 void errord(){
 	error_present = 0;
 	error_code = 0;
@@ -357,6 +405,23 @@ void errord(){
 		pc.printf("FAULT: PDOC failure detected, please allow to cool and check for\
 		short circuit!\r\n");
 	}
+	if (orion_connected != 1){
+		error_present = 1;
+		error_code = error_code + 0b00000100;
+		pc.printf("FAULT: Orion BMS not attached, please check CAN is functioning, and\
+		Orion is attached!\r\n");
+	}
+	if (orion_low_voltage < MINIMUM_CELL_VOLTAGE){
+		error_present = 1;
+		error_code = error_code + 0b00001000;
+		pc.printf("FAULT: Orion reports undervoltage fault!\r\n");
+	}
+	if (orion_low_voltage > MAXIMUM_CELL_VOLTAGE){
+		error_present = 1;
+		error_code = error_code + 0b000010000;
+		pc.printf("FAULT: Orion reports overvoltage fault!\r\n");
+	}
+
 	// ADD ADDITIONAL BATTERY CHECKS CHECK IF ORION PRESENT ETC.
 	if (error_present)
 		heartbeat_state = 0;
@@ -528,6 +593,8 @@ void setup(){
 	
 	ticker_heartbeat.attach(&heartbeat, HEARTRATE);
 	ticker_can_transmit.attach(&CAN1_transmit, CAN_BROADCAST_INTERVAL);
+
+	ticker_orion_watchdog.attach(&orion_watchdog, ORION_TIMEOUT);
 
 	IMD_interface.IMD_Data::start();
 	initialiseADC();

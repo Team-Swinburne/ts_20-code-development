@@ -591,7 +591,7 @@ void initialiseADC(){
 
 	/*
 SETUP
-	Initialisation of CANBUS, ADC, and PIT. 
+	Initialisation of CANBUS, ADC, and HEARTBEAT. 
 	*/
 void setup(){
 	can1.frequency(250000);

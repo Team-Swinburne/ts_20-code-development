@@ -1,0 +1,129 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_: Orion_BMS_II TC_Charger
+
+
+BO_ 768 ORION_BMS_STATUS: 8 Orion_BMS_II
+ SG_ Relay_State : 7|16@0+ (1,0) [0|0] ""  TC_Charger
+ SG_ Pack_Summed_Voltage : 23|8@0+ (0,0) [0|0] ""  TC_Charger
+ SG_ Pack_Current : 31|8@0+ (1,0) [0|0] ""  TC_Charger
+ SG_ Pack_Amphours : 39|8@0+ (1,64) [0|0] ""  TC_Charger
+ SG_ Pack_Health : 47|8@0+ (1,0) [0|0] ""  TC_Charger
+ SG_ High_Temperature : 55|8@0+ (1,0) [0|0] ""  TC_Charger
+ SG_ Total_Pack_Cycles : 63|8@0+ (1,0) [0|0] ""  TC_Charger
+
+BO_ 769 ORION_BMS_VOLTAGES: 5 Orion_BMS_II
+ SG_ Low_Cell_Voltage : 7|8@0+ (10,0) [0|0] ""  TC_Charger
+ SG_ Low_Cell_Voltage_ID : 15|8@0+ (1,0) [0|0] ""  TC_Charger
+ SG_ High_Cell_Voltage : 23|8@0+ (10,0) [0|0] ""  TC_Charger
+ SG_ High_Cell_Voltage_ID : 31|8@0+ (1,0) [0|0] ""  TC_Charger
+ SG_ Avg_Cell_Voltage : 39|8@0+ (1,0) [0|0] ""  TC_Charger
+
+BO_ 769 ORION_BMS_TEMPERATURES: 5 Orion_BMS_II
+ SG_ Low_Temperature : 7|8@0+ (1,0) [0|0] ""  TC_Charger
+ SG_ Low_Thermistor_ID : 15|8@0+ (0,0) [0|0] ""  TC_Charger
+ SG_ High_Temperature : 23|8@0+ (1,0) [0|0] ""  TC_Charger
+ SG_ High_Thermistor_ID : 31|8@0+ (1,0) [0|0] ""  TC_Charger
+ SG_ Average_Temperature : 39|8@0+ (0,0) [0|0] ""  TC_Charger
+
+BO_ 514 ORION_BMS_RINEHART_LIMITS: 4 Orion_BMS_II
+ SG_ Pack_DCL : 0|16@1+ (1,0) [0|0] ""  TC_Charger
+ SG_ Pack_CCL : 16|16@1+ (1,0) [0|0] ""  TC_Charger
+
+BO_ 2550589428 TC_CHARGER_01: 8 Orion_BMS_II
+ SG_ Maximum_Pack_Voltage : 7|16@0+ (1,0) [0|0] ""  TC_Charger
+ SG_ Pack_CCL : 23|16@0+ (10,0) [0|0] ""  TC_Charger
+ SG_ Blank : 32|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ Blank : 33|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ Blank : 34|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ Blank : 35|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ Blank : 36|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ Blank : 37|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ Blank : 38|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ DTC_P0A08_Charger_Safety_Relay_Fault : 39|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ Blank : 47|8@0+ (10,0) [0|0] ""  TC_Charger
+ SG_ Blank : 55|8@0+ (1,0) [0|0] ""  TC_Charger
+ SG_ Blank : 63|8@0+ (1,0) [0|0] ""  TC_Charger
+
+BO_ 2550588916 TC_CHARGER_02: 8 Orion_BMS_II
+ SG_ Maximum_Cell_Voltage : 7|16@0+ (0,0) [0|0] ""  TC_Charger
+ SG_ Pack_CCL : 23|16@0+ (10,0) [0|0] ""  TC_Charger
+ SG_ Blank : 32|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ Blank : 33|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ Blank : 34|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ Blank : 35|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ Blank : 36|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ Blank : 37|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ Blank : 38|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ DTC_P0A08_Charger_Safety_Relay_Fault : 39|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ Blank : 47|8@0+ (10,0) [0|0] ""  TC_Charger
+ SG_ Blank : 55|8@0+ (1,0) [0|0] ""  TC_Charger
+ SG_ Blank : 63|8@0+ (1,0) [0|0] ""  TC_Charger
+
+BO_ 2550589940 TC_CHARGER_03: 8 Orion_BMS_II
+ SG_ Maximum_Cell_Voltage : 7|16@0+ (0,0) [0|0] ""  TC_Charger
+ SG_ Pack_CCL : 23|16@0+ (10,0) [0|0] ""  TC_Charger
+ SG_ Blank : 32|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ Blank : 33|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ Blank : 34|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ Blank : 35|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ Blank : 36|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ Blank : 37|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ Blank : 38|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ DTC_P0A08_Charger_Safety_Relay_Fault : 39|1@1+ (1,0) [0|1] ""  TC_Charger
+ SG_ Blank : 47|8@0+ (1,0) [0|0] ""  TC_Charger
+ SG_ Blank : 55|8@0+ (1,0) [0|0] ""  TC_Charger
+ SG_ Blank : 63|8@0+ (1,0) [0|0] ""  TC_Charger
+
+BO_ 2566869221 TC_CHARGER_04: 8 TC_Charger
+ SG_ Blank : 7|8@0+ (1,0) [0|0] ""  Orion_BMS_II
+ SG_ Blank : 15|8@0+ (1,0) [0|0] ""  Orion_BMS_II
+ SG_ Blank : 23|8@0+ (1,0) [0|0] ""  Orion_BMS_II
+ SG_ Blank : 31|8@0+ (1,0) [0|0] ""  Orion_BMS_II
+ SG_ Blank : 39|8@0+ (1,0) [0|0] ""  Orion_BMS_II
+ SG_ Blank : 47|8@0+ (1,0) [0|0] ""  Orion_BMS_II
+ SG_ Blank : 55|8@0+ (1,0) [0|0] ""  Orion_BMS_II
+ SG_ Blank : 63|8@0+ (1,0) [0|0] ""  Orion_BMS_II
+
+
+
+CM_ BO_ 768 "This ID Transmits at 8 ms.";
+CM_ BO_ 769 "This ID Transmits at 8 ms.";
+CM_ BO_ 514 "This ID Transmits at 8 ms.";
+CM_ BO_ 2550589428 "This ID Transmits at 808 ms.";
+CM_ BO_ 2550588916 "This ID Transmits at 808 ms.";
+CM_ BO_ 2550589940 "This ID Transmits at 808 ms.";
+

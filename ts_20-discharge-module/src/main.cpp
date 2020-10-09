@@ -302,21 +302,29 @@ void updateanalogd(){
 	char data[2];
 	if(!i2c1.read(PDOC_ADC << 1, data, 2)){
 		int16_t output = (int16_t)((data[0] << 8) | data[1]);
-		// pc.printf("Reading: %d", output);
+		pc.printf("Reading: %d", output);
 		float voltage = ((float)output * 6.144)/32767;
 		pdoc_temperature = voltage * 10;
+	} else
+	{
+		pc.printf("FAILED READ FROM PDOC\r\n");
 	}
+	
 
 	if(!i2c1.read(MC_HV_SENSE_ADC << 1, data, 2)){
 		int16_t output = (int16_t)((data[0] << 8) | data[1]);
-		// pc.printf("Reading: %d", output);
+		pc.printf("Reading: %d", output);
 		float voltage = ((float)output * 6.144)/32767;
 		// pc.printf(" -- Converted to %f\r\n", convert);
 		mc_voltage = voltage * 10;
+	} else {
+		pc.printf("FAILED READ FROM MC\r\n");
 	}
 }
 
 void initialiseADC(){
+	i2c1.frequency(100000);
+
 	char cmd[1];
     
 	if(!i2c1.write(PDOC_ADC << 1, adc_initial_config, 2)){
@@ -371,17 +379,23 @@ int main() {
 	__disable_irq();
     pc.printf("Starting ts_20 Discharge Controller (STM32F103C8T6 128k) \
 	\r\nCOMPILED: %s: %s\r\n",__DATE__, __TIME__);
-	setup();
+	// setup();
+
+	initialiseADC();
 
 	pc.printf("Finished Startup\r\n");
 	wait(1);
 	__enable_irq();
 
     while(1) {
-		stated();
-		errord();
-		if ((heartbeat_counter % 10) == 0)
-			warnd();
+		wait(2);
+		updateanalogd();
+		led1 = !led1;
+
+		// stated();
+		// errord();
+		// if ((heartbeat_counter % 10) == 0)
+		// 	warnd();
     }
 
 	printf("Is this a BSOD?");

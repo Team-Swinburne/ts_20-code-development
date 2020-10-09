@@ -111,12 +111,14 @@ CAN can1(PB_8, PB_9);     						// RXD, TXD
 // Throttle Controller
 // Brake Module
 // Orion BMS 2
-#define ORION_BMS_STATUS_ID							0x200
-#define ORION_BMS_VOLTAGE_ID						0x201
-#define ORION_BMS_TEMPERATURE_ID					0x202
+#define ORION_BMS_STATUS_ID							0x180
+#define ORION_BMS_VOLTAGE_ID						0x181
+#define ORION_BMS_TEMPERATURE_ID					0x182
+
+#define ORION_BMS_RINEHART_LIMITS					0x202
 // Orion TEM
 // Dash
-// Motor Controller
+// Motor Controllers
 
 #define TC_CHARGER_STATUS_ID						0x18FF50E5
 

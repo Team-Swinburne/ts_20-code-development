@@ -129,7 +129,7 @@ CAN can1(PB_8, PB_9);     						// RXD, TXD
 class PCB_Temp {
 public:
 	PCB_Temp(PinName pin)	: _sensor(pin){
-		_temperature = PCB_Temp::read();
+		_temperature = PCB_Temp::_sensor.read();
 	}
 
 	int read(){
@@ -302,7 +302,7 @@ void CAN1_receive(){
 				discharge_state = can1_msg.data[0];
 				break;
 
-			case ORION_BMS_STATUS_ID:{
+			case ORION_BMS_STATUS_ID:
 				// Big endian & MSB
 				// 0b000000, 0000001	Discharge Relay Enabled
 				// 0b000000, 0000010	Charge Relay Enabled
@@ -312,7 +312,6 @@ void CAN1_receive(){
 				if (relay_status > 0)
 					orion_connected = true;		
 				break;
-			}
 			
 			case ORION_BMS_VOLTAGE_ID:
 				orion_low_voltage = can1_msg.data[0];
@@ -512,6 +511,7 @@ void stated(){
 void updateanalogd(){
 	char reg[3];
 	char data[2];
+	
 	if(!i2c1.read(PDOC_ADC << 1, data, 2)){
 		led1 = !led1;
 		int16_t output = (int16_t)((data[0] << 8) | data[1]);
@@ -519,7 +519,6 @@ void updateanalogd(){
 		float voltage = ((float)output * 6.144)/32767;
 		pdoc_temperature = voltage * 10;
 	}
-
 	if(!i2c1.read(BATT_HV_SENSE_ADC << 1, data, 2)){
 		led1 = !led1;
 		int16_t output = (int16_t)((data[0] << 8) | data[1]);
@@ -528,7 +527,6 @@ void updateanalogd(){
 		// pc.printf(" -- Converted to %f\r\n", convert);
 		battery_voltage = voltage * 10;
 	}
-
 	if(!i2c1.read(MC_HV_SENSE_ADC << 1, data, 2)){
 		led1 = !led1;
 		int16_t output = (int16_t)((data[0] << 8) | data[1]);

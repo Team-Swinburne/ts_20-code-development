@@ -193,6 +193,7 @@ void loop()
       while(temp_act > temp_inti)
       {
         press_button(b_temp_down, step_down, down);
+        delay(delay_step);
       }
       digitalWrite(LED_indi, HIGH);                          // turn on indicator LED
     }

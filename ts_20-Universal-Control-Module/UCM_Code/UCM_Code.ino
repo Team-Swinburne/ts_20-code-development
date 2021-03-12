@@ -1,6 +1,7 @@
 #include <Wire.h>
 #include <Adafruit_ADS1015.h>
 #include <eXoCAN.h>
+#include <Ticker.h>
 
 //Declarations
 Adafruit_ADS1115 ads(0x49);
@@ -18,6 +19,13 @@ int DigIN2 =0;
 int DigIN3 =0;
 int DigIN4 =0;
 int16_t adc0, adc1, adc2, adc3;
+
+//Ticker 
+void heartbeat_tx();
+Ticker heartbeat_timer(heartbeat_tx, 1000); 
+
+void Transmit_data();
+Ticker Transmit_data_timer(Transmit_data, 100);
 
 
 //CAN configuration constants
@@ -43,7 +51,7 @@ eXoCAN can;
 void setup() {
   
   // initialize digital pin PC_13 as an output.
-  // for troubleshooting to ensure the board is comunicating andissuing comands
+  // for troubleshooting to ensure the board is comunicating and issuing comands
   pinMode(PC13, OUTPUT);
 //--------------------------------------------------//
 //Configuring the Digital Input Pins. Uncomment when required.
@@ -89,6 +97,11 @@ void setup() {
 // Initiallising Serial1
 //--------------------------------------------------//
   Serial1.begin(9600);
+//-----------------------//
+//Ticker Setup
+//-----------------------//
+heartbeat_timer.start();
+Transmit_data_timer.start();
 }
 
 
@@ -108,32 +121,8 @@ void setup() {
   txData[5]=adc1;
   txData[6]=adc2;
   txData[7]=adc3;
-
-// Transmit Hearbeat ----------------------------------//
-    if (millis() - last_counter >= 1000)             // tx every txDly
-       {
-          digitalToggle(TXLED);
-          last_counter = millis();
-          Heartbeat_Data[0] = Heartbeat_State;
-          Heartbeat_Data[1] = Heartbeat_Counter;
-          can.transmit(UCM_Heartbeat, Heartbeat_Data, 2);
-          Heartbeat_Counter = Heartbeat_Counter + 1;
-          digitalToggle(TXLED);
-          //Serial1.println("Transmitting heartbeat...");
+  
   };
-
-// Transmit data ----------------------------------//
-    if (millis() / txDly != last)             // tx every txDly
-       {
-          
-          digitalToggle(TXLED);
-          last = millis() / txDly;
-          can.transmit(UCMID, txData, txDataLen);
-          digitalToggle(TXLED);
-          //Serial1.println("Transmitting...");
-  }
-    };
-
 //--------------------------------------------------//
 // CAN Message Recieve. 
 //--------------------------------------------------//
@@ -143,7 +132,7 @@ void setup() {
        digitalToggle(RXLED);
        //rxData[]=rxbytes;
        Serial1.println("Receiving...");
-       digitalToggle(RXLED);
+       digitalToggle(RXLED); 
       }
    };
 
@@ -245,7 +234,30 @@ void loop() {
   I2C();
   Driver();
   //Serial1PRINT();
+  heartbeat_timer.update();
+  Transmit_data_timer.update();
   CANTransmit();
   CANRecieve();
-  digitalToggle(PC13); 
 }
+// Transmit Hearbeat ----------------------------------//
+void heartbeat_tx(){    
+          Heartbeat_Counter = Heartbeat_Counter + 1;
+          digitalToggle(TXLED);
+          Heartbeat_Data[0] = Heartbeat_State;
+          Heartbeat_Data[1] = Heartbeat_Counter;
+          can.transmit(UCM_Heartbeat, Heartbeat_Data, 2);
+          digitalToggle(TXLED);
+          digitalToggle(PC13);
+          if (Heartbeat_Counter == 256){
+          Heartbeat_Counter = 0; 
+          };
+                    
+  };
+  // Transmit data ----------------------------------//
+ void Transmit_data(){
+          digitalToggle(TXLED);
+          //last = millis() / txDly;
+          can.transmit(UCMID, txData, txDataLen);
+          digitalToggle(TXLED);
+          //Serial1.println("Transmitting...");          
+ }

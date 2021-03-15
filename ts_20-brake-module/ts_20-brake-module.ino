@@ -1,43 +1,6 @@
 //    TEAM SWINBURNE - TS20
 //    BRAKE MODULE
 //    MICHAEL COCHRANE & THOMAS BENNETT
-// ---------------------------------------------
-//      Microcontroller Pin-Out
-// ---------------------------------------------
-//PA0 - PA0 TEMP
-//PA2 - UARTTX
-//PA3 - UARTRX
-//...
-//PA8 - 5KW (ISO)
-//PA9 - BSPD OK (ISO)
-//PA11 - USBDM
-//PA12 - USBDP
-//PA13 - SWDIO
-//PA14 - SWCLK
-//...
-//PB0 - CAN TX INDC
-//PB1 - CAN RX INDC
-//...
-//PB6 - SENSOR2
-//PB7 - SENSOR1
-//PB8 - CAN1 RD
-//PB9 - CAN1 TD
-//...
-//PB12 - BSPD DELAY (ISO)
-//PB13 - CLOCK (ISO)
-//PB14 - HIGH PRESSURE (ISO)
-//PB15 - LOW PRESSURE (ISO)
-//...
-//PC13 - LED_BUILTIN
-//PC14 - XTALC
-//PC15 - XTALD
-//...
-//PD0 - XTALA
-//PD1 - XTALB
-// ---------------------------------------------
-// LMV338 - information
-// https://forum.arduino.cc/index.php?topic=285688.15
-// --------------------------------------------
 
 #include <Wire.h>
 #include <eXoCAN.h>

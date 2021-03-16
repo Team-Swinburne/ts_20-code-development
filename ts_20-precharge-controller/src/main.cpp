@@ -109,6 +109,11 @@ CAN can1(PB_8, PB_9);     						// RXD, TXD
 #define DISCHARGE_CONTROLLER_PERIPHERAL_ID			0x453
 
 // Throttle Controller
+#define THROTTLE_CONTROLLER_HEARTBEAT_ID			0x340
+#define THROTTLE_CONTROLLER_ERROR_ID				0x341
+#define THROTTLE_CONTROLLER_ANALOGUE_ID				0x342
+#define THROTTLE_CONTROLLER_PERIPERAL_ID			0x343
+
 // Brake Module
 // Orion BMS 2
 #define ORION_BMS_STATUS_ID							0x180
@@ -278,12 +283,10 @@ void heartbeat(){
 	heartbeat_counter++;
 	led1 = !led1;
 	char TX_data[3] = {(char)heartbeat_state, (char)heartbeat_counter, (char)pcb_temperature.PCB_Temp::read()};
-	if(can1.write(CANMessage(PRECHARGE_CONTROLLER_HEARTBEAT_ID, &TX_data[0], 3))) 
-	{
-       	pc.printf("Heartbeat Success! State: %d Counter: %d\r\n", heartbeat_state, heartbeat_counter);
-    }else
-	{
-		pc.printf("Hearts dead :(\r\n");
+	if(can1.write(CANMessage(PRECHARGE_CONTROLLER_HEARTBEAT_ID, &TX_data[0], 3))) {
+       	// pc.printf("Heartbeat Success! State: %d Counter: %d\r\n", heartbeat_state, heartbeat_counter);
+    } else {
+		// pc.printf("Hearts dead :(\r\n");
 	}
 }
 
@@ -302,15 +305,17 @@ void CAN1_receive(){
 				discharge_state = can1_msg.data[0];
 				break;
 
+			case THROTTLE_CONTROLLER_PERIPERAL_ID:
+				precharge_button_state = can1_msg.data[0];
+
 			case ORION_BMS_STATUS_ID:
 				// Big endian & MSB
 				// 0b000000, 0000001	Discharge Relay Enabled
 				// 0b000000, 0000010	Charge Relay Enabled
 				// 0b000000, 0000100	Charge Safety Enabled
 				// Use bitwise operator to mask out all except relevent statuses.
-				int relay_status = can1_msg.data[1] & 0b0000000000000111;
-				if (relay_status > 0)
-					orion_connected = true;		
+				if (can1_msg.data[1] & 0b0000000000000111 > 0)
+					orion_connected = true;	
 				break;
 			
 			case ORION_BMS_VOLTAGE_ID:
@@ -401,34 +406,34 @@ void errord(){
 	if (IMD_ok == 0){
 		error_present = 1;
 		error_code = error_code + 0b00000001;
-		pc.printf("FAULT: Isolation fault detected, please check wiring!\r\n");
+		// pc.printf("FAULT: Isolation fault detected, please check wiring!\r\n");
 	}
 	if (PDOC_ok == 0){
 		error_present = 1;
 		error_code = error_code + 0b00000010;
-		pc.printf("FAULT: PDOC failure detected, please allow to cool and check for\
+		// pc.printf("FAULT: PDOC failure detected, please allow to cool and check for\
 		short circuit!\r\n");
 	}
 	if (orion_connected != 1){
 		error_present = 1;
 		error_code = error_code + 0b00000100;
-		pc.printf("FAULT: Orion BMS not attached, please check CAN is functioning, and\
+		// pc.printf("FAULT: Orion BMS not attached, please check CAN is functioning, and\
 		Orion is attached!\r\n");
 	}
 	if (orion_low_voltage < MINIMUM_CELL_VOLTAGE){
 		error_present = 1;
 		error_code = error_code + 0b00001000;
-		pc.printf("FAULT: Orion reports undervoltage fault!\r\n");
+		// pc.printf("FAULT: Orion reports undervoltage fault!\r\n");
 	}
-	if (orion_low_voltage > MAXIMUM_CELL_VOLTAGE){
+	if (orion_high_voltage > MAXIMUM_CELL_VOLTAGE){
 		error_present = 1;
 		error_code = error_code + 0b000010000;
-		pc.printf("FAULT: Orion reports overvoltage fault!\r\n");
+		// pc.printf("FAULT: Orion reports overvoltage fault!\r\n");
 	}
 	if (orion_high_temperature > MAXIMUM_CELL_TEMPERATURE){
 		error_present = 1;
 		error_code = error_code + 0b000100000;
-		pc.printf("FAULT: Orion reports overtemperature fault!\r\n");
+		// pc.printf("FAULT: Orion reports overtemperature fault!\r\n");
 	}
 	if (error_present)
 		heartbeat_state = 0;
@@ -441,26 +446,26 @@ void warnd(){
 		warning_present = 1;
 		warning_code = warning_code + 0b00000001;
 		// PCB Overtemperature
-		pc.printf("PCB too hot, you should probably check that, but don't take my word\
+		// pc.printf("PCB too hot, you should probably check that, but don't take my word\
 		for it, i'm just a hot MCU looking to have some fun! ;) ");
 	}
 	if (discharge_state > 2 && heartbeat_state != 0){
 		warning_present = 1;
 		warning_code = warning_code + 0b00000010;
 		// Discharge/Precharge Mismatch
-		pc.printf("Discharge reported active during drive, please check wiring to discharge.\r\n");
+		// pc.printf("Discharge reported active during drive, please check wiring to discharge.\r\n");
 	}
 	if (AIR_neg_feedback != AIR_neg_relay){
 		warning_present = 1;
 		warning_code = warning_code + 0b0000100;
 		// Negative AIR Mismatch
-		pc.printf("Negative AIR mismatch, check for welding or wiring failure\r\n");
+		// pc.printf("Negative AIR mismatch, check for welding or wiring failure\r\n");
 	}
 	if (AIR_pos_feedback != AIR_pos_relay){
 		warning_present = 1;
 		warning_code = warning_code + 0b00001000;
 		// Positive AIR Mismatch
-		pc.printf("Positive AIR mismatch, check for welding or wiring failure\r\n");
+		// pc.printf("Positive AIR mismatch, check for welding or wiring failure\r\n");
 	}
 }
 
@@ -476,7 +481,7 @@ void stated(){
 			break;
 		case 1: // Idle State
 			if (precharge_button_state || charge_mode_activated){
-				pc.printf("Beginging precharge sequence\r\n");
+				// pc.printf("Beginging precharge sequence\r\n");
 				heartbeat_state = 2;
 			}
 			break;
@@ -490,12 +495,12 @@ void stated(){
 			
 			precharge_relay = 1;
 			if (battery_voltage*0.95 > mc_voltage){
-				pc.printf("Precharge within 95%, safe to close postive contactor\r\n");
+				// pc.printf("Precharge within 95%, safe to close postive contactor\r\n");
 				wait(0.1);
 				heartbeat_state = 3;
 			}
 			if (heartbeat_counter > precharge_timeout + 5){
-				pc.printf("Precharge timed out, check for discharge relay failure,\
+				// pc.printf("Precharge timed out, check for discharge relay failure,\
 				or higher than expected resistance before continuing\r\n");
 				heartbeat_state = 0;
 			}
@@ -515,24 +520,24 @@ void updateanalogd(){
 	if(!i2c1.read(PDOC_ADC << 1, data, 2)){
 		led1 = !led1;
 		int16_t output = (int16_t)((data[0] << 8) | data[1]);
-		// pc.printf("Reading: %d", output);
+		// // pc.printf("Reading: %d", output);
 		float voltage = ((float)output * 6.144)/32767;
 		pdoc_temperature = voltage * 10;
 	}
 	if(!i2c1.read(BATT_HV_SENSE_ADC << 1, data, 2)){
 		led1 = !led1;
 		int16_t output = (int16_t)((data[0] << 8) | data[1]);
-		// pc.printf("Reading: %d", output);
+		// // pc.printf("Reading: %d", output);
 		float voltage = ((float)output * 6.144)/32767;
-		// pc.printf(" -- Converted to %f\r\n", convert);
+		// // pc.printf(" -- Converted to %f\r\n", convert);
 		battery_voltage = voltage * 10;
 	}
 	if(!i2c1.read(MC_HV_SENSE_ADC << 1, data, 2)){
 		led1 = !led1;
 		int16_t output = (int16_t)((data[0] << 8) | data[1]);
-		// pc.printf("Reading: %d", output);
+		// // pc.printf("Reading: %d", output);
 		float voltage = ((float)output * 6.144)/32767;
-		// pc.printf(" -- Converted to %f\r\n", convert);
+		// // pc.printf(" -- Converted to %f\r\n", convert);
 		mc_voltage = voltage * 10;
 	}
 }
@@ -546,46 +551,46 @@ void initialiseADC(){
     
 	if(!i2c1.write(PDOC_ADC << 1, adc_initial_config, 2)){
 		led1 = !led1;
-		pc.printf("PDOC ADC Write Success!\r\n");
+		// pc.printf("PDOC ADC Write Success!\r\n");
 	} else {
-		pc.printf("PDOC ADC Write Fail\r\n");
+		// pc.printf("PDOC ADC Write Fail\r\n");
 	}
 
 	if(!i2c1.write(BATT_HV_SENSE_ADC << 1, adc_initial_config, 2)){
 		led1 = !led1;
-		pc.printf("BATT ADC Write Success!\r\n");
+		// pc.printf("BATT ADC Write Success!\r\n");
 	} else {
-		pc.printf("BATT ADC Write Fail\r\n");
+		// pc.printf("BATT ADC Write Fail\r\n");
 	}
 
 	if(!i2c1.write(MC_HV_SENSE_ADC << 1, adc_initial_config, 2)){
 		led1 = !led1;
-		pc.printf("MC ADC Write Success!\r\n");
+		// pc.printf("MC ADC Write Success!\r\n");
 	} else {
-		pc.printf("MC ADC Write Fail\r\n");
+		// pc.printf("MC ADC Write Fail\r\n");
 	}
 
 	cmd[0] = 0x00;
 
 	if(!i2c1.write(PDOC_ADC << 1, cmd, 1)){
 		led1 = !led1;
-		pc.printf("PDOC ADC Write Success!\r\n");
+		// pc.printf("PDOC ADC Write Success!\r\n");
 	} else {
-		pc.printf("PDOC ADC Write Fail\r\n");
+		// pc.printf("PDOC ADC Write Fail\r\n");
 	}
 
 	if(!i2c1.write(BATT_HV_SENSE_ADC << 1, cmd, 1)){
 		led1 = !led1;
-		pc.printf("BATT ADC Write Success!\r\n");
+		// pc.printf("BATT ADC Write Success!\r\n");
 	} else {
-		pc.printf("BATT ADC Write Fail\r\n");
+		// pc.printf("BATT ADC Write Fail\r\n");
 	}
 
 	if(!i2c1.write(MC_HV_SENSE_ADC << 1, cmd, 1)){
 		led1 = !led1;
-		pc.printf("MC ADC Write Success!\r\n");
+		// pc.printf("MC ADC Write Success!\r\n");
 	} else {
-		pc.printf("MC ADC Write Fail\r\n");
+		// pc.printf("MC ADC Write Fail\r\n");
 	}
 }
 
@@ -626,9 +631,9 @@ int main() {
 		updateanalogd();
 		if ((heartbeat_counter % 10) == 0)
 			warnd();
-		wait(1);
+		wait(0.1);
     }
 
-	printf("Is this a BSOD?");
+	pc.printf("Is this a BSOD?");
     return 0;
 }

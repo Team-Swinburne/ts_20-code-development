@@ -15,10 +15,10 @@
 // OVEN VARIABLES
 //=========================================================================================
 // User Variables (edit these)
-uint8_t temp_goal   = 112;      // the cooking temperature (celsius)
-uint8_t step_up     = 2;        // the amount of degrees (celsius) per minute to ramp up
-uint8_t step_down   = 2;        // the amount of degrees (celsius) per minute to ramp down
-uint8_t duration    = 4;        // the amount of hours to hold the cooking temperature at
+uint8_t temp_goal       = 112;      // the cooking temperature (celsius)
+uint8_t step_up         = 2;        // the amount of degrees (celsius) per minute to ramp up
+uint8_t step_down       = 2;        // the amount of degrees (celsius) per minute to ramp down
+unsigned long duration  = 4;        // the amount of hours to hold the cooking temperature at
 
 // Oven Settings (only edited when changing the code)
 uint8_t up   = 1;
@@ -104,7 +104,7 @@ void press_button(uint8_t button, uint8_t ramp_step, uint8_t ramp_direction)
     digitalWrite(button, HIGH);
     delay(delay_b_press);
     digitalWrite(button, LOW);         
-    //delay(delay_b_press);
+    delay(delay_b_press);
  
     // increment the actual temperature (according to the arduino)
     if(ramp_direction == 1)
@@ -121,8 +121,8 @@ void press_button(uint8_t button, uint8_t ramp_step, uint8_t ramp_direction)
   digitalWrite(b_temp_set, HIGH);
   delay(delay_b_press);
   digitalWrite(b_temp_set, LOW);
-  //delay(delay_b_press);
-  Serial.print("TS - The arduino thinks the set temperature is:   ");
+  delay(delay_b_press);
+  Serial.print("TS  -  The arduino thinks the set temperature is:   ");
   Serial.println(temp_act);
 }
 
@@ -162,6 +162,23 @@ void setup()
       Serial.println("ERROR:      calculations in setup failed.");
       break;
   }
+
+  // Trouble shooting prints to serial
+  Serial.println("----------------------------------------");
+  if (test == 0) Serial.println("        > This is not a test. <");
+  else           Serial.println("        >   This is a test.   <");
+  Serial.println("----------------------------------------");
+  Serial.print("TS  -  Temperature Goal :   ");
+  Serial.println(temp_goal);
+  Serial.print("TS  -  Step Up          :   ");
+  Serial.println(step_up);
+  Serial.print("TS  -  Step Down        :   ");
+  Serial.println(step_down);
+  Serial.print("TS  -  Duration         :   ");
+  Serial.println(duration);
+  Serial.print("TS  -  Cooking Duration :   ");
+  Serial.println(cooking_duration);
+  Serial.println("----------------------------------------");
 }
 
 void loop()

@@ -58,17 +58,25 @@
 #define pin_HP          PA6   // High_Pressure
 #define pin_LP          PA7   // Low_Pressure
 #define pin_CS          PA8   // 5kW or Current Sensor
-#define pin_BSPD        PA9   // BSPD_OK     (no delay)
+#define pin_BSPD     PA9   // BSPD_OK     (no delay)
 #define pin_BSPD_delay  PB12  // BSPD Delay  (10 second delay) (digital signal)
 #define pin_clock       PB13  // Clock signal
-#define pin_LED_tx      PB0   // CAN TX Indicator
-#define pin_LED_rx      PB1   // CAN RX Indicator
+#define TXLED      PB0   // CAN TX Indicator
+#define RXLED      PB1   // CAN RX Indicator
 
 //   Brake limits
 int16_t         brake1_min              = 0;   // TS_19 = 980
 int16_t         brake1_max              = 0;   // TS_19 = 1755
 int16_t         brake2_min              = 0;   // TS_19 = 400
 int16_t         brake2_max              = 0;   // TS_19 = 1250
+
+//Brake Sensors
+float Sensor_1;
+float Sensor_2;
+bool High_Pressure;
+bool Low_Pressure;
+bool kW5;
+bool BSPD_OK;
 
 //   Brake readings
 int16_t         brake1_output           = 0;
@@ -79,8 +87,8 @@ int             brake_avg_percent       = 0;
 
 //   CAN Structure
 //CAN             can(PB9, PB9);
-//DigitalOut      can_rx_led(pin_LED_rx);
-//DigitalOut      can_tx_led(pin_LED_tx);
+//DigitalOut      can_rx_led(RXLED);
+//DigitalOut      can_tx_led(TXLED);
 //CANMessage      can_msg;
 
 //   CAN Initialization
@@ -96,101 +104,109 @@ int       id;
 int       fltIdx;
 uint8_t   rxbytes[8];
 uint8_t   rxData[8];
+int BMD_Heartbeat = 0x070;
+uint32_t last_counter = 0;
+uint32_t Heartbeat_Counter = 0;
+uint8_t Heartbeat_Data[2];
+uint8_t Heartbeat_State = 0;
 eXoCAN can;
 
-void CAN1_Transmit(){
-  // Load Brake Data
-  txData[0] = brake_output_1_percent;
-  txData[1] = brake_output_2_percent;
-  txData[2] = brake_avg_percent;
-  txData[3] = BSPD_OK; 
-  // Transmit data
-  if (millis() / txDly != last)             // tx every txDly
-  {
-    digitalToggle(pin_LED_tx);
-    Serial.println("Transmitting...");
-    last = millis() / txDly;
-    can.transmit(txMsgID, txData, txDataLen);
-    digitalToggle(pin_LED_tx);
-    Serial.println("Brake Data Transmit Success!"); 
-  }
-};
+void heartbeat_tx();
+Ticker heartbeat_timer(heartbeat_tx, 1000); 
 
-void CANRecieve(){
-  if (can.receive(id, fltIdx, rxbytes) > -1) // poll for rx
-  {
-    digitalToggle(pin_LED_rx);        // turn on CAN RX indicator
-    rxData[]=rxbytes;
-    Serial.println("Receiving...");
-    digitalToggle(pin_LED_rx);        // turn off CAN RX indicator
-  }
-};
+//void CAN1_Transmit(){
+  // Load Brake Data
+  //txData[0] = brake1_output_percent;
+  //txData[1] = brake2_output_percent;
+  //txData[2] = brake_avg_percent;
+  //txData[3] = BSPD_OK; 
+  // Transmit data
+  //if (millis() / txDly != last)             // tx every txDly
+  //{
+    //digitalToggle(TXLED);
+    //Serial2.println("Transmitting...");
+    //last = millis() / txDly;
+    //can.transmit(txMsgID, txData, txDataLen);
+    //digitalToggle(TXLED);
+    //Serial2.println("Brake Data Transmit Success!"); 
+  //}
+//};
+
+//void CANRecieve(){
+  //if (can.receive(id, fltIdx, rxbytes) > -1) // poll for rx
+  //{
+    //digitalToggle(RXLED);        // turn on CAN RX indicator
+    //rxData[8]=rxbytes;
+    //Serial2.println("Receiving...");
+    //digitalToggle(RXLED);        // turn off CAN RX indicator
+  //}
+//};
 
 void updateValues(){
-  Sensor_1        = analogRead(pin_S1)
-  Sensor_2        = analogRead(pin_S2)
-  High_Pressure   = digitalRead(pin_HP)
-  Low_Pressure    = digitalRead(pin_LP)
-  5kW             = digitalRead(pin_CS)
-  BSPD_OK         = digitalRead(pin_BSPD)
+  Sensor_1        = analogRead(pin_S1);
+  Sensor_2        = analogRead(pin_S2);
+  High_Pressure   = digitalRead(pin_HP);
+  Low_Pressure    = digitalRead(pin_LP);
+  kW5             = digitalRead(pin_CS);
+  BSPD_OK         = digitalRead(pin_BSPD);
   //BSPD_OK         = digitalRead(pin_BSPD_delay)       //uncomment to include 10 second delay after BSPD is tripped
 
   updateBrakeOne();
   updateBrakeTwo();   // inverted
-  brake_avg_percent = (brake_output_1_percent + brake_output_2_percent)/2; 
+  brake_avg_percent = (brake1_output_percent + brake2_output_percent)/2; 
 }
 
 void updateBrakeOne(){   
-  brake_output_1_percent = ((Sensor_1 - brake1_min)/(brake1_max - brake1_min))*100;
-  Serial.println("Brake One Raw        : ", Sensor_1, "Brake One Precentage : ", brake_output_1_percent);
+  brake1_output_percent = ((Sensor_1 - brake1_min)/(brake1_max - brake1_min))*100;
+  Serial2.printf("Brake One Raw        : ", Sensor_1, "Brake One Precentage : ", brake1_output_percent);
 
   // Filter data to ensure it is within 0-100 percent
-  if(brake_output_1_percent < Deadzone)
+  if(brake1_output_percent < Deadzone)
   {
-    brake_output_1_percent = 0;
+    brake1_output_percent = 0;
   }else
   {
-    brake_output_1_percent = ((brake_output_1_percent - Deadzone) / (100- Deadzone)) * 100;
+    brake1_output_percent = ((brake1_output_percent - Deadzone) / (100- Deadzone)) * 100;
   }
-  if(brake_output_1_percent > 100)
+  if(brake1_output_percent > 100)
   {
-    brake_output_1_percent = 100;
+    brake1_output_percent = 100;
   }
   
   // Display the second brake percentage over serial
-  Serial.println("Brake One Percentage : %f\n", brake_output_1_percent);
+  Serial2.printf("Brake One Percentage : %f\n", brake1_output_percent);
 }
 
 void updateBrakeTwo(){   
-  brake_output_2_percent = ((Sensor_2 - brake2_min)/(brake2_max - brake2_min))*100;
-  Serial.println("Brake Two Raw        : ", Sensor_2, "Brake Two Precentage : ", brake_output_2_percent);
+  brake2_output_percent = ((Sensor_2 - brake2_min)/(brake2_max - brake2_min))*100;
+  Serial2.printf("Brake Two Raw        : ", Sensor_2, "Brake Two Precentage : ", brake2_output_percent);
 
   // Filter data to ensure it is within 0-100 percent
-  if(brake_output_2_percent < Deadzone)
+  if(brake2_output_percent < Deadzone)
   {
-    brake_output_2_percent = 0;
+    brake2_output_percent = 0;
   }else
   {
-    brake_output_2_percent = ((brake_output_2_percent - Deadzone) / (100- Deadzone)) * 100;
+    brake2_output_percent = ((brake2_output_percent - Deadzone) / (100- Deadzone)) * 100;
   }
-  if(brake_output_2_percent > 100)
+  if(brake2_output_percent > 100)
   {
-    brake_output_2_percent = 100;
+    brake2_output_percent = 100;
   }
   
   // Invert brake input
-  brake_output_2_percent = 100 - brake_output_2_percent;
+  brake2_output_percent = 100 - brake2_output_percent;
   // Display the second brake percentage over serial
-  Serial.println("Brake Two Percentage : %f\r\n", brake_output_2_percent);
+  Serial2.printf("Brake Two Percentage : %f\r\n", brake2_output_percent);
 }
 
 void serialPrint() {
-  Serial.print("Sensor 1:      ", Sensor_1); 
-  Serial.print("Sensor 2:      ", Sensor_2); 
-  Serial.print("High Pressure: ", High_Pressure); 
-  Serial.print("Low  Pressure: ", Low_Pressure); 
-  Serial.print("5kW:           ", 5kW);
-  Serial.print("BSPD OK:       ", BSPD_OK);
+  Serial2.printf("Sensor 1:      ", Sensor_1); 
+  Serial2.printf("Sensor 2:      ", Sensor_2); 
+  Serial2.printf("High Pressure: ", High_Pressure); 
+  Serial2.printf("Low  Pressure: ", Low_Pressure); 
+  Serial2.printf("5kW:           ", kW5);
+  Serial2.printf("BSPD OK:       ", BSPD_OK);
 }
 
 //--------------------------------------------------//
@@ -208,27 +224,49 @@ void setup() {
   // Initialize LED for troubleshooting.
   pinMode(PC13, OUTPUT);
 
-  // Initialize Heartbeat.
+
   
   // Initiallising CANBUS
   can.begin(STD_ID_LEN, BR250K, PORTB_8_9_XCVR);          // 11b IDs, 250k bit rate, Pins 8 and 9 with a transceiver chip
   can.filterMask16Init(0, 0, 0x7ff, 0, 0);                // filter bank 0, filter 0: don't pass any, flt 1: pass all msgs
-  pinMode(pin_LED_tx, OUTPUT);                            // CAN TX Indicator LED
-  pinMode(pin_LED_rx, OUTPUT);                            // CAN RX Indicator LED
+  pinMode(TXLED, OUTPUT);                            // CAN TX Indicator LED
+  pinMode(RXLED, OUTPUT);                            // CAN RX Indicator LED
  
   // Initiallising Serial
-  Serial.begin(115200);
-  Serial.println("Setup Successful.")
+  Serial2.begin(115200);
+  Serial2.printf("Setup Successful.");
+  
+  heartbeat_timer.start();
 }
 
+//--------------------------//
+//----Heartbeat Function----//
+//--------------------------//
+void heartbeat_tx(){    
+          Heartbeat_Counter = Heartbeat_Counter + 1;
+          digitalToggle(TXLED);
+          Heartbeat_Data[0] = Heartbeat_State;
+          Heartbeat_Data[1] = Heartbeat_Counter;
+          can.transmit(BMD_Heartbeat, Heartbeat_Data, 2);
+          digitalToggle(TXLED);
+          digitalToggle(PC13);
+          if (Heartbeat_Counter == 256){
+          Heartbeat_Counter = 0; 
+          };
+                    
+  };
 //--------------------------------------------------//
 // Arduinos "Main" function //
 //--------------------------------------------------//
 void loop() {
   updateValues();         //read micro-contropller pins and calculates brake values
-  CANTransmit();
+  //CANTransmit();
   //CANRecieve();
   //digitalToggle(PC13);
+  updateValues();
+  updateBrakeOne();
+  updateBrakeTwo();
+  heartbeat_timer.update();
   //if (brake_output_percent > old_brake_output_percent); Serial.println("Brake!); 
   delay(100);             // wait 0.1 seconds
-}
+  }

@@ -228,17 +228,6 @@ digitalWrite(PB14, HIGH);
 //  }
 //}
 }
-// Arduinos "Main" function //
-void loop() {
-  digitalupdate();
-  I2C();
-  Driver();
-  //Serial1PRINT();
-  heartbeat_timer.update();
-  Transmit_data_timer.update();
-  CANTransmit();
-  CANRecieve();
-}
 // Transmit Hearbeat ----------------------------------//
 void heartbeat_tx(){    
           Heartbeat_Counter = Heartbeat_Counter + 1;
@@ -261,3 +250,14 @@ void heartbeat_tx(){
           digitalToggle(TXLED);
           //Serial1.println("Transmitting...");          
  }
+// Arduinos "Main" function //
+ void loop() {
+  digitalupdate();
+  I2C();
+  Driver();
+  //Serial1PRINT();
+  heartbeat_timer.update();
+  Transmit_data_timer.update();
+  CANTransmit();
+  CANRecieve();
+}

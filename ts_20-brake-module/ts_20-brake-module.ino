@@ -19,8 +19,8 @@
 // Brake Micro-Controlller Pins
 #define pin_S1          PA4   // Sensor_1
 #define pin_S2          PA5   // Sensor_2
-#define pin_HP          PA6   // High_Pressure
-#define pin_LP          PA7   // Low_Pressure
+#define pin_HP          PA7   // High_Pressure
+#define pin_LP          PA6   // Low_Pressure
 #define pin_CS          PA8   // 5kW or Current Sensor
 #define pin_BSPD        PA9   // BSPD_OK     (no delay)
 #define pin_BSPD_delay  PB12  // BSPD Delay  (10 second delay) (digital signal)
@@ -43,9 +43,9 @@ int         brake_avg_percent   = 0;
 
 
 // CAN Initialization ------------------------------
-int BRAKE_HEARTBEAT_ID = 0x305;
-int BRAKE_SENSORS_ID   = 0x306;
-int BRAKE_SAFETY_ID    = 0x307;
+int BRAKE_HEARTBEAT_ID = 0x308;
+int BRAKE_SAFETY_ID    = 0x309;
+int BRAKE_SENSORS_ID   = 0x30A;
 int rxMsgID = 0x306;    // ID of brake sensor data -- for rx filtering
 int       id;
 int       fltIdx;
@@ -53,6 +53,10 @@ uint8_t   rxbytes[8];
 uint8_t   rxData[8];
 uint8_t heartbeat_cnt = 0;
 uint8_t heartbeat_state = 1;
+uint8_t High_Pressure = 0;
+uint8_t Low_Pressure = 0;
+uint8_t five_kW = 0;
+uint8_t BSPD_OK = 0;
 eXoCAN can;
 
 void Heartbeat_TX();
@@ -82,6 +86,7 @@ void setup() {
   // Initialize timer for the functions.
   ticker_heartbeat.start();
   ticker_safety_tx.start();
+  delay(5); // start sensor tx timer 5ms behind since the board can't transmit 2 CAN messages at the same time
   ticker_sensors_tx.start();
   
   // Initiallising CANBUS
@@ -106,7 +111,6 @@ void loop() {
   ticker_sensors_tx.update();
   SerialPrint();
   //if (brake_output_percent > old_brake_output_percent); Serial2.println("Brake!); 
-  delay(10);             // wait 0.1 seconds
 }
 
 void Heartbeat_TX() {
@@ -116,16 +120,16 @@ void Heartbeat_TX() {
   heartbeat_cnt++;
   uint8_t txData[2] = {heartbeat_state, heartbeat_cnt};
   uint8_t txDataLen = 2;
-  bool status_can = can.transmit(BRAKE_HEARTBEAT_ID, txData, txDataLen);
-  digitalToggle(pin_LED_tx);
+  can.transmit(BRAKE_HEARTBEAT_ID, txData, txDataLen);
+  //digitalToggle(pin_LED_tx);
   digitalToggle(PC13);
-  Serial2.print("Heartbeat: ");
-  Serial2.println(heartbeat_cnt);
-  Serial2.println(status_can);
+  //Serial2.print("Heartbeat: ");
+  //Serial2.println(heartbeat_cnt);
+  //Serial2.println(status_can);
 }
 void Safety_TX(){
-  digitalToggle(pin_LED_tx);
-  uint8_t txData[4] = {0, 0};
+  //digitalToggle(pin_LED_tx);
+  uint8_t txData[4] = {0, 0, 0, 0};
   uint8_t txDataLen = 4;
   can.transmit(BRAKE_SAFETY_ID, txData, txDataLen);
 }
@@ -135,6 +139,7 @@ void Sensors_TX(){
   uint8_t txData[3] = {brake1_percent, brake2_percent, brake_avg_percent};
   uint8_t txDataLen = 3;
   can.transmit(BRAKE_SENSORS_ID, txData, txDataLen);
+  digitalToggle(pin_LED_tx);
 }
 
 void CANRecieve(){
@@ -150,10 +155,10 @@ void CANRecieve(){
 void updateValues(){
   brake1_raw          = analogRead(pin_S1);
   brake2_raw          = analogRead(pin_S2);
-  //High_Pressure   = digitalRead(pin_HP);
-  //Low_Pressure    = digitalRead(pin_LP);
-  //5kW             = digitalRead(pin_CS);
-  //BSPD_OK         = digitalRead(pin_BSPD;)
+  High_Pressure       = digitalRead(pin_HP);
+  Low_Pressure        = digitalRead(pin_LP);
+  five_kW             = digitalRead(pin_CS);
+  BSPD_OK             = digitalRead(pin_BSPD);
   //BSPD_OK         = digitalRead(pin_BSPD_delay)       //uncomment to include 10 second delay after BSPD is tripped
 
   updateBrakeOne(); 
@@ -180,13 +185,18 @@ void updateBrakeTwo(){
 }
 
 void SerialPrint() {
-  Serial2.print("Sensor 1:      ");
-  Serial2.println(brake1_raw); 
-  Serial2.print("Sensor 2:      ");
+  Serial2.print("Sensor 1 & 2:      ");
+  Serial2.print(brake1_raw); 
+  Serial2.print("     ");
   Serial2.println(brake2_raw); 
-  // Serial2.print("High Pressure: ", High_Pressure); 
-  // Serial2.print("Low  Pressure: ", Low_Pressure); 
-  // Serial2.print("5kW:           ", 5kW);
-  // Serial2.print("BSPD OK:       ", BSPD_OK);
-  delay(1000);
+  Serial2.print("High Pressure: ");
+  Serial2.println(High_Pressure); 
+  Serial2.print("Low  Pressure: ");
+  Serial2.println(Low_Pressure); 
+  Serial2.print("5kW:       ");
+  Serial2.println(five_kW);
+  Serial2.print("BSPD OK:       ");
+  Serial2.println(BSPD_OK);
+  Serial2.println(" ");
+  delay(500);
 }

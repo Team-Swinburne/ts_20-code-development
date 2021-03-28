@@ -117,6 +117,12 @@ CAN can1(PB_8, PB_9);     						// RXD, TXD
 #define TC_CHARGER_STATUS_ID						0x18FF50E5
 
 //-----------------------------------------------
+// Calibration Factors
+//-----------------------------------------------
+
+const int MC_R_CAL = 5000;
+
+//-----------------------------------------------
 // Classes
 //-----------------------------------------------
 
@@ -351,7 +357,6 @@ void setup(){
 	ticker_heartbeat.attach(&heartbeat, HEARTRATE);
 	ticker_can_transmit.attach(&CAN1_transmit, CAN_BROADCAST_INTERVAL);
 
-	initialiseADC();
 }
 
 //-----------------------------------------------
@@ -363,8 +368,6 @@ int main() {
     pc.printf("Starting ts_20 Discharge Controller (STM32F103C8T6 128k) \
 	\r\nCOMPILED: %s: %s\r\n",__DATE__, __TIME__);
 	// setup();
-
-	initialiseADC();
 
 	pc.printf("Finished Startup\r\n");
 	wait(1);

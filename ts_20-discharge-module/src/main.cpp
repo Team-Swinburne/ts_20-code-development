@@ -71,6 +71,7 @@ PC_15/OSC32OUT (3.3V)*
 
 #include <mbed.h>
 #include <CAN.h>
+#include "Adafruit_ADS1015.h"
 
 //-----------------------------------------------
 // INTERFACES
@@ -82,13 +83,16 @@ Serial pc(PA_2, PA_3);              	   //TX, RX
 // I2C Interface
 I2C i2c1(PB_7, PB_6);     					//SDA, SCL
 
-// I2C Addresses
-#define PDOC_ADC     						0x4A
-#define MC_HV_SENSE_ADC						0x49
-#define BATT_HV_SENSE_ADC					0x48
+// I2C Addressess
+//GND 48
+//VDD 49
+//SDA 4A
+//SCL 4B
+#define PDOC_ADC_ADDR						0x4B
+#define MC_HV_SENSE_ADC_ADDR				0x49
 
-// I2C Config Register
-const char adc_initial_config[3] = {0x01, 0b11000000, 0b10000000};
+Adafruit_ADS1115 pdoc_adc(&i2c1, PDOC_ADC_ADDR);
+Adafruit_ADS1115 mc_hv_sense_adc(&i2c1, MC_HV_SENSE_ADC_ADDR);
 
 // CANBUS Interface
 CAN can1(PB_8, PB_9);     						// RXD, TXD
@@ -297,66 +301,45 @@ void warnd(){
 	}
 }
 
-void updateanalogd(){
-	char reg[3];
-	char data[2];
-	if(!i2c1.read(PDOC_ADC << 1, data, 2)){
-		int16_t output = (int16_t)((data[0] << 8) | data[1]);
-		pc.printf("Reading: %d", output);
-		float voltage = ((float)output * 6.144)/32767;
-		pdoc_temperature = voltage * 10;
-	} else
-	{
-		pc.printf("FAILED READ FROM PDOC\r\n");
-	}
+int NTC_voltageToTemperature(float voltage, float BETA=3380){
+	float r1 = 2000;
+	float vin = 5;
 	
+	float R2 = 10000;
+	float T2 = 25 + 270;
 
-	if(!i2c1.read(MC_HV_SENSE_ADC << 1, data, 2)){
-		int16_t output = (int16_t)((data[0] << 8) | data[1]);
-		pc.printf("Reading: %d", output);
-		float voltage = ((float)output * 6.144)/32767;
-		// pc.printf(" -- Converted to %f\r\n", convert);
-		mc_voltage = voltage * 10;
-	} else {
-		pc.printf("FAILED READ FROM MC\r\n");
-	}
+	float resistance;
+	int temperature;
+	
+	resistance = r1/((vin/voltage)-1);
+	temperature = ((BETA * T2)/(T2 * log(resistance/R2) + BETA))-270;
+	
+	return temperature;
 }
 
-void initialiseADC(){
-	i2c1.frequency(100000);
+float HV_voltageScaling(float input, int R_CAL){
+	int R1 = 330000 * 4;
+	int R2 = 10000 + R_CAL;
 
-	char cmd[1];
-    
-	if(!i2c1.write(PDOC_ADC << 1, adc_initial_config, 2)){
-		pc.printf("PDOC ADC Write Success!\r\n");
-		led1 = !led1;
-	} else {
-		pc.printf("PDOC ADC Write Fail\r\n");
-	}
+	float scaling_factor = ((R1 + R2) / R1);
+	float output = input * scaling_factor;
 
-	if(!i2c1.write(MC_HV_SENSE_ADC << 1, adc_initial_config, 2)){
-		pc.printf("MC ADC Write Success!\r\n");
-		led1 = !led1;
-	} else {
-		pc.printf("MC ADC Write Fail\r\n");
-	}
-
-	cmd[0] = 0x00;
-
-	if(!i2c1.write(PDOC_ADC << 1, cmd, 1)){
-		pc.printf("PDOC ADC Write Success!\r\n");
-		led1 = !led1;
-	} else {
-		pc.printf("PDOC ADC Write Fail\r\n");
-	}
-
-	if(!i2c1.write(MC_HV_SENSE_ADC << 1, cmd, 1)){
-		pc.printf("MC ADC Write Success!\r\n");
-	} else {
-		pc.printf("MC ADC Write Fail\r\n");
-	}
+	return output;
 }
 
+float adc_to_voltage(int adc_value, int adc_resolution, float voltage_range){
+	float voltage = adc_value * voltage_range / adc_resolution;
+	return voltage;
+}
+
+void updateanalogd(){
+	pdoc_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(0), 32768, 6.144), 3380);
+	// pc.printf("PDOC_TEMPERAUTRE: %d \r\n", pdoc_temperature);
+	pdoc_ref_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(1), 32768, 6.144), 3380);
+	// pc.printf("PDOC_REF_TEMPERAUTRE: %d \r\n", pdoc_ref_temperature);
+	mc_voltage = HV_voltageScaling(adc_to_voltage(mc_hv_sense_adc.readADC_SingleEnded(0), 32768, 6.144), MC_R_CAL);
+	// pc.printf("MC_VOLTAGE: %d \r\n", mc_voltage);
+}
 	/*
 SETUP
 	Initialisation of CANBUS, ADC, and PIT. 

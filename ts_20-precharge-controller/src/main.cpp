@@ -83,14 +83,12 @@ Serial pc(PA_2, PA_3);                 		//TX, RX
 I2C i2c1(PB_7, PB_6);     					//SDA, SCL
 
 // I2C Addressess
-//GND 48
-//VDD 49
-//SDA 4A
-//SCL 4B
-#define PDOC_ADC_ADDR						0x4B
-#define MC_HV_SENSE_ADC_ADDR				0x49
-#define BATT_HV_SENSE_ADC_ADDR				0x48
+// ADS1115 ADDR PINS: GND 48 - VDD 49 - SDA 4A - SCL 4B
+#define PDOC_ADC_ADDR								0x4B
+#define MC_HV_SENSE_ADC_ADDR						0x49
+#define BATT_HV_SENSE_ADC_ADDR						0x48
 
+// ADC Interfaces
 Adafruit_ADS1115 pdoc_adc(&i2c1, PDOC_ADC_ADDR);
 Adafruit_ADS1115 mc_hv_sense_adc(&i2c1, MC_HV_SENSE_ADC_ADDR);
 Adafruit_ADS1115 batt_hv_sense_adc(&i2c1, BATT_HV_SENSE_ADC_ADDR);
@@ -132,8 +130,14 @@ CAN can1(PB_8, PB_9);     						// RXD, TXD
 // Calibration Factors
 //-----------------------------------------------
 
+// HV Voltage Bridge Offset Resistors
 const int MC_R_CAL = 5000;
 const int BATT_R_CAL = 5000;
+
+// Voltage Limits
+const int MINIMUM_CELL_VOLTAGE = 27;
+const int MAXIMUM_CELL_VOLTAGE = 43;
+const int MAXIMUM_CELL_TEMPERATURE = 65;
 
 //-----------------------------------------------
 // Classes
@@ -222,11 +226,6 @@ private:
 // Globals
 //-----------------------------------------------
 
-// Voltage Limits
-const int MINIMUM_CELL_VOLTAGE = 27;
-const int MAXIMUM_CELL_VOLTAGE = 43;
-const int MAXIMUM_CELL_TEMPERATURE = 65;
-
 static int8_t  	heartbeat_state 			= 0;
 static int	    heartbeat_counter 			= 0;
 static bool 	error_present				= 1; 	// (1 - Default)
@@ -261,6 +260,7 @@ Ticker ticker_orion_watchdog;
 //-----------------------------------------------
 // GPIO 
 //-----------------------------------------------
+
 DigitalOut led1(PC_13);
 DigitalOut can1_rx_led(PB_1);
 DigitalOut can1_tx_led(PB_0);
@@ -571,7 +571,7 @@ SETUP
 	Initialisation of CANBUS, ADC, and HEARTBEAT. 
 	*/
 void setup(){
-	can1.frequency(250000);
+	can1.frequency(500000);
 	can1.attach(&CAN1_receive);
 	
 	ticker_heartbeat.attach(&heartbeat, HEARTRATE);

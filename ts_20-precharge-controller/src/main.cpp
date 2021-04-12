@@ -250,7 +250,7 @@ static int16_t  battery_voltage 			= 0;
 // Program Interrupt Timer Instances
 Ticker ticker_heartbeat;
 Ticker ticker_can_transmit;
-Ticker ticker_orion_watchdog;
+Ticker ticker_orionwd;
 
 // Interval Periods
 #define	HEARTRATE			 				1
@@ -398,7 +398,7 @@ void CAN1_transmit(){
 // Daemons
 //-----------------------------------------------
 
-void orion_watchdog(){
+void orionwd(){
 	if (heartbeat_state > 0){
 		if ((orion_timeout_counter/10) >= ORION_TIMEOUT){
 			orion_connected = false;
@@ -577,7 +577,7 @@ void setup(){
 	ticker_heartbeat.attach(&heartbeat, HEARTRATE);
 	ticker_can_transmit.attach(&CAN1_transmit, CAN_BROADCAST_INTERVAL);
 
-	ticker_orion_watchdog.attach(&orion_watchdog, ORION_TIMEOUT);
+	ticker_orionwd.attach(&orionwd, ORION_TIMEOUT);
 
 	IMD_interface.IMD_Data::start();
 }

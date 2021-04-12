@@ -210,10 +210,10 @@ void heartbeat(){
 	char TX_data[3] = {(char)heartbeat_state, (char)heartbeat_counter, (char)pcb_temperature.PCB_Temp::read()};
 	if(can1.write(CANMessage(DISCHARGE_MODULE_HEARTBEAT_ID, &TX_data[0], 3))) 
 	{
-       	pc.printf("Heartbeat Success! State: %d Counter: %d\r\n", heartbeat_state, heartbeat_counter);
+       	// pc.printf("Heartbeat Success! State: %d Counter: %d\r\n", heartbeat_state, heartbeat_counter);
     }else
 	{
-		pc.printf("Hearts dead :(\r\n");
+		// pc.printf("Hearts dead :(\r\n");
 	}
 }
 
@@ -239,7 +239,7 @@ void CAN1_transmit(){
 	if (can1.write(CANMessage(DISCHARGE_MODULE_ERROR_ID, &TX_data[0], 4))) {
        can1_tx_led = !can1_tx_led;
     } else {
-		printf("MESSAGE FAIL!\r\n");
+		// pc.printf("MESSAGE FAIL!\r\n");
 	}
 
 	TX_data[0] = (char)(pdoc_temperature >> 8);
@@ -252,7 +252,7 @@ void CAN1_transmit(){
 	if(can1.write(CANMessage(DISCHARGE_MODULE_ANALOGUE_ID, &TX_data[0], 6))) {
        can1_tx_led = !can1_tx_led;
     } else {
-		printf("MESSAGE FAIL!\r\n");
+		// printf("MESSAGE FAIL!\r\n");
 	}
 
 	TX_data[0] = discharge_release;
@@ -260,7 +260,7 @@ void CAN1_transmit(){
 	if (can1.write(CANMessage(DISCHARGE_CONTROLLER_PERIPHERAL_ID, &TX_data[0], 2))) {
        can1_tx_led = !can1_tx_led;
     } else {
-		printf("MESSAGE FAIL!\r\n");
+		// pc.printf("MESSAGE FAIL!\r\n");
 	}
 }
 
@@ -282,7 +282,7 @@ void errord(){
 	if (PDOC_ok == 0){
 		error_present = 1;
 		error_code = error_code + 0b00000010;
-		pc.printf("FAULT: PDOC failure detected, please allow to cool and check for\
+		// pc.printf("FAULT: PDOC failure detected, please allow to cool and check for\
 		short circuit!\r\n");
 	}
 	if (error_present)
@@ -296,14 +296,14 @@ void warnd(){
 		warning_present = 1;
 		warning_code = warning_code + 0b0000001;
 		// PCB Overtemperature
-		pc.printf("PCB too hot, you should probably check that, but don't take my word\
-		for it, i'm just a hot MCU looking to have some fun! ;) ");
+		// pc.printf("PCB too hot, you should probably check that, but don't take my word\
+		// for it, i'm just a hot MCU looking to have some fun! ;) ");
 	}
 	if (discharge_state > 2 && heartbeat_state != 0){
 		warning_present = 1;
 		warning_code = warning_code + 0b00000010;
 		// Discharge/Precharge Mismatch
-		pc.printf("Discharge reported active, please check wiring to discharge.\r\n");
+		// pc.printf("Discharge reported active, please check wiring to discharge.\r\n");
 	}
 }
 
@@ -344,14 +344,14 @@ void updateanalogd(){
 	pdoc_ref_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(1), 32768, 6.144), 3380);
 	// pc.printf("PDOC_REF_TEMPERAUTRE: %d \r\n", pdoc_ref_temperature);
 	mc_voltage = HV_voltageScaling(adc_to_voltage(mc_hv_sense_adc.readADC_SingleEnded(0), 32768, 6.144), MC_R_CAL);
-	// pc.printf("MC_VOLTAGE: %d \r\n", mc_voltage);
+	pc.printf("MC_VOLTAGE: %d \r\n", mc_voltage);
 }
 	/*
 SETUP
 	Initialisation of CANBUS, ADC, and PIT. 
 	*/
 void setup(){
-	can1.frequency(250000);
+	can1.frequency(500000);
 	can1.attach(&CAN1_receive);
 	
 	ticker_heartbeat.attach(&heartbeat, HEARTRATE);
@@ -367,23 +367,22 @@ int main() {
 	__disable_irq();
     pc.printf("Starting ts_20 Discharge Controller (STM32F103C8T6 128k) \
 	\r\nCOMPILED: %s: %s\r\n",__DATE__, __TIME__);
-	// setup();
+	setup();
 
 	pc.printf("Finished Startup\r\n");
 	wait(1);
 	__enable_irq();
 
     while(1) {
-		wait(2);
 		updateanalogd();
-		led1 = !led1;
 
 		// stated();
 		// errord();
 		// if ((heartbeat_counter % 10) == 0)
 		// 	warnd();
+		// wait(0.5);
     }
 
-	printf("Is this a BSOD?");
+	pc.printf("Is this a BSOD?");
     return 0;
 }

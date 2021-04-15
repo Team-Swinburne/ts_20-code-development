@@ -71,6 +71,7 @@ PC_15/OSC32OUT (3.3V)*
 
 #include <mbed.h>
 #include <CAN.h>
+#include "Adafruit_ADS1015.h"
 
 //-----------------------------------------------
 // INTERFACES
@@ -82,13 +83,16 @@ Serial pc(PA_2, PA_3);              	   //TX, RX
 // I2C Interface
 I2C i2c1(PB_7, PB_6);     					//SDA, SCL
 
-// I2C Addresses
-#define PDOC_ADC     						0x4A
-#define MC_HV_SENSE_ADC						0x49
-#define BATT_HV_SENSE_ADC					0x48
+// I2C Addressess
+//GND 48
+//VDD 49
+//SDA 4A
+//SCL 4B
+#define PDOC_ADC_ADDR						0x4B
+#define MC_HV_SENSE_ADC_ADDR				0x49
 
-// I2C Config Register
-const char adc_initial_config[3] = {0x01, 0b11000000, 0b10000000};
+Adafruit_ADS1115 pdoc_adc(&i2c1, PDOC_ADC_ADDR);
+Adafruit_ADS1115 mc_hv_sense_adc(&i2c1, MC_HV_SENSE_ADC_ADDR);
 
 // CANBUS Interface
 CAN can1(PB_8, PB_9);     						// RXD, TXD
@@ -111,6 +115,12 @@ CAN can1(PB_8, PB_9);     						// RXD, TXD
 // Motor Controller
 
 #define TC_CHARGER_STATUS_ID						0x18FF50E5
+
+//-----------------------------------------------
+// Calibration Factors
+//-----------------------------------------------
+
+const int MC_R_CAL = 5000;
 
 //-----------------------------------------------
 // Classes
@@ -200,10 +210,10 @@ void heartbeat(){
 	char TX_data[3] = {(char)heartbeat_state, (char)heartbeat_counter, (char)pcb_temperature.PCB_Temp::read()};
 	if(can1.write(CANMessage(DISCHARGE_MODULE_HEARTBEAT_ID, &TX_data[0], 3))) 
 	{
-       	pc.printf("Heartbeat Success! State: %d Counter: %d\r\n", heartbeat_state, heartbeat_counter);
+       	// pc.printf("Heartbeat Success! State: %d Counter: %d\r\n", heartbeat_state, heartbeat_counter);
     }else
 	{
-		pc.printf("Hearts dead :(\r\n");
+		// pc.printf("Hearts dead :(\r\n");
 	}
 }
 
@@ -229,7 +239,7 @@ void CAN1_transmit(){
 	if (can1.write(CANMessage(DISCHARGE_MODULE_ERROR_ID, &TX_data[0], 4))) {
        can1_tx_led = !can1_tx_led;
     } else {
-		printf("MESSAGE FAIL!\r\n");
+		// pc.printf("MESSAGE FAIL!\r\n");
 	}
 
 	TX_data[0] = (char)(pdoc_temperature >> 8);
@@ -242,7 +252,7 @@ void CAN1_transmit(){
 	if(can1.write(CANMessage(DISCHARGE_MODULE_ANALOGUE_ID, &TX_data[0], 6))) {
        can1_tx_led = !can1_tx_led;
     } else {
-		printf("MESSAGE FAIL!\r\n");
+		// printf("MESSAGE FAIL!\r\n");
 	}
 
 	TX_data[0] = discharge_release;
@@ -250,7 +260,7 @@ void CAN1_transmit(){
 	if (can1.write(CANMessage(DISCHARGE_CONTROLLER_PERIPHERAL_ID, &TX_data[0], 2))) {
        can1_tx_led = !can1_tx_led;
     } else {
-		printf("MESSAGE FAIL!\r\n");
+		// pc.printf("MESSAGE FAIL!\r\n");
 	}
 }
 
@@ -272,7 +282,7 @@ void errord(){
 	if (PDOC_ok == 0){
 		error_present = 1;
 		error_code = error_code + 0b00000010;
-		pc.printf("FAULT: PDOC failure detected, please allow to cool and check for\
+		// pc.printf("FAULT: PDOC failure detected, please allow to cool and check for\
 		short circuit!\r\n");
 	}
 	if (error_present)
@@ -286,89 +296,67 @@ void warnd(){
 		warning_present = 1;
 		warning_code = warning_code + 0b0000001;
 		// PCB Overtemperature
-		pc.printf("PCB too hot, you should probably check that, but don't take my word\
-		for it, i'm just a hot MCU looking to have some fun! ;) ");
+		// pc.printf("PCB too hot, you should probably check that, but don't take my word\
+		// for it, i'm just a hot MCU looking to have some fun! ;) ");
 	}
 	if (discharge_state > 2 && heartbeat_state != 0){
 		warning_present = 1;
 		warning_code = warning_code + 0b00000010;
 		// Discharge/Precharge Mismatch
-		pc.printf("Discharge reported active, please check wiring to discharge.\r\n");
+		// pc.printf("Discharge reported active, please check wiring to discharge.\r\n");
 	}
+}
+
+int NTC_voltageToTemperature(float voltage, float BETA=3380){
+	float r1 = 2000;
+	float vin = 5;
+	
+	float R2 = 10000;
+	float T2 = 25 + 270;
+
+	float resistance;
+	int temperature;
+	
+	resistance = r1/((vin/voltage)-1);
+	temperature = ((BETA * T2)/(T2 * log(resistance/R2) + BETA))-270;
+	
+	return temperature;
+}
+
+float HV_voltageScaling(float input, int R_CAL){
+	int R1 = 330000 * 4;
+	int R2 = 10000 + R_CAL;
+
+	float scaling_factor = ((R1 + R2) / R1);
+	float output = input * scaling_factor;
+
+	return output;
+}
+
+float adc_to_voltage(int adc_value, int adc_resolution, float voltage_range){
+	float voltage = adc_value * voltage_range / adc_resolution;
+	return voltage;
 }
 
 void updateanalogd(){
-	char reg[3];
-	char data[2];
-	if(!i2c1.read(PDOC_ADC << 1, data, 2)){
-		int16_t output = (int16_t)((data[0] << 8) | data[1]);
-		pc.printf("Reading: %d", output);
-		float voltage = ((float)output * 6.144)/32767;
-		pdoc_temperature = voltage * 10;
-	} else
-	{
-		pc.printf("FAILED READ FROM PDOC\r\n");
-	}
-	
-
-	if(!i2c1.read(MC_HV_SENSE_ADC << 1, data, 2)){
-		int16_t output = (int16_t)((data[0] << 8) | data[1]);
-		pc.printf("Reading: %d", output);
-		float voltage = ((float)output * 6.144)/32767;
-		// pc.printf(" -- Converted to %f\r\n", convert);
-		mc_voltage = voltage * 10;
-	} else {
-		pc.printf("FAILED READ FROM MC\r\n");
-	}
+	pdoc_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(0), 32768, 6.144), 3380);
+	// pc.printf("PDOC_TEMPERAUTRE: %d \r\n", pdoc_temperature);
+	pdoc_ref_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(1), 32768, 6.144), 3380);
+	// pc.printf("PDOC_REF_TEMPERAUTRE: %d \r\n", pdoc_ref_temperature);
+	mc_voltage = HV_voltageScaling(adc_to_voltage(mc_hv_sense_adc.readADC_SingleEnded(0), 32768, 6.144), MC_R_CAL);
+	pc.printf("MC_VOLTAGE: %d \r\n", mc_voltage);
 }
-
-void initialiseADC(){
-	i2c1.frequency(100000);
-
-	char cmd[1];
-    
-	if(!i2c1.write(PDOC_ADC << 1, adc_initial_config, 2)){
-		pc.printf("PDOC ADC Write Success!\r\n");
-		led1 = !led1;
-	} else {
-		pc.printf("PDOC ADC Write Fail\r\n");
-	}
-
-	if(!i2c1.write(MC_HV_SENSE_ADC << 1, adc_initial_config, 2)){
-		pc.printf("MC ADC Write Success!\r\n");
-		led1 = !led1;
-	} else {
-		pc.printf("MC ADC Write Fail\r\n");
-	}
-
-	cmd[0] = 0x00;
-
-	if(!i2c1.write(PDOC_ADC << 1, cmd, 1)){
-		pc.printf("PDOC ADC Write Success!\r\n");
-		led1 = !led1;
-	} else {
-		pc.printf("PDOC ADC Write Fail\r\n");
-	}
-
-	if(!i2c1.write(MC_HV_SENSE_ADC << 1, cmd, 1)){
-		pc.printf("MC ADC Write Success!\r\n");
-	} else {
-		pc.printf("MC ADC Write Fail\r\n");
-	}
-}
-
 	/*
 SETUP
 	Initialisation of CANBUS, ADC, and PIT. 
 	*/
 void setup(){
-	can1.frequency(250000);
+	can1.frequency(500000);
 	can1.attach(&CAN1_receive);
 	
 	ticker_heartbeat.attach(&heartbeat, HEARTRATE);
 	ticker_can_transmit.attach(&CAN1_transmit, CAN_BROADCAST_INTERVAL);
 
-	initialiseADC();
 }
 
 //-----------------------------------------------
@@ -379,25 +367,22 @@ int main() {
 	__disable_irq();
     pc.printf("Starting ts_20 Discharge Controller (STM32F103C8T6 128k) \
 	\r\nCOMPILED: %s: %s\r\n",__DATE__, __TIME__);
-	// setup();
-
-	initialiseADC();
+	setup();
 
 	pc.printf("Finished Startup\r\n");
 	wait(1);
 	__enable_irq();
 
     while(1) {
-		wait(2);
 		updateanalogd();
-		led1 = !led1;
 
 		// stated();
 		// errord();
 		// if ((heartbeat_counter % 10) == 0)
 		// 	warnd();
+		// wait(0.5);
     }
 
-	printf("Is this a BSOD?");
+	pc.printf("Is this a BSOD?");
     return 0;
 }

@@ -70,6 +70,7 @@ PC_15/OSC32OUT (3.3V)*
 
 #include <mbed.h>
 #include <CAN.h>
+#include "Adafruit_ADS1015.h"
 
 //-----------------------------------------------
 // Interfaces
@@ -82,17 +83,15 @@ Serial pc(PA_2, PA_3);                 		//TX, RX
 I2C i2c1(PB_7, PB_6);     					//SDA, SCL
 
 // I2C Addressess
-#define PDOC_ADC     						0x4A
-#define MC_HV_SENSE_ADC						0x49
-#define BATT_HV_SENSE_ADC					0x48
+// ADS1115 ADDR PINS: GND 48 - VDD 49 - SDA 4A - SCL 4B
+#define PDOC_ADC_ADDR								0x4B
+#define MC_HV_SENSE_ADC_ADDR						0x49
+#define BATT_HV_SENSE_ADC_ADDR						0x48
 
-// I2C Config Register
-const char adc_initial_config[3] = {0x01, 0b11000000, 0b10000000};
-
-//GND 48
-//VDD 49
-//SDA 4A
-//SCL 4B
+// ADC Interfaces
+Adafruit_ADS1115 pdoc_adc(&i2c1, PDOC_ADC_ADDR);
+Adafruit_ADS1115 mc_hv_sense_adc(&i2c1, MC_HV_SENSE_ADC_ADDR);
+Adafruit_ADS1115 batt_hv_sense_adc(&i2c1, BATT_HV_SENSE_ADC_ADDR);
 
 // CANBUS Interface
 CAN can1(PB_8, PB_9);     						// RXD, TXD
@@ -106,7 +105,7 @@ CAN can1(PB_8, PB_9);     						// RXD, TXD
 #define DISCHARGE_MODULE_HEARTBEAT_ID			 	0x450
 #define DISCHARGE_MODULE_ERROR_ID					0x451
 #define DISCHARGE_MODULE_ANALOGUE_ID				0x452
-#define DISCHARGE_CONTROLLER_PERIPHERAL_ID			0x453
+#define DISCHARGE_MODULE_PERIPHERAL_ID				0x453
 
 // Throttle Controller
 #define THROTTLE_CONTROLLER_HEARTBEAT_ID			0x340
@@ -128,6 +127,19 @@ CAN can1(PB_8, PB_9);     						// RXD, TXD
 #define TC_CHARGER_STATUS_ID						0x18FF50E5
 
 //-----------------------------------------------
+// Calibration Factors
+//-----------------------------------------------
+
+// HV Voltage Bridge Offset Resistors
+const int MC_R_CAL = 5000;
+const int BATT_R_CAL = 5000;
+
+// Voltage Limits
+const int MINIMUM_CELL_VOLTAGE = 27;
+const int MAXIMUM_CELL_VOLTAGE = 43;
+const int MAXIMUM_CELL_TEMPERATURE = 65;
+
+//-----------------------------------------------
 // Classes
 //-----------------------------------------------
 
@@ -143,7 +155,7 @@ public:
 
 private:
 	const float r1 = 10000;
-	const float vin = 4.35;
+	const float vin = 5;
 
 	const float BETA = 3430;
 	const float R2 = 10000;
@@ -214,11 +226,6 @@ private:
 // Globals
 //-----------------------------------------------
 
-// Voltage Limits
-const int MINIMUM_CELL_VOLTAGE = 27;
-const int MAXIMUM_CELL_VOLTAGE = 43;
-const int MAXIMUM_CELL_TEMPERATURE = 65;
-
 static int8_t  	heartbeat_state 			= 0;
 static int	    heartbeat_counter 			= 0;
 static bool 	error_present				= 1; 	// (1 - Default)
@@ -243,7 +250,7 @@ static int16_t  battery_voltage 			= 0;
 // Program Interrupt Timer Instances
 Ticker ticker_heartbeat;
 Ticker ticker_can_transmit;
-Ticker ticker_orion_watchdog;
+Ticker ticker_orionwd;
 
 // Interval Periods
 #define	HEARTRATE			 				1
@@ -253,6 +260,7 @@ Ticker ticker_orion_watchdog;
 //-----------------------------------------------
 // GPIO 
 //-----------------------------------------------
+
 DigitalOut led1(PC_13);
 DigitalOut can1_rx_led(PB_1);
 DigitalOut can1_tx_led(PB_0);
@@ -390,7 +398,7 @@ void CAN1_transmit(){
 // Daemons
 //-----------------------------------------------
 
-void orion_watchdog(){
+void orionwd(){
 	if (heartbeat_state > 0){
 		if ((orion_timeout_counter/10) >= ORION_TIMEOUT){
 			orion_connected = false;
@@ -398,7 +406,6 @@ void orion_watchdog(){
 		orion_timeout_counter += 1;
 	}
 }
-
 
 void errord(){
 	error_present = 0;
@@ -513,102 +520,66 @@ void stated(){
 	}
 }
 
-void updateanalogd(){
-	char reg[3];
-	char data[2];
+int NTC_voltageToTemperature(float voltage, float BETA=3380){
+	float r1 = 2000;
+	float vin = 5;
 	
-	if(!i2c1.read(PDOC_ADC << 1, data, 2)){
-		led1 = !led1;
-		int16_t output = (int16_t)((data[0] << 8) | data[1]);
-		// // pc.printf("Reading: %d", output);
-		float voltage = ((float)output * 6.144)/32767;
-		pdoc_temperature = voltage * 10;
-	}
-	if(!i2c1.read(BATT_HV_SENSE_ADC << 1, data, 2)){
-		led1 = !led1;
-		int16_t output = (int16_t)((data[0] << 8) | data[1]);
-		// // pc.printf("Reading: %d", output);
-		float voltage = ((float)output * 6.144)/32767;
-		// // pc.printf(" -- Converted to %f\r\n", convert);
-		battery_voltage = voltage * 10;
-	}
-	if(!i2c1.read(MC_HV_SENSE_ADC << 1, data, 2)){
-		led1 = !led1;
-		int16_t output = (int16_t)((data[0] << 8) | data[1]);
-		// // pc.printf("Reading: %d", output);
-		float voltage = ((float)output * 6.144)/32767;
-		// // pc.printf(" -- Converted to %f\r\n", convert);
-		mc_voltage = voltage * 10;
-	}
+	float R2 = 10000;
+	float T2 = 25 + 270;
+
+	float resistance;
+	int temperature;
+	
+	resistance = r1/((vin/voltage)-1);
+	temperature = ((BETA * T2)/(T2 * log(resistance/R2) + BETA))-270;
+	
+	return temperature;
+}
+
+float HV_voltageScaling(float input, int R_CAL){
+	int R1 = 330000 * 4;
+	int R2 = 10000 + R_CAL;
+
+	float scaling_factor = ((R1 + R2) / R1);
+	float output = input * scaling_factor;
+
+	return output;
+}
+
+float adc_to_voltage(int adc_value, int adc_resolution, float voltage_range){
+	float voltage = adc_value * voltage_range / adc_resolution;
+	return voltage;
+}
+
+void updateanalogd(){
+	pdoc_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(0), 32768, 6.144), 3380);
+	// pc.printf("PDOC_TEMPERAUTRE: %d \r\n", pdoc_temperature);
+	pdoc_ref_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(1), 32768, 6.144), 3380);
+	// pc.printf("PDOC_REF_TEMPERAUTRE: %d \r\n", pdoc_ref_temperature);
+	mc_voltage = HV_voltageScaling(adc_to_voltage(mc_hv_sense_adc.readADC_SingleEnded(0), 32768, 6.144), MC_R_CAL);
+	// pc.printf("MC_VOLTAGE: %d \r\n", mc_voltage);
+	battery_voltage = HV_voltageScaling(adc_to_voltage(batt_hv_sense_adc.readADC_SingleEnded(0), 32768, 6.144), BATT_R_CAL);
+	// pc.printf("BATTERY_VOLTAGE: %d \r\n", battery_voltage);
 }
 
 //-----------------------------------------------
 // Initialisations
 //-----------------------------------------------
 
-void initialiseADC(){
-	char cmd[1];
-    
-	if(!i2c1.write(PDOC_ADC << 1, adc_initial_config, 2)){
-		led1 = !led1;
-		// pc.printf("PDOC ADC Write Success!\r\n");
-	} else {
-		// pc.printf("PDOC ADC Write Fail\r\n");
-	}
-
-	if(!i2c1.write(BATT_HV_SENSE_ADC << 1, adc_initial_config, 2)){
-		led1 = !led1;
-		// pc.printf("BATT ADC Write Success!\r\n");
-	} else {
-		// pc.printf("BATT ADC Write Fail\r\n");
-	}
-
-	if(!i2c1.write(MC_HV_SENSE_ADC << 1, adc_initial_config, 2)){
-		led1 = !led1;
-		// pc.printf("MC ADC Write Success!\r\n");
-	} else {
-		// pc.printf("MC ADC Write Fail\r\n");
-	}
-
-	cmd[0] = 0x00;
-
-	if(!i2c1.write(PDOC_ADC << 1, cmd, 1)){
-		led1 = !led1;
-		// pc.printf("PDOC ADC Write Success!\r\n");
-	} else {
-		// pc.printf("PDOC ADC Write Fail\r\n");
-	}
-
-	if(!i2c1.write(BATT_HV_SENSE_ADC << 1, cmd, 1)){
-		led1 = !led1;
-		// pc.printf("BATT ADC Write Success!\r\n");
-	} else {
-		// pc.printf("BATT ADC Write Fail\r\n");
-	}
-
-	if(!i2c1.write(MC_HV_SENSE_ADC << 1, cmd, 1)){
-		led1 = !led1;
-		// pc.printf("MC ADC Write Success!\r\n");
-	} else {
-		// pc.printf("MC ADC Write Fail\r\n");
-	}
-}
-
 	/*
 SETUP
 	Initialisation of CANBUS, ADC, and HEARTBEAT. 
 	*/
 void setup(){
-	can1.frequency(250000);
+	can1.frequency(500000);
 	can1.attach(&CAN1_receive);
 	
 	ticker_heartbeat.attach(&heartbeat, HEARTRATE);
 	ticker_can_transmit.attach(&CAN1_transmit, CAN_BROADCAST_INTERVAL);
 
-	ticker_orion_watchdog.attach(&orion_watchdog, ORION_TIMEOUT);
+	ticker_orionwd.attach(&orionwd, ORION_TIMEOUT);
 
 	IMD_interface.IMD_Data::start();
-	initialiseADC();
 }
 
 //-----------------------------------------------

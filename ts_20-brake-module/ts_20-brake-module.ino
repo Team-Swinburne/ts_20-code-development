@@ -44,8 +44,7 @@ int         brake_avg_percent   = 0;
 
 // CAN Initialization ------------------------------
 int BRAKE_HEARTBEAT_ID = 0x308;
-int BRAKE_SAFETY_ID    = 0x309;
-int BRAKE_SENSORS_ID   = 0x30A;
+int BRAKE_DATA_ID    = 0x309;
 int rxMsgID = 0x306;    // ID of brake sensor data -- for rx filtering
 int       id;
 int       fltIdx;
@@ -60,19 +59,17 @@ uint8_t BSPD_OK = 0;
 eXoCAN can;
 
 void Heartbeat_TX();
-void Safety_TX();
-void Sensors_TX();
+void CAN_TX();
 void CANRecieve();
 void updateValues();
 
 Ticker ticker_heartbeat(Heartbeat_TX,HEARTRATE);
-Ticker ticker_safety_tx(Safety_TX,CAN_BROADCAST_INTERVAL);
-Ticker ticker_sensors_tx(Sensors_TX,CAN_BROADCAST_INTERVAL);
+Ticker ticker_can_tx(CAN_TX,CAN_BROADCAST_INTERVAL);
 //--------------------------------------------------//
 // The setup function runs once when you press reset or power the board
 //--------------------------------------------------//
 void setup() {  
-  // Configuring the Micro-Controller Input Pins.
+  // Micro-Controller Input Pins.
   pinMode(pin_S1, INPUT);       //Sensor_1
   pinMode(pin_S2, INPUT);       //Sensor_2
   pinMode(pin_HP, INPUT);       //High_Pressure
@@ -85,9 +82,7 @@ void setup() {
 
   // Initialize timer for the functions.
   ticker_heartbeat.start();
-  ticker_safety_tx.start();
-  delay(5); // start sensor tx timer 5ms behind since the board can't transmit 2 CAN messages at the same time
-  ticker_sensors_tx.start();
+  ticker_can_tx.start();
   
   // Initiallising CANBUS
   can.begin(STD_ID_LEN, BR500K, PORTB_8_9_XCVR);          // 11b IDs, 250k bit rate, Pins 8 and 9 with a transceiver chip
@@ -107,9 +102,8 @@ void loop() {
   updateValues();         //read micro-contropller pins and calculates brake values
   CANRecieve();
   ticker_heartbeat.update();
-  ticker_safety_tx.update();
-  ticker_sensors_tx.update();
-  SerialPrint();
+  ticker_can_tx.update();
+  //SerialPrint();
   //if (brake_output_percent > old_brake_output_percent); Serial2.println("Brake!); 
 }
 
@@ -123,23 +117,13 @@ void Heartbeat_TX() {
   can.transmit(BRAKE_HEARTBEAT_ID, txData, txDataLen);
   //digitalToggle(pin_LED_tx);
   digitalToggle(PC13);
-  //Serial2.print("Heartbeat: ");
-  //Serial2.println(heartbeat_cnt);
-  //Serial2.println(status_can);
 }
-void Safety_TX(){
-  //digitalToggle(pin_LED_tx);
-  uint8_t txData[4] = {0, 0, 0, 0};
-  uint8_t txDataLen = 4;
-  can.transmit(BRAKE_SAFETY_ID, txData, txDataLen);
-}
-
-void Sensors_TX(){
+void CAN_TX(){
+  // Brake Data
   digitalToggle(pin_LED_tx);
-  uint8_t txData[3] = {brake1_percent, brake2_percent, brake_avg_percent};
-  uint8_t txDataLen = 3;
-  can.transmit(BRAKE_SENSORS_ID, txData, txDataLen);
-  digitalToggle(pin_LED_tx);
+  uint8_t txData[5] = {brake1_percent, brake2_percent, brake_avg_percent, BSPD_OK, five_kW};
+  uint8_t txDataLen = 5;
+  can.transmit(BRAKE_DATA_ID, txData, txDataLen);
 }
 
 void CANRecieve(){
@@ -155,7 +139,7 @@ void CANRecieve(){
 void updateValues(){
   brake1_raw          = analogRead(pin_S1);
   brake2_raw          = analogRead(pin_S2);
-  High_Pressure       = digitalRead(pin_HP);
+  High_Pressure       = !digitalRead(pin_HP);
   Low_Pressure        = digitalRead(pin_LP);
   five_kW             = digitalRead(pin_CS);
   BSPD_OK             = digitalRead(pin_BSPD);

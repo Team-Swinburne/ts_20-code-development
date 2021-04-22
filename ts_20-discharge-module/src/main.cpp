@@ -97,6 +97,9 @@ Adafruit_ADS1115 mc_hv_sense_adc(&i2c1, MC_HV_SENSE_ADC_ADDR);
 // CANBUS Interface
 CAN can1(PB_8, PB_9);     						// RXD, TXD
 
+// CANBUS Frequency
+#define CANBUS_FREQUENCY 								250000
+
 // CANBUS Addresses
 #define PRECHARGE_CONTROLLER_HEARTBEAT_ID 			0x440
 #define PRECHARGE_CONTROLLER_ERROR_ID				0x441
@@ -351,7 +354,7 @@ SETUP
 	Initialisation of CANBUS, ADC, and PIT. 
 	*/
 void setup(){
-	can1.frequency(500000);
+	can1.frequency(CANBUS_FREQUENCY);
 	can1.attach(&CAN1_receive);
 	
 	ticker_heartbeat.attach(&heartbeat, HEARTRATE);
@@ -376,11 +379,11 @@ int main() {
     while(1) {
 		updateanalogd();
 
-		// stated();
-		// errord();
-		// if ((heartbeat_counter % 10) == 0)
-		// 	warnd();
-		// wait(0.5);
+		stated();
+		errord();
+		if ((heartbeat_counter % 10) == 0)
+			warnd();
+		wait(0.5);
     }
 
 	pc.printf("Is this a BSOD?");

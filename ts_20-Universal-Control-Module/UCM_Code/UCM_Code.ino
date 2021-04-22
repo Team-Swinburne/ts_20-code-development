@@ -20,6 +20,8 @@ int DigIN3 =0;
 int DigIN4 =0;
 int16_t adc0, adc1, adc2, adc3;
 
+int avBrake = 0;
+
 //Ticker 
 void heartbeat_tx();
 Ticker heartbeat_timer(heartbeat_tx, 1000); 
@@ -38,7 +40,7 @@ uint8_t txData[8];
 uint8_t txDataLen = 8;
 uint32_t txDly = 100; //Message Transmit Frequency in Milliseconds (Transmits every 5 seconds atm)
 uint32_t last = 0;
-int id, fltIdx;
+int fltIdx;
 uint8_t rxbytes[8];
 uint8_t rxData[8];
 uint32_t last_counter = 0;
@@ -126,15 +128,27 @@ Transmit_data_timer.start();
 //--------------------------------------------------//
 // CAN Message Recieve. 
 //--------------------------------------------------//
+int id = 0x309;
+char cBuff[20];
  void CANRecieve(){
-    if (can.receive(id, fltIdx, rxbytes) > -1) // poll for rx
+  int len = can.receive(id, fltIdx, rxbytes);
+    if (len > -1) // poll for rx
       {
-       digitalToggle(RXLED);
-       //rxData[]=rxbytes;
-       Serial1.println("Receiving...");
-       digitalToggle(RXLED); 
+      sprintf(cBuff, "RX @%02x #%d  %d\t", id, len, fltIdx);
+      Serial1.print(cBuff);
+      for (int j = 0; j < len; j++)
+      {
+        sprintf(cBuff, "%02x ", rxbytes[j]);
+        Serial1.print(cBuff);
       }
-   };
+      Serial1.println();
+    }
+ };
+
+void brakePercentage(){
+  avBrake = rxbytes[2];
+  Serial1.println(avBrake, DEC);
+}
 
 //--------------------------------------------------//
 // This function reads all digital input values and stores them in variables.
@@ -187,8 +201,14 @@ void Driver() {
 //--------------------------------------------------//
 // Set Output Driver
 //--------------------------------------------------//
-digitalWrite(PB15, HIGH);
-digitalWrite(PB14, HIGH);
+if (avBrake >= 50) {
+  digitalWrite(PB15, HIGH);
+  digitalWrite(PB14, HIGH);
+}
+else {
+  digitalWrite(PB15, LOW);
+  digitalWrite(PB14, LOW);
+}
 //--------------------------------------------------//
 // Conditional Output Driver.
 //--------------------------------------------------//
@@ -260,4 +280,5 @@ void heartbeat_tx(){
   Transmit_data_timer.update();
   CANTransmit();
   CANRecieve();
+  brakePercentage();
 }

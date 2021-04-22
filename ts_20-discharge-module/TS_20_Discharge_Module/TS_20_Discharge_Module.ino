@@ -31,8 +31,8 @@ Ticker Transmit_data_timer(Transmit_data, 100);
 //CAN configuration constants
 
 // tx frame setup #1
-int UCMID = 0x069;
-int UCM_Heartbeat = 0x068;
+int DCID = 0x0600;
+int DC_Heartbeat = 0x068;
 int rxMsgID = 0x005;   // needed for rx filtering
 uint8_t txData[8];
 uint8_t txDataLen = 8;
@@ -234,7 +234,7 @@ void heartbeat_tx(){
           digitalToggle(TXLED);
           Heartbeat_Data[0] = Heartbeat_State;
           Heartbeat_Data[1] = Heartbeat_Counter;
-          can.transmit(UCM_Heartbeat, Heartbeat_Data, 2);
+          can.transmit(DC_Heartbeat, Heartbeat_Data, 2);
           digitalToggle(TXLED);
           digitalToggle(PC13);
           if (Heartbeat_Counter == 256){
@@ -246,7 +246,7 @@ void heartbeat_tx(){
  void Transmit_data(){
           digitalToggle(TXLED);
           //last = millis() / txDly;
-          can.transmit(UCMID, txData, txDataLen);
+          can.transmit(DCID, txData, txDataLen);
           digitalToggle(TXLED);
           //Serial1.println("Transmitting...");          
  }

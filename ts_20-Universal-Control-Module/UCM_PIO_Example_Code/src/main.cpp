@@ -88,7 +88,7 @@ PC_15/OSC32OUT (3.3V)*
 #define DEFAULT_ADC_ADDR								        0x49
 
 // ADC Interfaces
-Adafruit_ADS1X15 adc(DEFAULT_ADC_ADDR);
+Adafruit_ADS1115 adc();
 
 // CANBUS Interface
 eXoCAN can;
@@ -266,6 +266,7 @@ void updateanalogd(){
 //-----------------------------------------------
 // Initialisations
 //-----------------------------------------------
+
   /*
 INITIALISE_PINS
   Initialises all pins, based on previous mappings.
@@ -284,7 +285,6 @@ void initialise_pins(){
   pinMode(driver_output_2, OUTPUT);
 }
 
-
 	/*
 SETUP
 	Initialisation of CANBUS, ADC, and HEARTBEAT. 
@@ -295,7 +295,7 @@ void setup() {
   can.begin(STD_ID_LEN, BR500K, PORTB_8_9_XCVR);           // 11b IDs, 500k bit rate, Pins 8 and 9 with a transceiver chip
   can.filterMask16Init(0, 0, 0x7ff, 0, 0); 
 
-  adc.begin();
+  adc.begin(DEFAULT_ADC_ADDR, &Wire);
 
   Serial1.begin(9600);
 }

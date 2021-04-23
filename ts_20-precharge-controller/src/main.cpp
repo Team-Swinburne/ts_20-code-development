@@ -238,8 +238,11 @@ static int8_t  	warning_code				= 0;
 static bool		precharge_button_state		= 0;
 static bool 	charge_mode_activated		= 0; 
 static int 		discharge_state				= 2;	// (2 - Default)
-static int 		orion_timeout_counter		= 0;
 static bool 	orion_connected	 			= 0;	// (0 - Default)
+
+static int 		precharge_start_time 		= 0;
+static int 		orion_last_connection		= 0;
+static int 	   orion_timeout_strike_counter = 0;
 
 static int 		orion_low_voltage			= 0;
 static int 		orion_high_voltage			= 0;
@@ -255,10 +258,11 @@ Ticker ticker_heartbeat;
 Ticker ticker_can_transmit;
 Ticker ticker_orionwd;
 
-// Interval Periods
+// Interval & Periods
 #define	HEARTRATE			 				1
 #define CAN_BROADCAST_INTERVAL              0.05
-#define ORION_TIMEOUT						0.1
+#define ORION_TIMEOUT_INTERVAL				1
+#define ORION_TIMEOUT_STRIKE_LIMIT			5
 
 //-----------------------------------------------
 // GPIO 
@@ -325,8 +329,13 @@ void CAN1_receive(){
 				// 0b000000, 0000010	Charge Relay Enabled
 				// 0b000000, 0000100	Charge Safety Enabled
 				// Use bitwise operator to mask out all except relevent statuses.
-				if (can1_msg.data[1] & 0b0000000000000111 > 0)
+				if (can1_msg.data[1] & 0b00000111 > 0){
 					orion_connected = true;	
+					orion_last_connection = heartbeat_counter;
+					orion_timeout_strike_counter = 0;
+				}
+				else
+					orion_connected = false;
 				break;
 			
 			case ORION_BMS_VOLTAGE_ID:
@@ -401,12 +410,12 @@ void CAN1_transmit(){
 // Daemons
 //-----------------------------------------------
 
-void orionwd(){
+void orionwd_cb(){
 	if (heartbeat_state > 0){
-		if ((orion_timeout_counter/10) >= ORION_TIMEOUT){
+		if (orion_last_connection - heartbeat_counter >= ORION_TIMEOUT_INTERVAL){
 			orion_connected = false;
+			++orion_timeout_strike_counter;
 		}
-		orion_timeout_counter += 1;
 	}
 }
 
@@ -437,12 +446,12 @@ void errord(){
 	}
 	if (orion_high_voltage > MAXIMUM_CELL_VOLTAGE){
 		error_present = 1;
-		error_code = error_code + 0b000010000;
+		error_code = error_code + 0b00010000;
 		// pc.printf("FAULT: Orion reports overvoltage fault!\r\n");
 	}
 	if (orion_high_temperature > MAXIMUM_CELL_TEMPERATURE){
 		error_present = 1;
-		error_code = error_code + 0b000100000;
+		error_code = error_code + 0b00100000;
 		// pc.printf("FAULT: Orion reports overtemperature fault!\r\n");
 	}
 	if (error_present)
@@ -480,8 +489,6 @@ void warnd(){
 }
 
 void stated(){
-	int precharge_start_time = 0;
-
 	switch(heartbeat_state){
 		case 0:	// Fail State (Default){
 			AIR_neg_relay = 0;
@@ -590,9 +597,11 @@ void setup(){
 	ticker_heartbeat.attach(&heartbeat, HEARTRATE);
 	ticker_can_transmit.attach(&CAN1_transmit, CAN_BROADCAST_INTERVAL);
 
-	ticker_orionwd.attach(&orionwd, ORION_TIMEOUT);
+	ticker_orionwd.attach(&orionwd_cb, ORION_TIMEOUT_INTERVAL);
 
-	IMD_interface.IMD_Data::start();
+	IMD_interface.start();
+
+	orion_connected = false;
 }
 
 // TEST PRECHARGE RELAY SEQUENCING

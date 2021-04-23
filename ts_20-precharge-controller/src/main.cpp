@@ -632,9 +632,9 @@ int main() {
 		stated();
 		errord();
 		updateanalogd();
-		if ((heartbeat_counter % 10) == 0)
-			warnd();
-		wait(0.1);
+		warnd();
+
+		wait(0.001);	// Don't stress mcu.
 		// test_relays(2);
     }
 

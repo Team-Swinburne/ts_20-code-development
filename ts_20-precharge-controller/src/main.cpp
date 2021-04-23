@@ -480,7 +480,7 @@ void warnd(){
 }
 
 void stated(){
-	int precharge_timeout = 0;
+	int precharge_start_time = 0;
 
 	switch(heartbeat_state){
 		case 0:	// Fail State (Default){
@@ -489,37 +489,47 @@ void stated(){
 			AIR_pos_relay = 0;
 			AMS_ok = 0;
 			break;
+
 		case 1: // Idle State
 			if (precharge_button_state || charge_mode_activated){
 				// pc.printf("Beginging precharge sequence\r\n");
+				precharge_start_time = heartbeat_counter;
 				heartbeat_state = 2;
+				wait(0.5);	// Safeguard for discharge relay
 			}
 			break;
+
 		case 2: // Precharging State
 			AIR_neg_relay = 1;
-			precharge_relay = 0;
+			precharge_relay = 1;
 			AIR_pos_relay = 0;
 
-			wait(0.5);	// Safeguard for discharge relay
-			precharge_timeout = heartbeat_counter;
-			
-			precharge_relay = 1;
 			if (battery_voltage*0.95 > mc_voltage){
 				// pc.printf("Precharge within 95%, safe to close postive contactor\r\n");
 				wait(0.1);
 				heartbeat_state = 3;
 			}
-			if (heartbeat_counter > precharge_timeout + 5){
+
+			if (heartbeat_counter > precharge_start_time + 5){
 				// pc.printf("Precharge timed out, check for discharge relay failure,\
 				or higher than expected resistance before continuing\r\n");
 				heartbeat_state = 0;
+
+				if (battery_voltage*0.95 > mc_voltage){
+					// pc.printf("Precharge within 95%, safe to close postive contactor\r\n");
+					wait(0.1);
+					heartbeat_state = 3;
+				} else 
+					heartbeat_state = 0;
 			}
 			break;
+			
 		case 3: // Precharged State
 			AIR_neg_relay = 1;
-			precharge_relay = 1;
+			precharge_relay = 0;
 			AIR_pos_relay = 1;
 			break;
+
 	}
 }
 
@@ -590,7 +600,7 @@ void test_relays(float time){
 	AIR_neg_relay = !AIR_neg_relay;
 	AIR_pos_relay = !AIR_pos_relay;
 
-	pc.printf("AIR_POWER = %d :::: AIR_neg_feedback %f:%f :::: AIR_pos_feedback = %f:%f\r\n", AIR_power, AIR_neg_relay, AIR_neg_feedback, AIR_pos_relay, AIR_pos_feedback);
+	// pc.printf("AIR_POWER = %d :::: AIR_neg_feedback %f:%f :::: AIR_pos_feedback = %f:%f\r\n", AIR_power, AIR_neg_relay, AIR_neg_feedback, AIR_pos_relay, AIR_pos_feedback);
 
 	wait(time);
 }

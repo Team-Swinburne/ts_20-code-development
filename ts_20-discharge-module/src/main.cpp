@@ -98,7 +98,7 @@ Adafruit_ADS1115 mc_hv_sense_adc(&i2c1, MC_HV_SENSE_ADC_ADDR);
 CAN can1(PB_8, PB_9);     						// RXD, TXD
 
 // CANBUS Frequency
-#define CANBUS_FREQUENCY 								250000
+#define CANBUS_FREQUENCY 							500000
 
 // CANBUS Addresses
 #define PRECHARGE_CONTROLLER_HEARTBEAT_ID 			0x440
@@ -213,6 +213,7 @@ void heartbeat(){
 	char TX_data[3] = {(char)heartbeat_state, (char)heartbeat_counter, (char)pcb_temperature.PCB_Temp::read()};
 	if(can1.write(CANMessage(DISCHARGE_MODULE_HEARTBEAT_ID, &TX_data[0], 3))) 
 	{
+		can1_tx_led = !can1_tx_led;
        	// pc.printf("Heartbeat Success! State: %d Counter: %d\r\n", heartbeat_state, heartbeat_counter);
     }else
 	{
@@ -226,6 +227,8 @@ CAN RECEIVE
 	*/
 void CAN1_receive(){
 	can1_rx_led = !can1_rx_led;
+
+	CANMessage can1_msg;
 }
 
 /* CAN TRANSMIT
@@ -241,9 +244,12 @@ void CAN1_transmit(){
 	
 	if (can1.write(CANMessage(DISCHARGE_MODULE_ERROR_ID, &TX_data[0], 4))) {
        can1_tx_led = !can1_tx_led;
+	   // pc.printf("MESSAGE SUCCESS!\r\n");
     } else {
 		// pc.printf("MESSAGE FAIL!\r\n");
 	}
+
+	wait(0.0001);
 
 	TX_data[0] = (char)(pdoc_temperature >> 8);
 	TX_data[1] = (char)(pdoc_temperature && 255);
@@ -254,17 +260,23 @@ void CAN1_transmit(){
 
 	if(can1.write(CANMessage(DISCHARGE_MODULE_ANALOGUE_ID, &TX_data[0], 6))) {
        can1_tx_led = !can1_tx_led;
+	   // pc.printf("MESSAGE SUCCESS!\r\n");
     } else {
 		// printf("MESSAGE FAIL!\r\n");
 	}
+
+	wait(0.0001);
 
 	TX_data[0] = discharge_release;
 
 	if (can1.write(CANMessage(DISCHARGE_CONTROLLER_PERIPHERAL_ID, &TX_data[0], 2))) {
        can1_tx_led = !can1_tx_led;
+	   // pc.printf("MESSAGE SUCCESS!\r\n");
     } else {
 		// pc.printf("MESSAGE FAIL!\r\n");
 	}
+
+	wait(0.0001);
 }
 
 

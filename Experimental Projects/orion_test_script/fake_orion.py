@@ -3,7 +3,7 @@ import time
 
 
 # Constants
-CANBUS_SPEED = 500000
+CANBUS_SPEED = 250000
 
 THROTTLE_CONTROLLER_PERIPERAL_ID = 0x343
 
@@ -11,8 +11,9 @@ ORION_BMS_STATUS_ID = 0x200
 
 def send_handler(bus, msg):
     try:
-        bus.send(msg)
-        print("Message sent on {}".format(bus.channel_info))
+        bus.send(msg,timeout=None)
+        print(msg.data)
+        print("Message sent on {}\r".format(bus.channel_info))
     except:
         print("Message not sent")
 
@@ -24,7 +25,7 @@ def send_precharge_request(bus):
 
 def send_relay_status(bus):
     payload = [7,0,0,0,0,0,0,0]
-    msg.can.Message(arbitration_id=ORION_BMS_STATUS_ID, data=payload)
+    msg = can.Message(arbitration_id=ORION_BMS_STATUS_ID, data=payload)
     send_handler(bus, msg)
     time.sleep(0.2)
 
@@ -32,9 +33,14 @@ def setup():
     # may need to add serial=12093 <- or whatever number that is. 
     bus = can.interface.Bus(bustype='kvaser', channel=0, bitrate=CANBUS_SPEED)\
     
+    print(bus.get_stats())
+    bus.flash(flash=True)
+
+
     return bus
 
 def main():
+    print("starting")
     bus = setup()
 
     while(1):

@@ -104,7 +104,7 @@ Adafruit_ADS1115 batt_hv_sense_adc(&i2c1, BATT_HV_SENSE_ADC_ADDR);
 CAN can1(PB_8, PB_9);     						// RXD, TXD
 
 // CANBUS Frequency
-#define CANBUS_FREQUENCY							250000
+#define CANBUS_FREQUENCY							500000
 
 // CANBUS Addresses
 #define PRECHARGE_CONTROLLER_HEARTBEAT_ID 			0x440
@@ -155,7 +155,7 @@ const int MAXIMUM_CELL_TEMPERATURE = 65;
 
 class PCB_Temp_Sensor {
 public:
-	PCB_Temp_Sensor(PinName pin)	: _sensor(pin){
+	PCB_Temp_Sensor(PinName pin) : _sensor(pin){
 		_temperature = _sensor.read();
 	}
 
@@ -232,36 +232,36 @@ private:
 	Timer _t;
 };
 
-class AIR_Relay{
-public:
-	AIR_Relay(PinName relay_pin_number, PinName feedback_pin_number) : 
-	_relay_pin(relay_pin_number), _feedback_pin(feedback_pin_number){
-		_relay_pin = 0;
-	}
+// class AIR_Relay{
+// public:
+// 	AIR_Relay(PinName relay_pin_number, PinName feedback_pin_number) : 
+// 	_relay_pin(relay_pin_number), _feedback_pin(feedback_pin_number){
+// 		_relay_pin = 0;
+// 	}
 
-	void close(){
-		_relay_pin = 1;
-	}
+// 	void close(){
+// 		_relay_pin = 1;
+// 	}
 
-	void open(){
-		_relay_pin = 0;
-	}
+// 	void open(){
+// 		_relay_pin = 0;
+// 	}
 
-	bool check_valid(){
-		bool valid_relay = false;
-		if (_relay_pin == _feedback_pin){
-			valid_relay = true;
-		} else {
-			valid_relay = false;
-		}
-		return valid_relay;
-	}
+// 	bool check_valid(){
+// 		bool valid_relay = false;
+// 		if (_relay_pin == _feedback_pin){
+// 			valid_relay = true;
+// 		} else {
+// 			valid_relay = false;
+// 		}
+// 		return valid_relay;
+// 	}
 
 
-private:
-	DigitalOut _relay_pin;
-	DigitalIn _feedback_pin;
-};
+// private:
+// 	DigitalOut _relay_pin;
+// 	DigitalIn _feedback_pin;
+// };
 
 //-----------------------------------------------
 // Globals
@@ -299,7 +299,7 @@ Ticker ticker_orionwd;
 // Interval & Periods
 #define	HEARTRATE			 				1
 #define CAN_BROADCAST_INTERVAL              0.05
-#define ORION_TIMEOUT_INTERVAL				1
+#define ORION_TIMEOUT_INTERVAL				0.25
 #define ORION_TIMEOUT_STRIKE_LIMIT			5
 
 //-----------------------------------------------
@@ -337,6 +337,7 @@ void heartbeat(){
 	led1 = !led1;
 	char TX_data[3] = {(char)heartbeat_state, (char)heartbeat_counter, (char)pcb_temperature.read()};
 	if(can1.write(CANMessage(PRECHARGE_CONTROLLER_HEARTBEAT_ID, &TX_data[0], 3))) {
+		can1_tx_led = !can1_tx_led;
        	// pc.printf("Heartbeat Success! State: %d Counter: %d\r\n", heartbeat_state, heartbeat_counter);
     } else {
 		// pc.printf("Hearts dead :(\r\n");
@@ -400,19 +401,20 @@ CAN TRANSMIT
 */
 void CAN1_transmit(){
     char TX_data[8] = {0};
-		
+
 	TX_data[0] = error_present;
 	TX_data[1] = error_code;
 	TX_data[2] = warning_present;
 	TX_data[3] = warning_code; // add stuff for imd period and frequency.
-	TX_data[4] = IMD_interface.readPeriod();
-	TX_data[5] = IMD_interface.readDutyCycle();
 	
 	if (can1.write(CANMessage(PRECHARGE_CONTROLLER_ERROR_ID, &TX_data[0], 4))) {
-       can1_tx_led = !can1_tx_led;
+    	can1_tx_led = !can1_tx_led;
+		// pc.printf("MESSAGE SUCCESS!\r\n");
     } else {
-		// printf("MESSAGE FAIL!\r\n");
+		// pc.printf("MESSAGE FAIL!\r\n");
 	}
+	
+	wait(0.0001);
 
 	TX_data[0] = (char)(pdoc_temperature >> 8);
 	TX_data[1] = (char)(pdoc_temperature && 255);
@@ -425,9 +427,12 @@ void CAN1_transmit(){
 
 	if(can1.write(CANMessage(PRECHARGE_CONTROLLER_ANALOGUE_ID, &TX_data[0], 8))) {
        can1_tx_led = !can1_tx_led;
+	   // pc.printf("MESSAGE SUCCESS!\r\n");
     } else {
 		// printf("MESSAGE FAIL!\r\n");
 	}
+
+	wait(0.0001);
 
 	TX_data[0] = precharge_relay;
 	TX_data[1] = IMD_interface.readPeriod();
@@ -436,17 +441,20 @@ void CAN1_transmit(){
 	TX_data[4] = AIR_neg_feedback;
 	TX_data[5] = AIR_pos_feedback;
 
-	if (can1.write(CANMessage(PRECHARGE_CONTROLLER_PERIPHERAL_ID, &TX_data[0], 5))) {
+	if (can1.write(CANMessage(PRECHARGE_CONTROLLER_PERIPHERAL_ID, &TX_data[0], 6))) {
        can1_tx_led = !can1_tx_led;
+	   // pc.printf("MESSAGE SUCCESS!\r\n");
     } else {
 		// printf("MESSAGE FAIL!\r\n");
 	}
+
+	wait(0.0001);
 }
 
-//-----------------------------------------------
-// Daemons
-//-----------------------------------------------
-
+/* 
+ORION WATCHDOG CALLBACK
+	Callback function used to check whether the orion is functioning correctly.
+*/
 void orionwd_cb(){
 	if (heartbeat_state > 0){
 		if (orion_last_connection - heartbeat_counter >= ORION_TIMEOUT_INTERVAL){
@@ -455,6 +463,10 @@ void orionwd_cb(){
 		}
 	}
 }
+
+//-----------------------------------------------
+// Daemons
+//-----------------------------------------------
 
 void errord(){
 	error_present = 0;
@@ -470,7 +482,7 @@ void errord(){
 		// pc.printf("FAULT: PDOC failure detected, please allow to cool and check for\
 		short circuit!\r\n");
 	}
-	if (orion_connected != 1){
+	if (orion_timeout_strike_counter > ORION_TIMEOUT_STRIKE_LIMIT){
 		error_present = 1;
 		error_code = error_code + 0b00000100;
 		// pc.printf("FAULT: Orion BMS not attached, please check CAN is functioning, and\
@@ -609,7 +621,7 @@ float adc_to_voltage(int adc_value, int adc_resolution, float voltage_range){
 }
 
 void updateanalogd(){
-	pdoc_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(0), 32768, 6.144), 3380);
+	pdoc_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(0), 32768, 6.144), 3380) + 50;
 	// pc.printf("PDOC_TEMPERAUTRE: %d \r\n", pdoc_temperature);
 	pdoc_ref_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(1), 32768, 6.144), 3380);
 	// pc.printf("PDOC_REF_TEMPERAUTRE: %d \r\n", pdoc_ref_temperature);
@@ -617,6 +629,7 @@ void updateanalogd(){
 	// pc.printf("MC_VOLTAGE: %d \r\n", mc_voltage);
 	battery_voltage = HV_voltageScaling(adc_to_voltage(batt_hv_sense_adc.readADC_SingleEnded(0), 32768, 6.144), BATT_R_CAL);
 	// pc.printf("BATTERY_VOLTAGE: %d \r\n", battery_voltage);
+	wait(0.5);
 }
 
 //-----------------------------------------------
@@ -636,7 +649,7 @@ void setup(){
 
 	ticker_orionwd.attach(&orionwd_cb, ORION_TIMEOUT_INTERVAL);
 
-	IMD_interface.start();
+	// IMD_interface.start();
 
 	orion_connected = false;
 }
@@ -655,35 +668,27 @@ void test_relays(float time){
 	wait(time);
 }
 
-void test_precharge_sequence(float highest_voltage){]
-	_disableIRQ();
+void test_precharge_sequence(float highest_voltage){
+	__disable_irq();
 	setup();
-	_enableIRQ();
+	__enable_irq();
 
 	float R = 4000;
 	float C = 270 * 10^-6;
 
-	int counter = 0;
-
-	batt_voltage = highest_voltage;
+	battery_voltage = highest_voltage;
 	mc_voltage = 0;
 
-	while(!precharge_button_state){
-		// Manually check analogue values.
-		pdoc_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(0), 32768, 6.144), 3380);
-		// pc.printf("PDOC_TEMPERAUTRE: %d \r\n", pdoc_temperature);
-		pdoc_ref_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(1), 32768, 6.144), 3380);
-		// pc.printf("PDOC_REF_TEMPERAUTRE: %d \r\n", pdoc_ref_temperature);
-
-		stated()
-		errord();
-		warnd()
-		wait(0.001)
-	}
+	bool latch_test_voltage = false;
 
 	while(1){
-		t = precharge_start_time - heartbeat_coutner;
-		mc_voltage = highest_voltage(1-exp(-(t/(R*C))))
+		if (precharge_button_state)
+			latch_test_voltage = true;
+
+		if (latch_test_voltage == true){
+			mc_voltage = highest_voltage*(1-exp(-(precharge_start_time-heartbeat_counter/(R*C))));
+			pc.printf("SIMULATED MC VOLTAGE :: %d \r\n");
+		}
 
 		// Manually check analogue values.
 		pdoc_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(0), 32768, 6.144), 3380);
@@ -691,10 +696,10 @@ void test_precharge_sequence(float highest_voltage){]
 		pdoc_ref_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(1), 32768, 6.144), 3380);
 		// pc.printf("PDOC_REF_TEMPERAUTRE: %d \r\n", pdoc_ref_temperature);
 
-		stated()
+		stated();
 		errord();
-		warnd()
-		wait(0.001)
+		warnd();
+		wait(0.001);
 	}
 }
 
@@ -706,7 +711,6 @@ void test_precharge_sequence(float highest_voltage){]
 
 int main() {
 	#if TEST_MODE == 1
-
 	while(1){
 		test_relays(2);
 	}
@@ -714,7 +718,6 @@ int main() {
 		test_precharge_sequence(592);
 	#elif TEST_MODE == 3
 		test_precharge_sequence(250);
-
 	#else
 
 	__disable_irq();
@@ -735,7 +738,7 @@ int main() {
 		wait(0.001);	// Don't stress mcu.
     }
 
-	pc.printf("Is this a BSOD?");
+	// pc.printf("Is this a BSOD?");
     return 0;
 
 	#endif

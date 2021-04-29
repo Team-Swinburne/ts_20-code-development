@@ -171,7 +171,7 @@ private:
 // Globals
 //-----------------------------------------------
 
-static int8_t  	heartbeat_state 			  = 0;
+static int8_t  	heartbeat_state 			= 0;
 static int	    heartbeat_counter 			= 0;
 
 int adc_input_values[4];
@@ -200,6 +200,7 @@ int adc_input_values[4];
 // Driver Output Pins
 #define driver_output_1                     PB15
 #define driver_output_2                     PB14
+
 
 
 

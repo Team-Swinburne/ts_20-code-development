@@ -100,6 +100,9 @@ CAN can1(PB_8, PB_9);     						// RXD, TXD
 // CANBUS Frequency
 #define CANBUS_FREQUENCY 							500000
 
+// CANBUS Message
+CANMessage can1_msg;
+
 // CANBUS Addresses
 #define PRECHARGE_CONTROLLER_HEARTBEAT_ID 			0x440
 #define PRECHARGE_CONTROLLER_ERROR_ID				0x441
@@ -109,15 +112,27 @@ CAN can1(PB_8, PB_9);     						// RXD, TXD
 #define DISCHARGE_MODULE_HEARTBEAT_ID			 	0x450
 #define DISCHARGE_MODULE_ERROR_ID					0x451
 #define DISCHARGE_MODULE_ANALOGUE_ID				0x452
-#define DISCHARGE_CONTROLLER_PERIPHERAL_ID			0x453
+#define DISCHARGE_MODULE_PERIPHERAL_ID				0x453
+
 // Throttle Controller
+#define THROTTLE_CONTROLLER_HEARTBEAT_ID			0x340
+#define THROTTLE_CONTROLLER_ERROR_ID				0x341
+#define THROTTLE_CONTROLLER_ANALOGUE_ID				0x342
+#define THROTTLE_CONTROLLER_PERIPERAL_ID			0x343
+
 // Brake Module
 // Orion BMS 2
+#define ORION_BMS_STATUS_ID							0x180
+#define ORION_BMS_VOLTAGE_ID						0x181
+#define ORION_BMS_TEMPERATURE_ID					0x182
+
+#define ORION_BMS_RINEHART_LIMITS					0x202
 // Orion TEM
 // Dash
-// Motor Controller
+// Motor Controllers
 
 #define TC_CHARGER_STATUS_ID						0x18FF50E5
+
 
 //-----------------------------------------------
 // Calibration Factors
@@ -155,7 +170,7 @@ private:
 		return r1/((vin/vout)-1);
 	}
 
-	int resistanceToTemperature(float R1){
+	uint8_t resistanceToTemperature(float R1){
 		return ((BETA * T2)/(T2 * log(R1/R2) + BETA))-270;
 	}
 };
@@ -185,7 +200,7 @@ Ticker ticker_can_transmit;
 
 // Interval Periods
 #define	HEARTRATE			                        1
-#define CAN_BROADCAST_INTERVAL                  	0.05
+#define CAN_BROADCAST_INTERVAL                  	0.2
 
 //-----------------------------------------------
 // GPIO 
@@ -228,7 +243,7 @@ CAN RECEIVE
 void CAN1_receive(){
 	can1_rx_led = !can1_rx_led;
 
-	CANMessage can1_msg;
+	if (can1.read(can1_msg)){}	
 }
 
 /* CAN TRANSMIT
@@ -249,14 +264,12 @@ void CAN1_transmit(){
 		// pc.printf("MESSAGE FAIL!\r\n");
 	}
 
-	wait(0.0001);
-
-	TX_data[0] = (char)(pdoc_temperature >> 8);
-	TX_data[1] = (char)(pdoc_temperature && 255);
-	TX_data[2] = (char)(pdoc_ref_temperature >> 8);
-	TX_data[3] = (char)(pdoc_ref_temperature && 255);
-	TX_data[4] = (char)(mc_voltage >> 8);
-	TX_data[5] = (char)(mc_voltage && 255);
+	TX_data[0] = (char)(pdoc_temperature && 255);
+	TX_data[1] = (char)(pdoc_temperature >> 8);
+	TX_data[2] = (char)(pdoc_ref_temperature && 255);
+	TX_data[3] = (char)(pdoc_ref_temperature >> 8);
+	TX_data[4] = (char)(mc_voltage && 255);
+	TX_data[5] = (char)(mc_voltage >> 8);
 
 	if(can1.write(CANMessage(DISCHARGE_MODULE_ANALOGUE_ID, &TX_data[0], 6))) {
        can1_tx_led = !can1_tx_led;
@@ -265,18 +278,14 @@ void CAN1_transmit(){
 		// printf("MESSAGE FAIL!\r\n");
 	}
 
-	wait(0.0001);
-
 	TX_data[0] = discharge_release;
 
-	if (can1.write(CANMessage(DISCHARGE_CONTROLLER_PERIPHERAL_ID, &TX_data[0], 2))) {
+	if (can1.write(CANMessage(DISCHARGE_MODULE_PERIPHERAL_ID, &TX_data[0], 2))) {
        can1_tx_led = !can1_tx_led;
 	   // pc.printf("MESSAGE SUCCESS!\r\n");
     } else {
 		// pc.printf("MESSAGE FAIL!\r\n");
 	}
-
-	wait(0.0001);
 }
 
 
@@ -288,6 +297,8 @@ void CAN1_transmit(){
 void stated(){
 	if (error_present > 0){
 		heartbeat_state = discharge_release + 1; 
+	} else {
+		heartbeat_state = discharge_release;
 	}
 }
 
@@ -371,7 +382,6 @@ void setup(){
 	
 	ticker_heartbeat.attach(&heartbeat, HEARTRATE);
 	ticker_can_transmit.attach(&CAN1_transmit, CAN_BROADCAST_INTERVAL);
-
 }
 
 //-----------------------------------------------
@@ -379,14 +389,14 @@ void setup(){
 //-----------------------------------------------
 
 int main() {
-	__disable_irq();
+	// __disable_irq();
     pc.printf("Starting ts_20 Discharge Controller (STM32F103C8T6 128k) \
 	\r\nCOMPILED: %s: %s\r\n",__DATE__, __TIME__);
 	setup();
 
 	pc.printf("Finished Startup\r\n");
 	wait(1);
-	__enable_irq();
+	// __enable_irq();
 
     while(1) {
 		updateanalogd();

@@ -106,6 +106,9 @@ CAN can1(PB_8, PB_9);     						// RXD, TXD
 // CANBUS Frequency
 #define CANBUS_FREQUENCY							500000
 
+// CANBUS Message Format
+CANMessage can1_msg;
+
 // CANBUS Addresses
 #define PRECHARGE_CONTROLLER_HEARTBEAT_ID 			0x440
 #define PRECHARGE_CONTROLLER_ERROR_ID				0x441
@@ -294,11 +297,11 @@ static int16_t  battery_voltage 			= 0;
 // Program Interrupt Timer Instances
 Ticker ticker_heartbeat;
 Ticker ticker_can_transmit;
-Ticker ticker_orionwd;
+// Ticker ticker_orionwd;
 
 // Interval & Periods
 #define	HEARTRATE			 				1
-#define CAN_BROADCAST_INTERVAL              0.05
+#define CAN_BROADCAST_INTERVAL              0.2
 #define ORION_TIMEOUT_INTERVAL				0.25
 #define ORION_TIMEOUT_STRIKE_LIMIT			5
 
@@ -312,8 +315,8 @@ DigitalOut can1_tx_led(PB_0);
 PCB_Temp_Sensor pcb_temperature(PA_0);
 
 DigitalOut AIR_neg_relay(PA_8);
-DigitalOut precharge_relay(PA_9); //pa_
-DigitalOut AIR_pos_relay(PA_10); //pa_10
+DigitalOut precharge_relay(PA_9); 
+DigitalOut AIR_pos_relay(PA_10);
 DigitalOut AMS_ok(PB_13);
 
 IMD_Data  IMD_interface(PA_15);
@@ -326,6 +329,19 @@ DigitalIn PDOC_ok(PB_15);
 //-----------------------------------------------
 // Functions
 //-----------------------------------------------
+
+/* 
+ORION WATCHDOG CALLBACK
+	Callback function used to check whether the orion is functioning correctly.
+*/
+void orionwd_cb(){
+	if (heartbeat_state > 0){
+		if (orion_last_connection - heartbeat_counter >= ORION_TIMEOUT_INTERVAL){
+			orion_connected = false;
+			++orion_timeout_strike_counter;
+		}
+	}
+}
 
 	/*
 HEARTBEAT
@@ -342,6 +358,8 @@ void heartbeat(){
     } else {
 		// pc.printf("Hearts dead :(\r\n");
 	}
+
+	orionwd_cb();
 }
 
 	/*
@@ -351,8 +369,6 @@ CAN RECEIVE
 void CAN1_receive(){
 	can1_rx_led = !can1_rx_led;
 
-	CANMessage can1_msg;
-	
 	if (can1.read(can1_msg)){
 		switch(can1_msg.id){
 			case DISCHARGE_MODULE_HEARTBEAT_ID:
@@ -361,6 +377,7 @@ void CAN1_receive(){
 
 			case THROTTLE_CONTROLLER_PERIPERAL_ID:
 				precharge_button_state = can1_msg.data[0];
+				break;
 
 			case ORION_BMS_STATUS_ID:
 				// Big endian & MSB
@@ -372,8 +389,9 @@ void CAN1_receive(){
 					orion_connected = true;	
 					orion_last_connection = heartbeat_counter;
 					orion_timeout_strike_counter = 0;
-				} else
+				} else {
 					orion_connected = false;
+				}
 				break;
 			
 			case ORION_BMS_VOLTAGE_ID:
@@ -409,12 +427,8 @@ void CAN1_transmit(){
 	
 	if (can1.write(CANMessage(PRECHARGE_CONTROLLER_ERROR_ID, &TX_data[0], 4))) {
     	can1_tx_led = !can1_tx_led;
-		// pc.printf("MESSAGE SUCCESS!\r\n");
     } else {
-		// pc.printf("MESSAGE FAIL!\r\n");
 	}
-	
-	wait(0.0001);
 
 	TX_data[0] = (char)(pdoc_temperature >> 8);
 	TX_data[1] = (char)(pdoc_temperature && 255);
@@ -432,8 +446,6 @@ void CAN1_transmit(){
 		// printf("MESSAGE FAIL!\r\n");
 	}
 
-	wait(0.0001);
-
 	TX_data[0] = precharge_relay;
 	TX_data[1] = IMD_interface.readPeriod();
 	TX_data[2] = IMD_interface.readDutyCycle();
@@ -446,21 +458,6 @@ void CAN1_transmit(){
 	   // pc.printf("MESSAGE SUCCESS!\r\n");
     } else {
 		// printf("MESSAGE FAIL!\r\n");
-	}
-
-	wait(0.0001);
-}
-
-/* 
-ORION WATCHDOG CALLBACK
-	Callback function used to check whether the orion is functioning correctly.
-*/
-void orionwd_cb(){
-	if (heartbeat_state > 0){
-		if (orion_last_connection - heartbeat_counter >= ORION_TIMEOUT_INTERVAL){
-			orion_connected = false;
-			++orion_timeout_strike_counter;
-		}
 	}
 }
 
@@ -547,6 +544,10 @@ void stated(){
 			break;
 
 		case 1: // Idle State
+			AIR_neg_relay = 0;
+			precharge_relay = 0;
+			AIR_pos_relay = 0;
+
 			if (precharge_button_state || charge_mode_activated){
 				// pc.printf("Beginging precharge sequence\r\n");
 				precharge_start_time = heartbeat_counter;
@@ -559,6 +560,10 @@ void stated(){
 			AIR_neg_relay = 1;
 			precharge_relay = 1;
 			AIR_pos_relay = 0;
+
+			if (!AIR_power){
+				heartbeat_state = 1;
+			}
 
 			if (battery_voltage*0.95 > mc_voltage){
 				// pc.printf("Precharge within 95%, safe to close postive contactor\r\n");
@@ -581,6 +586,10 @@ void stated(){
 			break;
 			
 		case 3: // Precharged State
+			if (!AIR_power){
+				heartbeat_state = 1;
+			}
+
 			AIR_neg_relay = 1;
 			precharge_relay = 0;
 			AIR_pos_relay = 1;
@@ -647,7 +656,7 @@ void setup(){
 	ticker_heartbeat.attach(&heartbeat, HEARTRATE);
 	ticker_can_transmit.attach(&CAN1_transmit, CAN_BROADCAST_INTERVAL);
 
-	ticker_orionwd.attach(&orionwd_cb, ORION_TIMEOUT_INTERVAL);
+	// ticker_orionwd.attach(&orionwd_cb, ORION_TIMEOUT_INTERVAL);
 
 	// IMD_interface.start();
 
@@ -720,22 +729,24 @@ int main() {
 		test_precharge_sequence(250);
 	#else
 
-	__disable_irq();
+	// __disable_irq();
     pc.printf("Starting ts_20 Precharge Controller (STM32F103C8T6 128k) \
 	\r\nCOMPILED: %s: %s\r\n",__DATE__, __TIME__);
 	setup();
 
-	pc.printf("Finished Startup\r\n");
+	// pc.printf("Finished Startup\r\n");
 	wait(1);
-	__enable_irq();
+	// __enable_irq();
 
     while(1) {
 		stated();
-		errord();
-		updateanalogd();
-		warnd();
+		// errord();
+		// updateanalogd();
+		// warnd();
 
-		wait(0.001);	// Don't stress mcu.
+		// pc.printf("%d\r\n", can1.tderror());
+
+		wait(1);	// Don't stress mcu.
     }
 
 	// pc.printf("Is this a BSOD?");

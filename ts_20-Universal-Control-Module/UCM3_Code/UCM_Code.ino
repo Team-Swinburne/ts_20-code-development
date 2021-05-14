@@ -1,15 +1,14 @@
 #include <Wire.h>
-#include <Adafruit_ADS1015.h>
+#include <Adafruit_ADS1X15.h>
 #include <eXoCAN.h>
 #include <Ticker.h>
 
 //Declarations
-Adafruit_ADS1115 ads(0x49);
+Adafruit_ADS1115 ads;
 #define Serial1_UART_INSTANCE    1 //ex: 2 for Serial12 (USART2)
 #define PIN_Serial1_RX           PA10
 #define PIN_Serial1_TX           PA9
-#define TXLED PB0
-#define RXLED PB1
+
 
 
 int DriveCondition1, DriveRequirment1 = 1, DriveValue1 = 0;
@@ -58,8 +57,8 @@ void setup() {
 //--------------------------------------------------//
 //Configuring the Digital Input Pins. Uncomment when required.
 //--------------------------------------------------//
-  pinMode(PB10, INPUT);
-  pinMode(PB11, INPUT);
+  pinMode(PB10, OUTPUT);
+  pinMode(PB11, OUTPUT);
   pinMode(PB12, INPUT);
   pinMode(PB13, INPUT);
 
@@ -86,7 +85,7 @@ void setup() {
   // //ads.setGain(GAIN_EIGHT);      // 8x gain   +/- 0.512V  1 bit = 0.25mV   0.015625mV
   // //ads.setGain(GAIN_SIXTEEN);    // 16x gain  +/- 0.256V  1 bit = 0.125mV  0.0078125mV
 
-  ads.begin();
+  ads.begin(0x49);
   
 //--------------------------------------------------//
 // Initiallising CAN
@@ -154,8 +153,8 @@ void brakePercentage(){
 // This function reads all digital input values and stores them in variables.
 //--------------------------------------------------//
 void digitalupdate(){
-  DigIN1 = digitalRead(PB10);  
-  DigIN2 = digitalRead(PB11);
+  //DigIN1 = digitalRead(PB10);  
+  //DigIN2 = digitalRead(PB11);
   DigIN3 = digitalRead(PB12);
   DigIN4 = digitalRead(PB13);
 }
@@ -243,19 +242,21 @@ else {
 //  DriveValue2 = 1;
 //  }
 //  else {
-//  digitalWrite(PB14, LOW);
+  for (int i = 0; i <= 255; i++)
+  {
+    analogWrite(PB0,i);
+    analogWrite(PB1,i);
+    delay(100);
 //  DriveValue2 = 0;
-//  }
+  }
 //}
 }
 // Transmit Hearbeat ----------------------------------//
 void heartbeat_tx(){    
           Heartbeat_Counter = Heartbeat_Counter + 1;
-          digitalToggle(TXLED);
           Heartbeat_Data[0] = Heartbeat_State;
           Heartbeat_Data[1] = Heartbeat_Counter;
           can.transmit(UCM_Heartbeat, Heartbeat_Data, 2);
-          digitalToggle(TXLED);
           digitalToggle(PC13);
           if (Heartbeat_Counter == 256){
           Heartbeat_Counter = 0; 
@@ -264,10 +265,8 @@ void heartbeat_tx(){
   };
   // Transmit data ----------------------------------//
  void Transmit_data(){
-          digitalToggle(TXLED);
           //last = millis() / txDly;
           can.transmit(UCMID, txData, txDataLen);
-          digitalToggle(TXLED);
           //Serial1.println("Transmitting...");          
  }
 // Arduinos "Main" function //

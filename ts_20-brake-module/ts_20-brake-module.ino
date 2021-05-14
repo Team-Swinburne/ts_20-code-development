@@ -9,9 +9,8 @@
 #define SERIAL_UART_INSTANCE    2  //ex: 1 for Serial1 (USART1)
 
 // Intervals -------------------------------------
-#define    HEARTRATE               1000       // 1 Hz
-#define    BUTTON_CHECK_INTERVAL   200     // 5 Hz 
-#define    CAN_BROADCAST_INTERVAL  20    // 50 Hz  
+#define    HEARTRATE               1000       //ms
+#define    CAN_BROADCAST_INTERVAL  20         //ms  
 
 // Brake Characteristics -------------------------
 #define Deadzone        30    // 30% Pedal deadzone

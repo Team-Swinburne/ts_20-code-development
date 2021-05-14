@@ -7,7 +7,7 @@ CANBUS_SPEED = 250000
 
 THROTTLE_CONTROLLER_PERIPERAL_ID = 0x343
 
-ORION_BMS_STATUS_ID = 0x200
+ORION_BMS_STATUS_ID = 0x180
 
 def send_handler(bus, msg):
     try:
@@ -19,7 +19,7 @@ def send_handler(bus, msg):
 
 def send_precharge_request(bus):
     payload = [1,0,0,0,0,0,0,0]
-    msg.can.Message(arbitration_id=THROTTLE_CONTROLLER_PERIPERAL_ID, data=payload)
+    msg = can.Message(arbitration_id=THROTTLE_CONTROLLER_PERIPERAL_ID, data=payload)
     time.sleep(1)
     payload = [0,0,0,0,0,0,0,0]
 
@@ -44,8 +44,20 @@ def main():
     bus = setup()
 
     while(1):
-        send_relay_status(bus)
-        # Program loop
+        i = 0
+        while(i < 10):
+            send_relay_status(bus)
+            # Program loop
+            i = i+1
+            print(i)
+
+
+        send_precharge_request(bus)
+
+        i = 0
+        while(1 < 100):
+            send_relay_status(bus)
+            # Program loop
 
 if __name__ == '__main__':
     try:

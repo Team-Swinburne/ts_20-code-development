@@ -8,7 +8,7 @@
 // 1 Test Relays
 // 2 Test Max Voltage 592
 // 3 Test Max Voltage 250
-#define TEST_MODE 0
+#define TEST_MODE 2
 
 /* 
 To correct limited 64k flash issue: https://github.com/platformio/platform-ststm32/issues/195. Ensure device is 128k model. 
@@ -335,11 +335,8 @@ ORION WATCHDOG CALLBACK
 	Callback function used to check whether the orion is functioning correctly.
 */
 void orionwd_cb(){
-	if (heartbeat_state > 0){
-		if (orion_last_connection - heartbeat_counter >= ORION_TIMEOUT_INTERVAL){
-			orion_connected = false;
-			++orion_timeout_strike_counter;
-		}
+	if (heartbeat_counter - orion_last_connection > 3){
+		orion_connected = false;
 	}
 }
 
@@ -385,13 +382,12 @@ void CAN1_receive(){
 				// 0b000000, 0000010	Charge Relay Enabled
 				// 0b000000, 0000100	Charge Safety Enabled
 				// Use bitwise operator to mask out all except relevent statuses.
-				if ((can1_msg.data[1] & 0b00000111) > 0){
+				// if ((can1_msg.data[1] & 0b00000111) > 0){
 					orion_connected = true;	
 					orion_last_connection = heartbeat_counter;
-					orion_timeout_strike_counter = 0;
-				} else {
-					orion_connected = false;
-				}
+				// } else {
+				// 	orion_connected = false;
+				// }
 				break;
 			
 			case ORION_BMS_VOLTAGE_ID:
@@ -431,13 +427,13 @@ void CAN1_transmit(){
 	}
 
 	TX_data[0] = (char)(pdoc_temperature >> 8);
-	TX_data[1] = (char)(pdoc_temperature && 255);
+	TX_data[1] = (char)(pdoc_temperature & 0xFF);
 	TX_data[2] = (char)(pdoc_ref_temperature >> 8);
-	TX_data[3] = (char)(pdoc_ref_temperature && 255);
-	TX_data[4] = (char)(mc_voltage >> 8);
-	TX_data[5] = (char)(mc_voltage && 255);
-	TX_data[6] = (char)(battery_voltage >> 8);
-	TX_data[7] = (char)(battery_voltage && 255);
+	TX_data[3] = (char)(pdoc_ref_temperature & 0xFF);
+	TX_data[4] = (char)(mc_voltage*10 >> 8);
+	TX_data[5] = (char)(mc_voltage*10 & 0xFF);
+	TX_data[6] = (char)(battery_voltage*10 >> 8);
+	TX_data[7] = (char)(battery_voltage*10 & 0xFF);
 
 	if(can1.write(CANMessage(PRECHARGE_CONTROLLER_ANALOGUE_ID, &TX_data[0], 8))) {
        can1_tx_led = !can1_tx_led;
@@ -465,7 +461,7 @@ void CAN1_transmit(){
 // Daemons
 //-----------------------------------------------
 
-void errord(){
+bool errord(){
 	error_present = 0;
 	error_code = 0;
 	if (IMD_ok == 0){
@@ -479,29 +475,35 @@ void errord(){
 		// pc.printf("FAULT: PDOC failure detected, please allow to cool and check for\
 		short circuit!\r\n");
 	}
-	if (orion_timeout_strike_counter > ORION_TIMEOUT_STRIKE_LIMIT){
+	if (orion_connected == false){
 		error_present = 1;
 		error_code = error_code + 0b00000100;
 		// pc.printf("FAULT: Orion BMS not attached, please check CAN is functioning, and\
 		Orion is attached!\r\n");
 	}
-	if (orion_low_voltage < MINIMUM_CELL_VOLTAGE){
-		error_present = 1;
-		error_code = error_code + 0b00001000;
-		// pc.printf("FAULT: Orion reports undervoltage fault!\r\n");
-	}
-	if (orion_high_voltage > MAXIMUM_CELL_VOLTAGE){
-		error_present = 1;
-		error_code = error_code + 0b00010000;
-		// pc.printf("FAULT: Orion reports overvoltage fault!\r\n");
-	}
-	if (orion_high_temperature > MAXIMUM_CELL_TEMPERATURE){
-		error_present = 1;
-		error_code = error_code + 0b00100000;
-		// pc.printf("FAULT: Orion reports overtemperature fault!\r\n");
-	}
-	if (error_present)
+	// if (orion_low_voltage < MINIMUM_CELL_VOLTAGE){
+	// 	error_present = 1;
+	// 	error_code = error_code + 0b00001000;
+	// 	// pc.printf("FAULT: Orion reports undervoltage fault!\r\n");
+	// }
+	// if (orion_high_voltage > MAXIMUM_CELL_VOLTAGE){
+	// 	error_present = 1;
+	// 	error_code = error_code + 0b00010000;
+	// 	// pc.printf("FAULT: Orion reports overvoltage fault!\r\n");
+	// }
+	// if (orion_high_temperature > MAXIMUM_CELL_TEMPERATURE){
+	// 	error_present = 1;
+	// 	error_code = error_code + 0b00100000;
+	// 	// pc.printf("FAULT: Orion reports overtemperature fault!\r\n");
+	// }
+	if (error_present){
 		heartbeat_state = 0;
+		AMS_ok = 0;
+	}
+	else {
+		AMS_ok = 1;
+	}
+	return error_present; 
 }
 
 void warnd(){
@@ -541,6 +543,9 @@ void stated(){
 			precharge_relay = 0;
 			AIR_pos_relay = 0;
 			AMS_ok = 0;
+
+			if (!error_present)
+				heartbeat_state = 1;
 			break;
 
 		case 1: // Idle State
@@ -565,7 +570,7 @@ void stated(){
 				heartbeat_state = 1;
 			}
 
-			if (battery_voltage*0.95 > mc_voltage){
+			if (mc_voltage > battery_voltage*0.95){
 				// pc.printf("Precharge within 95%, safe to close postive contactor\r\n");
 				wait(0.1);
 				heartbeat_state = 3;
@@ -575,13 +580,6 @@ void stated(){
 				// pc.printf("Precharge timed out, check for discharge relay failure,\
 				or higher than expected resistance before continuing\r\n");
 				heartbeat_state = 0;
-
-				if (battery_voltage*0.95 > mc_voltage){
-					// pc.printf("Precharge within 95%, safe to close postive contactor\r\n");
-					wait(0.1);
-					heartbeat_state = 3;
-				} else 
-					heartbeat_state = 0;
 			}
 			break;
 			
@@ -682,8 +680,11 @@ void test_precharge_sequence(float highest_voltage){
 	setup();
 	__enable_irq();
 
+	heartbeat_state = 1;
+
 	float R = 4000;
-	float C = 270 * 10^-6;
+	float C = 0.000270;
+	float t = 0;
 
 	battery_voltage = highest_voltage;
 	mc_voltage = 0;
@@ -695,19 +696,23 @@ void test_precharge_sequence(float highest_voltage){
 			latch_test_voltage = true;
 
 		if (latch_test_voltage == true){
-			mc_voltage = highest_voltage*(1-exp(-(precharge_start_time-heartbeat_counter/(R*C))));
-			pc.printf("SIMULATED MC VOLTAGE :: %d \r\n");
+			t = heartbeat_counter-precharge_start_time;
+
+			mc_voltage = highest_voltage*(1-exp(-(t/(R*C))));
 		}
+
+		wait(0.01);
+		pc.printf("TIME :: %d RC :: %f THEORETICAL :: %f INT_SIMULATED MC VOLTAGE :: %d \r\n", t, R*C, mc_voltage);
 
 		// Manually check analogue values.
 		pdoc_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(0), 32768, 6.144), 3380);
 		// pc.printf("PDOC_TEMPERAUTRE: %d \r\n", pdoc_temperature);
 		pdoc_ref_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(1), 32768, 6.144), 3380);
 		// pc.printf("PDOC_REF_TEMPERAUTRE: %d \r\n", pdoc_ref_temperature);
-
+		
 		stated();
 		errord();
-		warnd();
+		// warnd();
 		wait(0.001);
 	}
 }

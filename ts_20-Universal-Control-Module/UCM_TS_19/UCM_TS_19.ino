@@ -1,5 +1,5 @@
 //    TEAM SWINBURNE - TS20
-//    UNIVERSAL CONTROL MODULE #1
+//    UCM Code for TS_19
 
 #include <Wire.h>
 #include <Adafruit_ADS1X15.h>
@@ -13,12 +13,12 @@ Adafruit_ADS1115 ads;
 #define PIN_Serial1_TX           PA9
 
 // CANBus Adresses
-int   UCM_HEARTBEAT_ID  =    0x511; //UCM_FL_HEARTBEAT_ID
-int   UCM_DATA_ID       =    0x512; //UCM_FL_DATA_ID
+#define   UCM_HEARTBEAT_ID      0x511 //UCM_FL_HEARTBEAT_ID
+#define  UCM_DATA_ID            0x512 //UCM_FL_DATA_ID
 int   UCM_TEST              =    0x309;
 
 // CANBus Intervals
-#define    HEARTRATE               1000       //ms
+#define    HEARTRATE               1       //ms
 #define    CAN_BROADCAST_INTERVAL  50         //ms
 
 
@@ -30,19 +30,23 @@ int   UCM_TEST              =    0x309;
 #define pin_PWM_Driver1     PB0   // PWM Driver 1 (5V)
 #define pin_PWM_Driver2     PB1   // PWM Driver 2 (5V)
 
+// Constants
+const uint16_t shock_sensor_max = 23600;
+const uint16_t shock_sensor_min = 0;
 
-int DriveCondition1, DriveRequirment1 = 1, DriveValue1 = 0;
-int DriveCondition2, DriveRequirment2 = 1, DriveValue2 = 0;
-int DigIN1 =0;
-int DigIN2 =0;
-int PWM_Drive1 = 0, PWM_Drive2 = 0;
-int16_t adc0, adc1, adc2, adc3;
+// Globals
 
+static uint8_t DriveCondition1, DriveRequirment1 = 1, DriveValue1 = 0;
+static uint8_t DriveCondition2, DriveRequirment2 = 1, DriveValue2 = 0;
+static uint8_t DigIN1 =0;
+static uint8_t DigIN2 =0;
+static uint8_t PWM_Drive1 = 0, PWM_Drive2 = 0;
+static uint16_t adc0, adc1, adc2, adc3;
 
-int fltIdx,id;
-uint8_t rxData[8];
-uint32_t Heartbeat_Counter = 0;
-uint8_t Heartbeat_State = 0;
+static int fltIdx,id;
+static uint8_t rxData[8];
+static uint32_t Heartbeat_Counter = 0;
+static uint8_t Heartbeat_State = 0;
 int len = -1;
 char cBuff[50];
 eXoCAN can;
@@ -59,12 +63,13 @@ void SerialPRINT();
 Ticker ticker_heartbeat(heartbeat_tx, HEARTRATE); 
 Ticker ticker_data_tx(data_tx, CAN_BROADCAST_INTERVAL);
 
-//--------------------------------------------------//
-// the setup function runs once when you press reset or power the board
-//--------------------------------------------------//
-void setup() {
-  
-  // Debug LED.
+uint8_t calculate_shock_percent(uint16_t raw_adc){
+  float shock_pot_percent_float = 255 - (adc0*255.0)/shock_sensor_max;
+  return shock_pot_percent_float;
+}
+
+void initialise_GPIO(){
+    // Debug LED.
   pinMode(PC13, OUTPUT);
   
   // Configuring the Digital Input Pins.
@@ -76,38 +81,51 @@ void setup() {
   pinMode(pin_Driver2, OUTPUT);
   pinMode(pin_PWM_Driver1, OUTPUT);
   pinMode(pin_PWM_Driver2, OUTPUT);
+}
 
-  // Start I2C communication with the ADC
+//--------------------------------------------------//
+// the setup function runs once when you press reset or power the board
+//--------------------------------------------------//
+void setup() {
+    // Start I2C communication with the ADC
+  initialise_GPIO();
+  
   ads.begin(0x49);
   
   // Initiallising CAN
   can.begin(STD_ID_LEN, BR500K, PORTB_8_9_XCVR);           // 11b IDs, 250k bit rate, Pins 8 and 9 with a transceiver chip
-  can.filterMask16Init(0, UCM_TEST, 0x7ff);                // filter out every message exept for UCM_TEST
+  //can.filterMask16Init(0, UCM_TEST, 0x7ff);                // filter out every message exept for UCM_TEST
   
   // Initiallising Serial1
   Serial1.begin(250000);
   sprintf(cBuff,"Starting ts_20 Universal Controller Module 1 - Front Left (STM32F103C8T6 32k) \
 	\r\nCOMPILED: %s: %s\r\n",__DATE__, __TIME__);
   Serial1.print(cBuff);
-
+  
   //Ticker Setup
   ticker_heartbeat.start();
+  delay(100);
   ticker_data_tx.start();
+  delay(100);
+  
+  
+  
+  Serial1.println("STARTED DATA TICKER!");
 
-  can.attachInterrupt(canISR);
+  //can.attachInterrupt(canISR);
 }
 
 //--------------------------------------------------//
 // Arduinos "Main" function
 //--------------------------------------------------//
  void loop() {
-  digitalupdate();
+ // digitalupdate();
   I2C();
-  CANRecieve();
+//  CANRecieve();
   ticker_heartbeat.update();
-  ticker_data_tx.update();
-  Driver();
-  SerialPRINT();
+//  ticker_data_tx.update();
+  //Driver();
+ // SerialPRINT();
 }
 
 //--------------------------------------------------//
@@ -123,9 +141,10 @@ void digitalupdate(){
 //--------------------------------------------------//
 void I2C() {
   adc0 = ads.readADC_SingleEnded(0);
-  adc1 = ads.readADC_SingleEnded(1);
-  adc2 = ads.readADC_SingleEnded(2);
-  adc3 = ads.readADC_SingleEnded(3);
+  //adc1 = ads.readADC_SingleEnded(1);
+  //adc2 = ads.readADC_SingleEnded(2);
+  //adc3 = ads.readADC_SingleEnded(3);
+
 }
 
 //--------------------------------------------------//
@@ -151,25 +170,30 @@ void CANRecieve(){
 
 // Transmit Hearbeat ----------------------------------//
 void heartbeat_tx(){
+  int dlc = 3;
   Heartbeat_Counter = Heartbeat_Counter + 1;
-  uint8_t txData[2];
+  
+  uint8_t txData[dlc];
   txData[0] = Heartbeat_State;
   txData[1] = Heartbeat_Counter;
-  can.transmit(UCM_HEARTBEAT_ID, txData, 2);
+  txData[2] = calculate_shock_percent(adc0);
+  can.transmit(UCM_HEARTBEAT_ID, txData, dlc);
   digitalToggle(PC13);
-  if (Heartbeat_Counter == 256){
-    Heartbeat_Counter = 0; 
-  };                 
+//  if (Heartbeat_Counter == 256){
+//    Heartbeat_Counter = 0; 
+//  };                 
 }
 
 // Transmit data ----------------------------------//
-volatile void data_tx(){
-  uint8_t txData[8];
-  txData[0] = PWM_Drive1;
-  can.transmit(UCM_DATA_ID, txData, 8);
-  //Serial1.println("Transmitting...");          
+void data_tx(){
+  Serial1.println("IF I GET INTO HERE, I AM IN THE DAMN INTERRUPT!!");
+  int dlc = 1;
+  uint8_t txData[dlc];
+  
+  txData[0] = calculate_shock_percent(adc0);
+  can.transmit(UCM_DATA_ID, txData, dlc);
+  Serial1.println("Transmitting...");          
 }
-
 
 //--------------------------------------------------//
 //Function to Control Drivers. Comment all that is not required.
@@ -212,17 +236,16 @@ void SerialPRINT() {
   // Serial1.print("Digital Input 2: ");  Serial1.println(DigIN2); 
 
   // //Analogue Input
-  // Serial1.print("Analogue Input 0: "); Serial1.println(adc0);
-  // Serial1.print("Analogue Input 1: "); Serial1.println(adc1);
-  // Serial1.print("Analogue Input 2: "); Serial1.println(adc2);
+  Serial1.print("Analogue Input 0: "); Serial1.print(adc0);
+  Serial1.print("     Shock Pot Percent: "); Serial1.println(calculate_shock_percent(adc0));
   // Serial1.print("Analogue Input 3: "); Serial1.println(adc3);
   // Serial1.println(" ");
   // //Driver Value
   // Serial1.print("Driver 1: "); Serial1.println(DriveValue1);
   // Serial1.print("Driver 2: "); Serial1.println(DriveValue2);
   // delay(300);
-  sprintf(cBuff,"Drive Cond 1: %d    Drive Cond 2: %d /r/n", DriveCondition1, DriveCondition2);
-  Serial1.print(cBuff);
-  sprintf(cBuff,"Drive PWM 1:  %d    Drive PWM 2: %d /r/n", PWM_Drive1, PWM_Drive2);
-  Serial1.println(cBuff);
+  //sprintf(cBuff,"Drive Cond 1: %d    Drive Cond 2: %d /r/n", DriveCondition1, DriveCondition2);
+  //Serial1.print(cBuff);
+  //sprintf(cBuff,"Drive PWM 1:  %d    Drive PWM 2: %d /r/n", PWM_Drive1, PWM_Drive2);
+  //Serial1.println(cBuff);
 }

@@ -1,35 +1,58 @@
-//    TEAM SWINBURNE - TS20
-//    UNIVERSAL CONTROL MODULE #1
+//  TEAM SWINBURNE - TS20
+//  UNIVERSAL CONTROL MODULE #1
+
+//-----------------------------------------------
+// Libraries
+//-----------------------------------------------
 
 #include <Wire.h>
 #include <Adafruit_ADS1X15.h>
 #include <eXoCAN.h>
 #include <Ticker.h>
 
-// Serial Declarations
-Adafruit_ADS1115 ads;
-#define Serial1_UART_INSTANCE    1 //ex: 2 for Serial2 (USART2)
+//-----------------------------------------------
+// INTERFACES
+//-----------------------------------------------
+
+// UART Interface
+#define Serial_UART_INSTANCE     1 //ex: 2 for Serial2 (USART2)
 #define PIN_Serial1_RX           PA10
 #define PIN_Serial1_TX           PA9
 
+// I2C Interface
+Adafruit_ADS1115 ads;
+
+// CANBus Interface
+eXoCAN can(STD_ID_LEN, BR500K, PORTB_8_9_XCVR); //11 Bit Indentifier, 500Kbps
+
 // CANBus Adresses
-int   UCM_HEARTBEAT_ID  =    0x511; //UCM_FL_HEARTBEAT_ID
-int   UCM_DATA_ID       =    0x512; //UCM_FL_DATA_ID
-int   UCM_TEST              =    0x309;
+#define UCM_HEARTBEAT_ID                0x511 //UCM_FL_HEARTBEAT_ID
+#define UCM_DATA_ID                     0x512 //UCM_FL_DATA_ID
+#define UCM_TEST                        0x309 //Test CAN Receive
 
 // CANBus Intervals
-#define    HEARTRATE               1000       //ms
-#define    CAN_BROADCAST_INTERVAL  50         //ms
+#define    HEARTRATE                    1000       //ms
+#define    CAN_BROADCAST_INTERVAL       50         //ms
 
 
 // UCM Pin Mapping
-#define pin_D1              PB12   // Digital Input 1
-#define pin_D2              PB13   // Digital Input 2
-#define pin_Driver1         PB15  // Driver 1 (24V)
-#define pin_Driver2         PB14  // Driver 2 (24V)
-#define pin_PWM_Driver1     PB0   // PWM Driver 1 (5V)
-#define pin_PWM_Driver2     PB1   // PWM Driver 2 (5V)
+#define pin_D1                          PB12   // Digital Input 1
+#define pin_D2                          PB13   // Digital Input 2
+#define pin_Driver1                     PB15  // Driver 1 (24V)
+#define pin_Driver2                     PB14  // Driver 2 (24V)
+#define pin_PWM_Driver1                 PB0   // PWM Driver 1 (5V)
+#define pin_PWM_Driver2                 PB1   // PWM Driver 2 (5V)
 
+//-----------------------------------------------
+// Const
+//-----------------------------------------------
+
+//-----------------------------------------------
+// Globals
+//-----------------------------------------------
+
+uint8_t  heartbeat_state                 = 0;
+uint8_t	 heartbeat_counter 			         = 0;
 
 int DriveCondition1, DriveRequirment1 = 1, DriveValue1 = 0;
 int DriveCondition2, DriveRequirment2 = 1, DriveValue2 = 0;
@@ -41,11 +64,8 @@ int16_t adc0, adc1, adc2, adc3;
 
 int fltIdx,id;
 uint8_t rxData[8];
-uint32_t Heartbeat_Counter = 0;
-uint8_t Heartbeat_State = 0;
 int len = -1;
 char cBuff[50];
-eXoCAN can;
 
 void heartbeat_tx();
 void data_tx();
@@ -81,7 +101,7 @@ void setup() {
   ads.begin(0x49);
   
   // Initiallising CAN
-  can.begin(STD_ID_LEN, BR500K, PORTB_8_9_XCVR);           // 11b IDs, 250k bit rate, Pins 8 and 9 with a transceiver chip
+  can.begin();           // 11b IDs, 250k bit rate, Pins 8 and 9 with a transceiver chip
   can.filterMask16Init(0, UCM_TEST, 0x7ff);                // filter out every message exept for UCM_TEST
   
   // Initiallising Serial1
@@ -163,7 +183,7 @@ void heartbeat_tx(){
 }
 
 // Transmit data ----------------------------------//
-volatile void data_tx(){
+void data_tx(){
   uint8_t txData[8];
   txData[0] = PWM_Drive1;
   can.transmit(UCM_DATA_ID, txData, 8);

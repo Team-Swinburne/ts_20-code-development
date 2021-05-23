@@ -59,6 +59,7 @@ void CANRecieve();
 void Driver();
 void SerialPRINT();
 
+static uint8_t percent = 0;
 //Ticker 
 Ticker ticker_heartbeat(heartbeat_tx, HEARTRATE); 
 Ticker ticker_data_tx(data_tx, CAN_BROADCAST_INTERVAL);
@@ -93,7 +94,7 @@ void setup() {
   ads.begin(0x49);
   
   // Initiallising CAN
-  can.begin(STD_ID_LEN, BR500K, PORTB_8_9_XCVR);           // 11b IDs, 250k bit rate, Pins 8 and 9 with a transceiver chip
+  can.begin(STD_ID_LEN, BR250K, PORTB_8_9_XCVR);           // 11b IDs, 250k bit rate, Pins 8 and 9 with a transceiver chip
   //can.filterMask16Init(0, UCM_TEST, 0x7ff);                // filter out every message exept for UCM_TEST
   
   // Initiallising Serial1
@@ -104,15 +105,9 @@ void setup() {
   
   //Ticker Setup
   ticker_heartbeat.start();
-  delay(100);
   ticker_data_tx.start();
-  delay(100);
-  
-  
   
   Serial1.println("STARTED DATA TICKER!");
-
-  //can.attachInterrupt(canISR);
 }
 
 //--------------------------------------------------//
@@ -122,8 +117,9 @@ void setup() {
  // digitalupdate();
   I2C();
 //  CANRecieve();
+  percent = calculate_shock_percent(adc0);
   ticker_heartbeat.update();
-//  ticker_data_tx.update();
+  ticker_data_tx.update();
   //Driver();
  // SerialPRINT();
 }
@@ -141,10 +137,6 @@ void digitalupdate(){
 //--------------------------------------------------//
 void I2C() {
   adc0 = ads.readADC_SingleEnded(0);
-  //adc1 = ads.readADC_SingleEnded(1);
-  //adc2 = ads.readADC_SingleEnded(2);
-  //adc3 = ads.readADC_SingleEnded(3);
-
 }
 
 //--------------------------------------------------//
@@ -176,7 +168,7 @@ void heartbeat_tx(){
   uint8_t txData[dlc];
   txData[0] = Heartbeat_State;
   txData[1] = Heartbeat_Counter;
-  txData[2] = calculate_shock_percent(adc0);
+  txData[2] = percent;
   can.transmit(UCM_HEARTBEAT_ID, txData, dlc);
   digitalToggle(PC13);
 //  if (Heartbeat_Counter == 256){

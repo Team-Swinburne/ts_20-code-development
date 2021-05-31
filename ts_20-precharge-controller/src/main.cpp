@@ -8,7 +8,9 @@
 // 1 Test Relays
 // 2 Test Max Voltage 592
 // 3 Test Max Voltage 250
-#define TEST_MODE 2
+// 4 Print Current Status
+// 5 Print Raw ADC Value
+#define TEST_MODE 4
 
 /* 
 To correct limited 64k flash issue: https://github.com/platformio/platform-ststm32/issues/195. Ensure device is 128k model. 
@@ -235,55 +237,24 @@ private:
 	Timer _t;
 };
 
-// class AIR_Relay{
-// public:
-// 	AIR_Relay(PinName relay_pin_number, PinName feedback_pin_number) : 
-// 	_relay_pin(relay_pin_number), _feedback_pin(feedback_pin_number){
-// 		_relay_pin = 0;
-// 	}
-
-// 	void close(){
-// 		_relay_pin = 1;
-// 	}
-
-// 	void open(){
-// 		_relay_pin = 0;
-// 	}
-
-// 	bool check_valid(){
-// 		bool valid_relay = false;
-// 		if (_relay_pin == _feedback_pin){
-// 			valid_relay = true;
-// 		} else {
-// 			valid_relay = false;
-// 		}
-// 		return valid_relay;
-// 	}
-
-
-// private:
-// 	DigitalOut _relay_pin;
-// 	DigitalIn _feedback_pin;
-// };
-
 //-----------------------------------------------
 // Globals
 //-----------------------------------------------
 
 static int8_t  	heartbeat_state 			= 0;
 static int	    heartbeat_counter 			= 0;
-static bool 	error_present				= 1; 	// (1 - Default)
-static int8_t	error_code					= 0;
-static bool 	warning_present 			= 0;
-static int8_t  	warning_code				= 0;
+
+static int8_t	error_code					= 0xFF;
+static int8_t  	warning_code				= 0xFF;
+
 static bool		precharge_button_state		= 0;
 static bool 	charge_mode_activated		= 0; 
 static int 		discharge_state				= 2;	// (2 - Default)
 static bool 	orion_connected	 			= 0;	// (0 - Default)
+static bool		orion_safety_ok				= 0xFF;
 
 static int 		precharge_start_time 		= 0;
 static int 		orion_last_connection		= 0;
-static int 	   orion_timeout_strike_counter = 0;
 
 static int 		orion_low_voltage			= 0;
 static int 		orion_high_voltage			= 0;
@@ -382,12 +353,14 @@ void CAN1_receive(){
 				// 0b000000, 0000010	Charge Relay Enabled
 				// 0b000000, 0000100	Charge Safety Enabled
 				// Use bitwise operator to mask out all except relevent statuses.
-				// if ((can1_msg.data[1] & 0b00000111) > 0){
-					orion_connected = true;	
-					orion_last_connection = heartbeat_counter;
-				// } else {
-				// 	orion_connected = false;
-				// }
+				orion_connected = true;
+				orion_last_connection = heartbeat_counter;
+
+				if ((can1_msg.data[0] & 0b00000111) > 0){
+					orion_safety_ok = true;	
+				} else {
+					orion_safety_ok = false;
+				}
 				break;
 			
 			case ORION_BMS_VOLTAGE_ID:
@@ -416,9 +389,9 @@ CAN TRANSMIT
 void CAN1_transmit(){
     char TX_data[8] = {0};
 
-	TX_data[0] = error_present;
+	TX_data[0] = 0;
 	TX_data[1] = error_code;
-	TX_data[2] = warning_present;
+	TX_data[2] = 0;
 	TX_data[3] = warning_code; // add stuff for imd period and frequency.
 	
 	if (can1.write(CANMessage(PRECHARGE_CONTROLLER_ERROR_ID, &TX_data[0], 4))) {
@@ -462,78 +435,72 @@ void CAN1_transmit(){
 //-----------------------------------------------
 
 bool errord(){
-	error_present = 0;
-	error_code = 0;
+	int _error_code = 0;
 	if (IMD_ok == 0){
-		error_present = 1;
-		error_code = error_code + 0b00000001;
+		_error_code = _error_code + 0b00000001;
 		// pc.printf("FAULT: Isolation fault detected, please check wiring!\r\n");
 	}
 	if (PDOC_ok == 0){
-		error_present = 1;
-		error_code = error_code + 0b00000010;
+		_error_code = _error_code + 0b00000010;
 		// pc.printf("FAULT: PDOC failure detected, please allow to cool and check for\
 		short circuit!\r\n");
 	}
 	if (orion_connected == false){
-		error_present = 1;
-		error_code = error_code + 0b00000100;
+		_error_code = _error_code + 0b00000100;
 		// pc.printf("FAULT: Orion BMS not attached, please check CAN is functioning, and\
-		Orion is attached!\r\n");
+		// Orion is attached!\r\n");
 	}
+	if (orion_safety_ok == false){
+		_error_code = _error_code + 0b00001000;
+	}
+
 	// if (orion_low_voltage < MINIMUM_CELL_VOLTAGE){
-	// 	error_present = 1;
-	// 	error_code = error_code + 0b00001000;
+	// 	_error_code = _error_code + 0b00001000;
 	// 	// pc.printf("FAULT: Orion reports undervoltage fault!\r\n");
 	// }
 	// if (orion_high_voltage > MAXIMUM_CELL_VOLTAGE){
-	// 	error_present = 1;
-	// 	error_code = error_code + 0b00010000;
+	// 	_error_code = _error_code + 0b00010000;
 	// 	// pc.printf("FAULT: Orion reports overvoltage fault!\r\n");
 	// }
 	// if (orion_high_temperature > MAXIMUM_CELL_TEMPERATURE){
-	// 	error_present = 1;
-	// 	error_code = error_code + 0b00100000;
+	// 	_error_code = _error_code + 0b00100000;
 	// 	// pc.printf("FAULT: Orion reports overtemperature fault!\r\n");
 	// }
-	if (error_present){
+	if (_error_code > 1){
 		heartbeat_state = 0;
 		AMS_ok = 0;
-	}
-	else {
+	} else {
 		AMS_ok = 1;
 	}
-	return error_present; 
+	error_code = _error_code;
+	return _error_code; 
 }
 
-void warnd(){
-	warning_present = 0;
-	warning_code = 0;
+int warnd(){
+	int _warning_code = 0;
 	if (pcb_temperature.read() > 60){
-		warning_present = 1;
-		warning_code = warning_code + 0b00000001;
+		_warning_code = _warning_code + 0b00000001;
 		// PCB Overtemperature
 		// pc.printf("PCB too hot, you should probably check that, but don't take my word\
 		for it, i'm just a hot MCU looking to have some fun! ;) ");
 	}
 	if (discharge_state > 2 && heartbeat_state != 0){
-		warning_present = 1;
-		warning_code = warning_code + 0b00000010;
+		_warning_code = _warning_code + 0b00000010;
 		// Discharge/Precharge Mismatch
 		// pc.printf("Discharge reported active during drive, please check wiring to discharge.\r\n");
 	}
 	if (AIR_neg_feedback != AIR_neg_relay){
-		warning_present = 1;
-		warning_code = warning_code + 0b0000100;
+		_warning_code = _warning_code + 0b0000100;
 		// Negative AIR Mismatch
 		// pc.printf("Negative AIR mismatch, check for welding or wiring failure\r\n");
 	}
 	if (AIR_pos_feedback != AIR_pos_relay){
-		warning_present = 1;
-		warning_code = warning_code + 0b00001000;
+		_warning_code = _warning_code + 0b00001000;
 		// Positive AIR Mismatch
 		// pc.printf("Positive AIR mismatch, check for welding or wiring failure\r\n");
 	}
+	warning_code = _warning_code;
+	return _warning_code;
 }
 
 void stated(){
@@ -544,7 +511,7 @@ void stated(){
 			AIR_pos_relay = 0;
 			AMS_ok = 0;
 
-			if (!error_present)
+			if (error_code == 0)
 				heartbeat_state = 1;
 			break;
 
@@ -592,7 +559,16 @@ void stated(){
 			precharge_relay = 0;
 			AIR_pos_relay = 1;
 			break;
+	}
+}
 
+// Suspect issue present due to multiple inputs connected to same net.
+// There are more elegant solutions, however this shall suffice.
+int validate_adc_input(int raw_adc){
+	if (raw_adc > 32768){
+		return 0;
+	} else {
+		return raw_adc;
 	}
 }
 
@@ -612,14 +588,17 @@ int NTC_voltageToTemperature(float voltage, float BETA=3380){
 	return temperature;
 }
 
-float HV_voltageScaling(float input, int R_CAL){
-	int R1 = 330000 * 4;
-	int R2 = 10000 + R_CAL;
+int HV_voltageScaling(float input, float R_CAL){
+	float R1 = 330000 * 4;
+	float R2 = 10000 + R_CAL;
 
-	float scaling_factor = ((R1 + R2) / R1);
-	float output = input * scaling_factor;
+	float R1_R2 = R1 + R2;
+	float scaling_factor = (R2 / R1_R2);
+	float output = input / scaling_factor;
+	
+	int _output = output;
 
-	return output;
+	return _output;
 }
 
 float adc_to_voltage(int adc_value, int adc_resolution, float voltage_range){
@@ -632,11 +611,10 @@ void updateanalogd(){
 	// pc.printf("PDOC_TEMPERAUTRE: %d \r\n", pdoc_temperature);
 	pdoc_ref_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(1), 32768, 6.144), 3380);
 	// pc.printf("PDOC_REF_TEMPERAUTRE: %d \r\n", pdoc_ref_temperature);
-	mc_voltage = HV_voltageScaling(adc_to_voltage(mc_hv_sense_adc.readADC_SingleEnded(0), 32768, 6.144), MC_R_CAL);
+	mc_voltage = HV_voltageScaling(adc_to_voltage(validate_adc_input(mc_hv_sense_adc.readADC_SingleEnded(0)), 32768, 6.144), MC_R_CAL);
 	// pc.printf("MC_VOLTAGE: %d \r\n", mc_voltage);
-	battery_voltage = HV_voltageScaling(adc_to_voltage(batt_hv_sense_adc.readADC_SingleEnded(0), 32768, 6.144), BATT_R_CAL);
+	battery_voltage = HV_voltageScaling(adc_to_voltage(validate_adc_input(batt_hv_sense_adc.readADC_SingleEnded(0)), 32768, 6.144), BATT_R_CAL);
 	// pc.printf("BATTERY_VOLTAGE: %d \r\n", battery_voltage);
-	wait(0.5);
 }
 
 //-----------------------------------------------
@@ -653,8 +631,6 @@ void setup(){
 	
 	ticker_heartbeat.attach(&heartbeat, HEARTRATE);
 	ticker_can_transmit.attach(&CAN1_transmit, CAN_BROADCAST_INTERVAL);
-
-	// ticker_orionwd.attach(&orionwd_cb, ORION_TIMEOUT_INTERVAL);
 
 	// IMD_interface.start();
 
@@ -717,6 +693,88 @@ void test_precharge_sequence(float highest_voltage){
 	}
 }
 
+void print_current_status(float delay){
+
+	// setup();
+	wait(1);
+
+	while(1){
+		pc.printf("ts_20 Precharge Controller (STM32F103C8T6 128k) \
+		\r\nCOMPILED: %s: %s\r\n",__DATE__, __TIME__);
+
+		pc.printf("\r\n \r\n -- DEVICE STATUS --\r\n");
+		pc.printf("HEARTBEAT_STATE: %d \r\n", heartbeat_state);
+		pc.printf("HEARTBEAT_COUNTER: %d \r\n", heartbeat_counter);
+
+		// pc.printf("\r\n \r\n -- ERROR SEMIPHORES -- \r\n");
+		// pc.printf("ERROR_CODE: %u \r\n", error_code);
+		// pc.printf("WARNING_CODE: %u \r\n", warning_code);
+
+		pc.printf("\r\n \r\n -- PERIPHERY STATUSES -- \r\n");
+		pc.printf("PRECHARGE_BUTTON_STATE: %d\r\n", precharge_button_state);
+		pc.printf("CHARGE_MODE_ACTIVATED: %d \r\n", charge_mode_activated);
+		pc.printf("DISCHARGE_STATE: %d \r\n", discharge_state);
+		pc.printf("ORION_CONNECTED: %d \r\n", orion_connected);
+		pc.printf("ORION_SAFETY_OK %d \r\n", orion_safety_ok);
+
+		pc.printf("\r\n \r\n -- COUNTERS --  \r\n");
+		pc.printf("PRECHARGE_START_TIME: %d \r\n", precharge_start_time);
+		pc.printf("ORION_LAST_CONNECTION: %d \r\n", orion_last_connection);
+		
+		pc.printf("\r\n \r\n -- ORION ANALOGUE -- \r\n");
+		pc.printf("ORION_LOW_VOLTAGE: %d \r\n", orion_low_voltage);
+		pc.printf("ORION_HIGH_VOLTAGE: %d \r\n", orion_high_voltage);
+		pc.printf("ORION_HIGH_TEMPERATURE: %d \r\n", orion_high_temperature);
+
+		pc.printf("\r\n \r\n -- INTERNAL ANALOGUE -- \r\n");
+		pc.printf("PDOC_TEMPERAUTRE: %d \r\n", pdoc_temperature);
+		pc.printf("PDOC_REF_TEMPERAUTRE: %d \r\n", pdoc_ref_temperature);
+		pc.printf("MC_VOLTAGE: %d \r\n", mc_voltage);
+		pc.printf("BATTERY_VOLTAGE: %d \r\n", battery_voltage);
+
+		pc.printf("\r\n \r\n \r\n \r\n");
+
+		stated();
+		// errord();
+		updateanalogd();
+		// warnd();
+		wait(delay);
+	}
+}
+
+void print_raw_adc(float delay){
+	// setup();
+	// wait(1);
+
+	while(delay){
+		updateanalogd();
+		
+		pc.printf("\r\n \r\n-- STATUS -- \r\n");
+
+		pc.printf("\r\n-- PDOC_ADC -- \r\n");
+		pc.printf("PDOC_RAW 0: %d \r\n", pdoc_adc.readADC_SingleEnded(0));
+		pc.printf("PDOC_RAW 1: %d \r\n", pdoc_adc.readADC_SingleEnded(1));
+		pc.printf("PDOC_RAW 2: %d \r\n", pdoc_adc.readADC_SingleEnded(0));
+		pc.printf("PDOC_RAW 3: %d \r\n", pdoc_adc.readADC_SingleEnded(1));
+
+		pc.printf("\r\n-- MC_VOLTAGE_ADC -- \r\n");
+		pc.printf("MC_VOLTAGE_RAW 0: %d \r\n", mc_hv_sense_adc.readADC_SingleEnded(0));
+		pc.printf("MC_VOLTAGE_RAW 1: %d \r\n", mc_hv_sense_adc.readADC_SingleEnded(1));
+		pc.printf("MC_VOLTAGE_RAW 2: %d \r\n", mc_hv_sense_adc.readADC_SingleEnded(2));
+		pc.printf("MC_VOLTAGE_RAW 3: %d \r\n", mc_hv_sense_adc.readADC_SingleEnded(3));
+		
+		pc.printf("\r\n-- BATTERY_VOLTAGE_ADC -- \r\n");
+		pc.printf("BATTERY_VOLTAGE_RAW 0: %d \r\n", batt_hv_sense_adc.readADC_SingleEnded(0));
+		pc.printf("BATTERY_VOLTAGE_RAW 1: %d \r\n", batt_hv_sense_adc.readADC_SingleEnded(1));
+		pc.printf("BATTERY_VOLTAGE_RAW 2: %d \r\n", batt_hv_sense_adc.readADC_SingleEnded(2));
+		pc.printf("BATTERY_VOLTAGE_RAW 3: %d \r\n", batt_hv_sense_adc.readADC_SingleEnded(3));		
+		
+		pc.printf("\r\n \r\n \r\n \r\n");
+
+		wait(delay);
+	}
+}
+
 #endif
 
 //-----------------------------------------------
@@ -732,26 +790,27 @@ int main() {
 		test_precharge_sequence(592);
 	#elif TEST_MODE == 3
 		test_precharge_sequence(250);
+	#elif TEST_MODE == 4
+		print_current_status(1);
+	#elif TEST_MODE == 5
+		print_raw_adc(2);
 	#else
 
-	// __disable_irq();
+	__disable_irq();
     pc.printf("Starting ts_20 Precharge Controller (STM32F103C8T6 128k) \
 	\r\nCOMPILED: %s: %s\r\n",__DATE__, __TIME__);
 	setup();
 
 	// pc.printf("Finished Startup\r\n");
 	wait(1);
-	// __enable_irq();
+	__enable_irq();
 
     while(1) {
 		stated();
-		// errord();
-		// updateanalogd();
-		// warnd();
-
-		// pc.printf("%d\r\n", can1.tderror());
-
-		wait(1);	// Don't stress mcu.
+		errord();
+		updateanalogd();
+		warnd();
+		wait(0.0001);	// Don't stress mcu.
     }
 
 	// pc.printf("Is this a BSOD?");

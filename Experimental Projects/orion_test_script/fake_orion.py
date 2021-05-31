@@ -21,7 +21,6 @@ def send_precharge_request(bus):
     payload = [1,0,0,0,0,0,0,0]
     msg = can.Message(arbitration_id=THROTTLE_CONTROLLER_PERIPERAL_ID, data=payload)
     time.sleep(1)
-    payload = [0,0,0,0,0,0,0,0]
 
 def send_relay_status(bus):
     payload = [7,0,0,0,0,0,0,0]

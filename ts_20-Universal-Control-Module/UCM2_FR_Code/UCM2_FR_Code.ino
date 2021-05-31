@@ -1,5 +1,5 @@
 //    TEAM SWINBURNE - TS20
-//    BRAKE MODULE
+//    UNIVERSAL CONTROL MODULE
 
 #include <Wire.h>
 #include <Adafruit_ADS1X15.h>
@@ -15,7 +15,7 @@ Adafruit_ADS1115 ads;
 // CANBus Adresses
 int   UCM2_FR_HEARTBEAT_ID  =    0x521;
 int   UCM2_FR_DATA_ID       =    0x522;
-int   UCM2_FR_OVERWRITE     =    0x523;
+int   UCM_TEST              =    0x571;
 
 // CANBus Intervals
 #define    HEARTRATE               1000       //ms
@@ -31,7 +31,6 @@ int   UCM2_FR_OVERWRITE     =    0x523;
 #define pin_PWM_Driver2     PB1   // PWM Driver 2 (5V)
 
 
-
 int DriveCondition1, DriveRequirment1 = 1, DriveValue1 = 0;
 int DriveCondition2, DriveRequirment2 = 1, DriveValue2 = 0;
 int DigIN1 =0;
@@ -40,12 +39,12 @@ int PWM_Drive1 = 0, PWM_Drive2 = 0;
 int16_t adc0, adc1, adc2, adc3;
 
 
-
 int rxMsgID = 0x005;   // needed for rx filtering
-int fltIdx;
+int fltIdx,id;
 uint8_t rxData[8];
 uint32_t Heartbeat_Counter = 0;
 uint8_t Heartbeat_State = 0;
+int len = -1;
 eXoCAN can;
 
 void heartbeat_tx();
@@ -83,7 +82,8 @@ void setup() {
   
   // Initiallising CAN
   can.begin(STD_ID_LEN, BR500K, PORTB_8_9_XCVR);           // 11b IDs, 250k bit rate, Pins 8 and 9 with a transceiver chip
-  can.filterMask16Init(0, 0, 0x7ff, 0, 0);                 // filter bank 0, filter 0: don't pass any, flt 1: pass all msgs
+  can.filterMask16Init(0, UCM_TEST, 0x7ff);                // filter out every message exept for UCM_TEST
+  can.attachInterrupt(canISR);
   
   // Initiallising Serial1
   Serial1.begin(9600);
@@ -103,7 +103,7 @@ void setup() {
   ticker_heartbeat.update();
   ticker_data_tx.update();
   Driver();
-  //SerialPRINT();
+  SerialPRINT();
 }
 
 //--------------------------------------------------//
@@ -126,13 +126,18 @@ void I2C() {
 //--------------------------------------------------//
 // CAN Message Recieve. 
 //--------------------------------------------------//
+void canISR(){
+  len = can.receive(id, fltIdx, rxData);
+}
 void CANRecieve(){
-  int len = can.receive(UCM2_FR_OVERWRITE, fltIdx, rxData);
   if (len > -1){
+    Serial1.print("Recieving...");
+    Serial1.println(rxData[0]);
     DriveCondition1 = rxData[0];
     DriveCondition2 = rxData[1];
-    PWM_Drive1 = int(rxData[2]*2.55);
-    PWM_Drive2 = int(rxData[3]*2.55);
+    PWM_Drive1 = rxData[2];
+    PWM_Drive2 = rxData[3];
+    len = -1;
   }
 }
 
@@ -191,18 +196,24 @@ void Driver() {
 //--------------------------------------------------//
 void SerialPRINT() {
 
-  //Digital Input 
-  Serial1.print("Digital Input 1: ");  Serial1.println(DigIN1); 
-  Serial1.print("Digital Input 2: ");  Serial1.println(DigIN2); 
+  // //Digital Input 
+  // Serial1.print("Digital Input 1: ");  Serial1.println(DigIN1); 
+  // Serial1.print("Digital Input 2: ");  Serial1.println(DigIN2); 
 
-  //Analogue Input
-  Serial1.print("Analogue Input 0: "); Serial1.println(adc0);
-  Serial1.print("Analogue Input 1: "); Serial1.println(adc1);
-  Serial1.print("Analogue Input 2: "); Serial1.println(adc2);
-  Serial1.print("Analogue Input 3: "); Serial1.println(adc3);
+  // //Analogue Input
+  // Serial1.print("Analogue Input 0: "); Serial1.println(adc0);
+  // Serial1.print("Analogue Input 1: "); Serial1.println(adc1);
+  // Serial1.print("Analogue Input 2: "); Serial1.println(adc2);
+  // Serial1.print("Analogue Input 3: "); Serial1.println(adc3);
+  // Serial1.println(" ");
+  // //Driver Value
+  // Serial1.print("Driver 1: "); Serial1.println(DriveValue1);
+  // Serial1.print("Driver 2: "); Serial1.println(DriveValue2);
+  // delay(300);
+  Serial1.print("Drive Cond 1: ");  Serial1.print(DriveCondition1,DEC);
+  Serial1.print("    Drive Cond 2: ");  Serial1.println(DriveCondition2,DEC);
   Serial1.println(" ");
-  //Driver Value
-  Serial1.print("Driver 1: "); Serial1.println(DriveValue1);
-  Serial1.print("Driver 2: "); Serial1.println(DriveValue2);
-  delay(300);
+  Serial1.print("Drive PWM 1: ");  Serial1.print(PWM_Drive1,DEC);
+  Serial1.print("    Drive PWM 2: ");  Serial1.println(PWM_Drive2,DEC);
+  Serial1.println(" ");
 }

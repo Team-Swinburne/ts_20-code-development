@@ -199,17 +199,6 @@ public:
 		imd_timer.start();
 	}
 
-	void set_period(){
-		period = imd_timer.read_us();
-		frequency = 1000000.0f/period;
-        imd_timer.reset();
-	}
-
-	void set_duty_cycle(){
-		active_end = imd_timer.read_us();
-		duty_cycle = (active_end/period)*100.0;
-	}
-
 	int get_period(){return period;}
 	int get_frequency(){return frequency;}
 	int get_duty_cycle(){return duty_cycle;}
@@ -224,6 +213,17 @@ private:
 	int	frequency;
 
 	Timer imd_timer;
+
+	void set_period(){
+		period = imd_timer.read_us();
+		frequency = 1000000.0f/period;
+        imd_timer.reset();
+	}
+
+	void set_duty_cycle(){
+		active_end = imd_timer.read_us();
+		duty_cycle = (active_end/period)*100.0;
+	}
 };
 
 

@@ -1,6 +1,5 @@
 #include <mbed.h>
 
-
 	/*
 PDOC
 	Precharge Discharge Over-Current device. Checks if precharge/discharge relays
@@ -24,7 +23,7 @@ public:
      *  @param _adc_addr Address of ADS1115 unit. 
 	 * 
      */
-	PDOC(I2C &i2c1, int _adc_addr, PDOC_ok_pin) : pdoc_adc(&i2c1, _adc_addr), PDOC_ok(PDOC_ok_pin){};
+	PDOC(I2C &i2c1, int _adc_addr, PinName PDOC_ok_pin) : pdoc_adc(&i2c1, _adc_addr), PDOC_ok(PDOC_ok_pin){};
 	
 	/** update_adc()
 	 * 
@@ -57,7 +56,7 @@ public:
 		return _pdoc_ok;
 	}
 
-	int get_pdoc_ok(){return PDOC_ok.read()}
+	int get_pdoc_ok(){return PDOC_ok.read();}
 	int get_pdoc_temperature(){return pdoc_temperature;}
 	int get_pdoc_ref_temperature(){return pdoc_ref_temperature;}
 	

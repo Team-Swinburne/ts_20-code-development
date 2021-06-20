@@ -3,6 +3,17 @@
 // CANBUS Frequency
 #define CANBUS_FREQUENCY							500000
 
+#define PRECHARGE_CONTROLLER_BASE_ID 0x440
+
+typedef enum TS_STD_CAN_MESSAGES{
+    TS_HEARTBEAT_ID,
+    TS_ERROR_WARNING_ID,
+    TS_DIGITAL_1_ID,
+    TS_DIGITAL_2_ID,
+    TS_ANALOGUE_1_ID,
+    TS_ANALOGUE_2_ID,
+} ts_std_can_messages_t;
+
 
 // CANBUS Addresses
 #define PRECHARGE_CONTROLLER_HEARTBEAT_ID 			0x440

@@ -84,7 +84,7 @@ public:
 	void connect_orion(){
 		orion_timeout.detach();
 		orion_connection_state = true;
-		orion_timeout.attach(callback(this, &disconnect_orion_cb), ORION_TIMEOUT_INTERVAL);
+		orion_timeout.attach(callback(this, &Orion::disconnect_orion_cb), ORION_TIMEOUT_INTERVAL);
 		if (check_orion_safe()){
 			AMS_ok = 1;
 		} else {
@@ -105,7 +105,7 @@ public:
 		relay_status = _relay_status;
 		orion_timeout.detach();
 		orion_connection_state = true;
-		orion_timeout.attach(callback(this, &disconnect_orion_cb), ORION_TIMEOUT_INTERVAL);
+		orion_timeout.attach(callback(this, &Orion::disconnect_orion_cb), ORION_TIMEOUT_INTERVAL);
 		if (check_orion_safe() || relay_status > 0){
 			AMS_ok = 1;
 		} else {

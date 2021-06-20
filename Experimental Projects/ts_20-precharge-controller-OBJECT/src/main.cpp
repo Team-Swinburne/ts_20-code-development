@@ -87,9 +87,10 @@ PC_15/OSC32OUT (3.3V)*
 #include "imd.h"
 #include "precharge_peripheral_devices.h"
 #include "relays.h"
+// #include "unit_test.h"
 
 // #if TEST_MODE > 0
-//     #include ".\unit_test.h"
+    
 // #endif
 
 //-----------------------------------------------
@@ -130,7 +131,7 @@ CANMessage can1_msg;
 // Interfaces
 //-----------------------------------------------
 
-Heart heart(PRECHARGE_CONTROLLER_HEARTBEAT_ID, PC_13, PA_0);
+Heart heart(PRECHARGE_CONTROLLER_BASE_ID, PC_13, PA_0);
 
 Orion orion(PB_13);
 PDOC pdoc(i2c1, PDOC_ADC_ADDR, PB_15);
@@ -162,10 +163,51 @@ typedef enum PREcHARGE_STATES {
 } precharge_states_t;
 
 //-----------------------------------------------
-// Error/Warning Definitions
+// TS_STD_CAN_INTERPRETATIONS
 //-----------------------------------------------
 
-typedef enum ERROR_CODES_KEY {
+typedef enum CAN_ERROR_WARNING_SIGNALS{
+	CAN_ERROR_1,
+	CAN_ERROR_2,
+	CAN_WARNING_1,
+	CAN_WARNING_2,
+	CAN_AMS_OK,
+	CAN_PDOC_OK,
+	CAN_IMD_OK,
+	CAN_ERROR_SPARE,
+} can_error_warning_flag_t;
+
+typedef enum CAN_ANALOGUE_1_SIGNALS{
+	CAN_ANALOGUE_1_PDOC_TEMPERATURE_1,
+	CAN_ANALOGUE_1_PDOC_TEMPERATURE_2,
+	CAN_ANALOGUE_1_PDOC_REF_TEMPERATURE_1,
+	CAN_ANALOGUE_1_PDOC_REF_TEMPERATURE_2,
+	CAN_ANALOGUE_1_HV_BATTERY_SENSE_VOLTAGE_1,
+	CAN_ANALOGUE_1_HV_BATTERY_SENSE_VOLTAGE_2,
+	CAN_ANALOGUE_1_HV_MC_SENSE_VOLTAGE_1,
+	CAN_ANALOGUE_1_HV_MC_SENSE_VOLTAGE_2,
+} can_analogue_1_signals_t;
+
+typedef enum CAN_ANALOGUE_2_SIGNALS{
+	CAN_ANALOGUE_2_IMD_PERIOD,
+	CAN_ANALOGUE_2_IMD_FREQUENCY,
+	CAN_ANALOGUE_2_IMD_DUTY_CYCLE,
+} can_analogue_2_signals_t;
+
+typedef enum CAN_DIGITAL_1_SIGNALS{
+	CAN_DIGITAL_1_AIR_POWER,
+	CAN_DIGITAL_1_AIR_NEG_RELAY,
+	CAN_DIGITAL_1_AIR_NEG_FEEDBACK,
+	CAN_DIGITAL_1_AIR_POS_RELAY,
+	CAN_DIGITAL_1_AIR_POS_FEEDBACK,
+	CAN_DIGITAL_1_PRECHARGE_RELAY,
+} can_digital_1_signals_t;
+
+//-----------------------------------------------
+// Error/Warning Flags
+//-----------------------------------------------
+
+typedef enum ERROR_CODES_SUB_KEY {
   ERROR_AMS_OK,
   ERROR_PDOC_OK,
   ERROR_IMD_OK,
@@ -176,7 +218,7 @@ typedef enum ERROR_CODES_KEY {
   ERROR_SPARE_7,
 } error_state_t;
 
-typedef enum WARNING_CODES_KEY {
+typedef enum WARNING_CODES_SUB_KEY {
   WARNING_PCB_OVERTEMPERATURE,
   WARNING_DISCHARGE_PRECHARGE_MISMATCH,
   WARNING_AIR_NEG_FEEDBACK_MISMATCH,
@@ -200,9 +242,8 @@ Timeout timeout_precharge;
 // Functions
 //-----------------------------------------------
 
-uint8_t array_to_uint8(bool arr[])
-{	
-	int count = 8;
+uint8_t array_to_uint8(bool arr[], int count)
+{
     int ret = 0;
     int tmp;
     for (int i = 0; i < count; i++) {
@@ -260,7 +301,7 @@ bool check_precharged(){
 //-----------------------------------------------
 
 // Flash the LED!
-bool can_transmission_handler(CANMessage _can_message){
+bool can_transmission_h(CANMessage _can_message){
     if(can1.write(_can_message)) {
 		can1_tx_led = !can1_tx_led;
         return true;
@@ -279,7 +320,7 @@ Heartbeat Callback
 	successful.
 	*/
 void heartbeat_cb(){
-    if (can_transmission_handler(heart.heartbeat())){
+    if (can_transmission_h(heart.heartbeat())){
         pc.printf("Heartbeat Success! State: %d Counter: %d\r\n", heart.get_heartbeat_state(), heart.get_heartbeat_counter());
     } else {
         pc.printf("Hearts dead :(\r\n");
@@ -295,6 +336,7 @@ AIR Power Lost Callback
 void air_power_lost_cb(){
 	orion.set_AMS_ok(0);
     heart.set_heartbeat_state(PRECHARGE_STATE_FAIL);
+	pc.printf("AIR Power Lost!\r\n");
 }
 	
 	/*
@@ -309,6 +351,7 @@ void precharge_timeout_cb(){
 	if (!check_precharged()){
 		heart.set_heartbeat_state(PRECHARGE_STATE_FAIL);
 		orion.set_AMS_ok(0);
+		pc.printf("Precharge timed out!\r\n");
 	}
 }
 
@@ -320,6 +363,7 @@ Start Precharge Callback
 void start_precharge_cb(){
     relay_state_precharging();
     timeout_precharge.attach(&precharge_timeout_cb, PRECHARGE_TIMEOUT);
+	pc.printf("Starting precharge!\r\n");
 }
 
 	/*
@@ -328,7 +372,55 @@ CAN Transmit
 	Team Swinburne format for simple interpretation.
 	*/
 void can1_trans_cb(){
-	can1_tx_led = !can1_tx_led;
+	// can1_tx_led = !can1_tx_led;
+	char TX_data[8] = {0};
+	int dlc = 8;
+	TX_data[CAN_ERROR_1] = heart.get_error_code(0);
+	TX_data[CAN_ERROR_2] = heart.get_error_code(1);
+	TX_data[CAN_WARNING_1] = heart.get_error_code(0);
+	TX_data[CAN_WARNING_2] = heart.get_warning_code(1);
+	TX_data[CAN_AMS_OK] = orion.get_AMS_ok();
+	TX_data[CAN_PDOC_OK] = pdoc.get_pdoc_ok();
+	TX_data[CAN_IMD_OK] = imd.get_IMD_ok();
+	TX_data[CAN_ERROR_SPARE] = 0;
+
+	can_transmission_h(CANMessage(PRECHARGE_CONTROLLER_BASE_ID + TS_ERROR_WARNING_ID, &TX_data[0], dlc));
+	
+	dlc = 8;
+	TX_data[CAN_ANALOGUE_1_PDOC_TEMPERATURE_1] = (char)(pdoc.get_pdoc_temperature() >> 8);
+	TX_data[CAN_ANALOGUE_1_PDOC_TEMPERATURE_2] = (char)(pdoc.get_pdoc_temperature() & 0xFF);
+	TX_data[CAN_ANALOGUE_1_PDOC_REF_TEMPERATURE_1] = (char)(pdoc.get_pdoc_ref_temperature() >> 8);
+	TX_data[CAN_ANALOGUE_1_PDOC_REF_TEMPERATURE_2] = (char)(pdoc.get_pdoc_ref_temperature() & 0xFF);
+	TX_data[CAN_ANALOGUE_1_HV_BATTERY_SENSE_VOLTAGE_1] = (char)(hv_battery_sense.get_voltage()*10 >> 8);
+	TX_data[CAN_ANALOGUE_1_HV_BATTERY_SENSE_VOLTAGE_2] = (char)(hv_battery_sense.get_voltage()*10 & 0xFF);
+	TX_data[CAN_ANALOGUE_1_HV_MC_SENSE_VOLTAGE_1] = (char)(hv_mc_sense.get_voltage()*10 >> 8);
+	TX_data[CAN_ANALOGUE_1_HV_MC_SENSE_VOLTAGE_2] = (char)(hv_mc_sense.get_voltage()*10 & 0xFF);
+
+	can_transmission_h(CANMessage(PRECHARGE_CONTROLLER_BASE_ID + TS_ANALOGUE_1_ID, &TX_data[0], dlc));
+
+	dlc = 8;
+
+	TX_data[CAN_ANALOGUE_2_IMD_PERIOD] = imd.get_period();
+	TX_data[CAN_ANALOGUE_2_IMD_FREQUENCY] = imd.get_frequency();
+	TX_data[CAN_ANALOGUE_2_IMD_DUTY_CYCLE] = imd.get_duty_cycle();
+	TX_data[3] = 0;
+	TX_data[4] = 0;
+	TX_data[5] = 0;
+	TX_data[6] = 0;
+	TX_data[7] = 0;
+
+	can_transmission_h(CANMessage(PRECHARGE_CONTROLLER_BASE_ID + TS_ANALOGUE_2_ID, &TX_data[0], dlc));
+	
+	TX_data[CAN_DIGITAL_1_AIR_POWER] = air_power.read();
+	TX_data[CAN_DIGITAL_1_AIR_NEG_RELAY] = AIR_neg_relay.get_relay();
+	TX_data[CAN_DIGITAL_1_AIR_NEG_FEEDBACK] = AIR_neg_relay.get_feedback();
+	TX_data[CAN_DIGITAL_1_AIR_POS_RELAY] = AIR_neg_relay.get_relay();
+	TX_data[CAN_DIGITAL_1_AIR_POS_FEEDBACK] = AIR_neg_relay.get_feedback();
+	TX_data[CAN_DIGITAL_1_PRECHARGE_RELAY] = precharge_relay.get_relay();
+	TX_data[6] = 0;
+	TX_data[7] = 0;
+
+	can_transmission_h(CANMessage(PRECHARGE_CONTROLLER_BASE_ID + TS_DIGITAL_1_ID, &TX_data[0], dlc));
 }
 
 	/*
@@ -385,42 +477,43 @@ void can1_recv_cb(){
 
 	/*
 Error Deamon
-	Checks for critical errors. Should be assigned to the Heart object; the heart
+	Checks for critical errors. Resultant value should be assigned to the Heart object; the heart
 	will send the state of the device into fail as soon as possible, and disable the vehicle.
 	*/
-uint8_t error_d(){
+uint8_t error_check(){
 	bool error_code[8];
 
-	error_code[ERROR_AMS_OK] = orion.get_AMS_ok();
-	error_code[ERROR_PDOC_OK] = pdoc.get_pdoc_ok();
-	error_code[ERROR_IMD_OK] = imd.get_IMD_ok();
-	error_code[ERROR_ORION_OK] = orion.check_orion_safe();
+	error_code[ERROR_AMS_OK] 	= !orion.get_AMS_ok();
+	error_code[ERROR_PDOC_OK] 	= !pdoc.get_pdoc_ok();
+	error_code[ERROR_IMD_OK] 	= !imd.get_IMD_ok();
+	error_code[ERROR_ORION_OK] 	= !orion.check_orion_safe();
+	
 	error_code[ERROR_SPARE_4] = false;
 	error_code[ERROR_SPARE_5] = false;
 	error_code[ERROR_SPARE_6] = false;
 	error_code[ERROR_SPARE_7] = false;
 
-	return array_to_uint8(error_code);
+	return array_to_uint8(error_code, 8);
 }
 
 	/*
 Warning Deamon
-	Checks for non-critical errors. Should be assigned to the Heart object.
+	Checks for non-critical errors. Resultant value should be assigned to the Heart object.
 	*/
-uint8_t warn_d(){
+uint8_t warning_check(){
 	bool warning_code[8];
 
-	warning_code[WARNING_PCB_OVERTEMPERATURE] = heart.pcb_temperature.pcb_temperature_ok();
-	warning_code[WARNING_DISCHARGE_PRECHARGE_MISMATCH] = discharge_module.check_precharge_discharge_mismatch(heart.get_heartbeat_state());
-	warning_code[WARNING_AIR_NEG_FEEDBACK_MISMATCH] = AIR_neg_relay.relay_ok();
-	warning_code[WARNING_AIR_POS_FEEDBACK_MISMATCH] = AIR_pos_relay.relay_ok();
+	warning_code[WARNING_PCB_OVERTEMPERATURE] 			= !heart.pcb_temperature.pcb_temperature_ok();
+	warning_code[WARNING_DISCHARGE_PRECHARGE_MISMATCH] 	= discharge_module.check_precharge_discharge_mismatch(heart.get_heartbeat_state());
+	warning_code[WARNING_AIR_NEG_FEEDBACK_MISMATCH] 	= !AIR_neg_relay.relay_ok();
+	warning_code[WARNING_AIR_POS_FEEDBACK_MISMATCH] 	= !AIR_pos_relay.relay_ok();
 
 	warning_code[WARNING_SPARE_4] = 0;
 	warning_code[WARNING_SPARE_5] = 0;
 	warning_code[WARNING_SPARE_6] = 0;
 	warning_code[WARNING_SPARE_7] = 0;
 	
-	return array_to_uint8(warning_code);
+	return array_to_uint8(warning_code, 8);
 }
 	/*
 State Deamon
@@ -430,10 +523,9 @@ State Deamon
 	relays. 
 	*/
 void state_d(){
-	// Perform basic error checking. Sets state to 0 if error
-	// found.
-	heart.set_error_code(error_d(), 0);
-	heart.set_warning_code(warn_d(), 0);
+	// Perform basic error checking. Sets state to FAIL if error found.
+	heart.set_error_code(error_check(), 0);
+	heart.set_warning_code(warning_check(), 0);
 
 	switch (heart.get_heartbeat_state()){
 		case PRECHARGE_STATE_FAIL:
@@ -474,6 +566,7 @@ SETUP
 	*/
 void setup(){
 	ticker_heartbeat.attach(&heartbeat_cb, HEARTRATE);
+	heart.set_heartbeat_state(PRECHARGE_STATE_FAIL);
 
 	can1.frequency(CANBUS_FREQUENCY);
 	can1.attach(&can1_recv_cb);
@@ -485,8 +578,9 @@ void setup(){
 	imd.start();
 }
 
-
 int main(){
+	#if TEST_MODE == 0
+
 	// Disable interrupts for smooth startup routine.
 	__disable_irq();
 
@@ -495,6 +589,8 @@ int main(){
 	setup();
 
 	wait(1);
+
+	pc.printf("Startup completed!\r\n");
 	
 	// Re-enable interrupts again, now that startup has competed.
 	__enable_irq();
@@ -506,4 +602,21 @@ int main(){
 
 	pc.printf("Is this a BSOD?");
 	return 0;
+
+	#endif
+
+	#if TEST_MODE == 1
+	bool state = true;
+
+	while(1){
+		state = !state;
+		precharge_relay.set_relay(state);
+		AIR_neg_relay.set_relay(state);
+		AIR_pos_relay.set_relay(state);
+		wait(1);
+		pc.printf("AIR_NEG_MISMATCH %d :::: AIR_POS_MISMATCH %d\r\n", AIR_neg_relay.relay_ok(), AIR_pos_relay.relay_ok());
+		pc.printf("RELAY STATE! %d :::: FEEDBACK_STATE %d\r\n", AIR_neg_relay.get_relay(), AIR_neg_relay.get_feedback());
+		wait(5);
+	}
+	#endif
 }

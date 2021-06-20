@@ -1,9 +1,8 @@
 #include <mbed.h>
 #include <CAN.h>
-// #include "Adafruit_ADS1015.h"
 
 // TEST PRECHARGE RELAY SEQUENCING
-void test_relays(float time, int delay){};
+void test_relays(Relay &precharge_relay, AIR &AIR_neg_relay, AIR &AIR_pos_relay, int delay){};
 
 void test_precharge_sequence(float highest_voltage){};
 

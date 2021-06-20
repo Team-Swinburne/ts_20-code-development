@@ -185,7 +185,7 @@ public:
 	 * flash at a 1 Hz period.
 	 * 
      */
-	Heart(int _heartbeat_ID, PinName heart_led_pin) : Heart_LED(heart_led_pin), pcb_temperature(NC){
+	Heart(int _heartbeat_ID, PinName heart_led_pin) : heart_LED(heart_led_pin), pcb_temperature(NC){
 		heartbeat_state = 0;
 		heartbeat_counter = 0;
 		heartbeat_ID = _heartbeat_ID;
@@ -200,7 +200,7 @@ public:
 	 * temperature object from PCB_Temp_Sensor.
 	 * 
      */
-	Heart(int _heartbeat_ID, PinName heart_led_pin, PinName pcb_temperature_pin) : Heart_LED(heart_led_pin), pcb_temperature(pcb_temperature_pin){
+	Heart(int _heartbeat_ID, PinName heart_led_pin, PinName pcb_temperature_pin) : heart_LED(heart_led_pin), pcb_temperature(pcb_temperature_pin){
 		heartbeat_state = 0;
 		heartbeat_counter = 0;
 		heartbeat_ID = _heartbeat_ID;
@@ -217,7 +217,7 @@ public:
      */
 	CANMessage heartbeat(){
 		heartbeat_counter++;
-		!Heart_LED;
+		heart_LED = !heart_LED;
 
 		const int dlc = 3;
 		char TX_data[dlc] = {(char)heartbeat_state, (char)heartbeat_counter, (char)pcb_temperature.read()};
@@ -244,6 +244,16 @@ public:
 		error_code[i] = _error_code;
 	}
 
+	/** set_warning code(warning_code, index)
+	 * 
+	 * Assigns the error code to the array, assigns heartbeat_state to 
+	 * 0 if an error is found.
+	 * 
+	 * @param warning_code The code of the errors that may be present.
+	 * @param i Index of the error. THERE ARE ONLY TWO POSITIONS, DO NOT
+	 * OVERFLOW!
+	 * 
+     */
 	bool set_warning_code(uint8_t _warning_code, int i){
 		warning_code[i] = _warning_code;
 	}
@@ -251,6 +261,8 @@ public:
 	void set_heartbeat_state(int _heartbeat_state){heartbeat_state = _heartbeat_state;}
 	int get_heartbeat_state() {return heartbeat_state;}
 	int get_heartbeat_counter() {return heartbeat_counter;}
+	uint8_t get_error_code(int i){return error_code[i];}
+	uint8_t get_warning_code(int i){return warning_code[i];}
 
 	PCB_Temp_Sensor pcb_temperature;
 
@@ -262,5 +274,5 @@ private:
 	uint8_t error_code[2];
 	uint8_t warning_code[2];
 
-	DigitalOut Heart_LED;
+	DigitalOut heart_LED;
 };

@@ -14,9 +14,8 @@ public:
 		_Relay = 0;
 	}
 
-	void set_relay(bool state){
-		_Relay = state;
-	}
+	void set_relay(bool state){_Relay = state;}
+	bool get_relay(){return _Relay.read();}
 
 private:
     DigitalOut _Relay;
@@ -24,7 +23,7 @@ private:
 
 class AIR{
 public:
-	AIR(PinName relay_pin, PinName feedback_pin) : Relay(relay_pin), Feedback(feedback_pin){
+	AIR(PinName relay_pin, PinName feedback_pin) : Relay(relay_pin), Feedback(feedback_pin, PullDown){
 		Relay = 0;
 	}
 
@@ -36,17 +35,18 @@ public:
 		Relay = 0;
 	}
 
-	void set_relay(bool state){
-		Relay = state;
-	}
-
 	bool relay_ok(){
 		bool relay_state = false;
-		if (Relay == Feedback){
+		if (Relay.read() == Feedback.read()){
 			relay_state = true;
 		}
 		return relay_state;
 	}
+
+	void set_relay(bool state){Relay = state;}
+
+	bool get_relay(){return Relay.read();}
+	bool get_feedback(){return Feedback.read();}
 
 private:
 	DigitalOut Relay;

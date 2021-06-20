@@ -8,4 +8,3 @@ mbed-os/features/net/*
 mbed-os/features/netsocket/*
 mbed-os/features/nvstore/*
 mbed-os/features/storage/*
-mbed-os/events/*

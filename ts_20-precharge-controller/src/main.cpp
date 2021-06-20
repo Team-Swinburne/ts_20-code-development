@@ -10,7 +10,7 @@
 // 3 Test Max Voltage 250
 // 4 Print Current Status
 // 5 Print Raw ADC Value
-#define TEST_MODE 4
+#define TEST_MODE 0
 
 /* 
 To correct limited 64k flash issue: https://github.com/platformio/platform-ststm32/issues/195. Ensure device is 128k model. 
@@ -191,51 +191,41 @@ private:
 
 class IMD_Data {
 public: 
-	IMD_Data(PinName pin) 	: _interrupt(pin) {}
+	IMD_Data(PinName imd_data_interrupt_pin) : imd_data_interrupt(imd_data_interrupt_pin) {}
 
 	void start(){
-		_t1 = 0;
-		_interrupt.rise(this, &IMD_Data::setPeriod);
-		_interrupt.fall(this, &IMD_Data::setDutyCycle);
-		_t.start();
+		imd_data_interrupt.rise(callback(this, &IMD_Data::set_period));
+		imd_data_interrupt.fall(callback(this, &IMD_Data::set_duty_cycle));
+		imd_timer.start();
 	}
 
-	void setPeriod(){
-		_t3 = _t.read();
-		_T1 = _t1 - _t3;
-		_F1 = 1/_T1;
-	}
-
-	void setDutyCycle(){
-		_t2 = _t.read();
-		_T2 = _t2 - _t1;
-		_dutyCycle = _T2/_T1;
-	}
-
-	int readPeriod(){
-		// Return ms * 100
-		return _T2 * 100;
-	}
-
-	int readDutyCycle(){
-		return _dutyCycle;
-	}
+	int get_period(){return period;}
+	int get_frequency(){return frequency;}
+	int get_duty_cycle(){return duty_cycle;}
 
 private:
-	InterruptIn _interrupt;
+	InterruptIn imd_data_interrupt;
 
-	volatile float	_t1;
-	volatile float 	_t2;
-	volatile float 	_t3;
-	
-	volatile float 	_T1;
-	volatile float 	_T2;
+	float active_end;
+	float duty_cycle;
+	float period;
 
-	volatile int	_F1;
-	volatile int	_dutyCycle;
+	int	frequency;
 
-	Timer _t;
+	Timer imd_timer;
+
+	void set_period(){
+		period = imd_timer.read_us();
+		frequency = 1000000.0f/period;
+        imd_timer.reset();
+	}
+
+	void set_duty_cycle(){
+		active_end = imd_timer.read_us();
+		duty_cycle = (active_end/period)*100.0;
+	}
 };
+
 
 //-----------------------------------------------
 // Globals
@@ -274,7 +264,6 @@ Ticker ticker_can_transmit;
 #define	HEARTRATE			 				1
 #define CAN_BROADCAST_INTERVAL              0.2
 #define ORION_TIMEOUT_INTERVAL				0.25
-#define ORION_TIMEOUT_STRIKE_LIMIT			5
 
 //-----------------------------------------------
 // GPIO 
@@ -416,8 +405,8 @@ void CAN1_transmit(){
 	}
 
 	TX_data[0] = precharge_relay;
-	TX_data[1] = IMD_interface.readPeriod();
-	TX_data[2] = IMD_interface.readDutyCycle();
+	TX_data[1] = IMD_interface.get_frequency();
+	TX_data[2] = IMD_interface.get_duty_cycle();
 	TX_data[3] = AIR_power;
 	TX_data[4] = AIR_neg_feedback;
 	TX_data[5] = AIR_pos_feedback;
@@ -466,6 +455,7 @@ bool errord(){
 	// 	_error_code = _error_code + 0b00100000;
 	// 	// pc.printf("FAULT: Orion reports overtemperature fault!\r\n");
 	// }
+	
 	if (_error_code > 1){
 		heartbeat_state = 0;
 		AMS_ok = 0;
@@ -538,8 +528,12 @@ void stated(){
 			}
 
 			if (mc_voltage > battery_voltage*0.95){
+				AIR_neg_relay = 1;
+				precharge_relay = 1;
+				AIR_pos_relay = 1;
+
 				// pc.printf("Precharge within 95%, safe to close postive contactor\r\n");
-				wait(0.1);
+				wait(0.5);
 				heartbeat_state = 3;
 			}
 
@@ -632,7 +626,7 @@ void setup(){
 	ticker_heartbeat.attach(&heartbeat, HEARTRATE);
 	ticker_can_transmit.attach(&CAN1_transmit, CAN_BROADCAST_INTERVAL);
 
-	// IMD_interface.start();
+	IMD_interface.start();
 
 	orion_connected = false;
 }
@@ -640,15 +634,17 @@ void setup(){
 #if TEST_MODE > 0
 
 // TEST PRECHARGE RELAY SEQUENCING
-void test_relays(float time){
-	AIR_neg_relay = !AIR_neg_relay;
-	AIR_pos_relay = !AIR_pos_relay;
-	precharge_relay = !precharge_relay;
+void test_relays(float time, int delay){
+	while(delay){
+		AIR_neg_relay = !AIR_neg_relay;
+		AIR_pos_relay = !AIR_pos_relay;
+		precharge_relay = !precharge_relay;
 
-	pc.printf("AIR_POWER = %d :::: AIR_neg_feedback %f:%f :::: AIR_pos_feedback = %f:%f\r\n", \
-	AIR_power, AIR_neg_relay, AIR_neg_feedback, AIR_pos_relay, AIR_pos_feedback);
+		pc.printf("AIR_POWER = %d :::: AIR_neg_feedback %f:%f :::: AIR_pos_feedback = %f:%f\r\n", \
+		AIR_power, AIR_neg_relay, AIR_neg_feedback, AIR_pos_relay, AIR_pos_feedback);
 
-	wait(time);
+		wait(time);
+	}
 }
 
 void test_precharge_sequence(float highest_voltage){
@@ -783,9 +779,7 @@ void print_raw_adc(float delay){
 
 int main() {
 	#if TEST_MODE == 1
-	while(1){
-		test_relays(2);
-	}
+		test_relays(2, 1);
 	#elif TEST_MODE == 2
 		test_precharge_sequence(592);
 	#elif TEST_MODE == 3
@@ -811,6 +805,7 @@ int main() {
 		updateanalogd();
 		warnd();
 		wait(0.0001);	// Don't stress mcu.
+		pc.printf("IMD_FREQUENCY = %d, DUTY_CYCLE = %d\r\n", IMD_interface.get_frequency(), IMD_interface.get_duty_cycle());
     }
 
 	// pc.printf("Is this a BSOD?");

@@ -2,8 +2,6 @@
 // BEN MCINNES, NAM TRAN, LUKE DELTON, PATRICK CURTAIN
 // REVISION 0 (21/06/21)
 
-#include <mbed.h>
-
 #define CANBUS_FREQUENCY							500000
 
 /*

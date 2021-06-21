@@ -1,0 +1,21 @@
+{
+    "name": "ADS1115 Library",
+    "keywords": "adc, ads1115, analog, digital",
+    "description": "Optimized library for ADS1115 ADC converter",
+    "homepage": "https://www.q-cloud.io",
+    "repository": {
+      "type": "git",
+      "url": "https://bitbucket.org/electronbit/ads1115-adc-library.git"
+    },
+    "authors": [
+      {
+        "name": "Q-Cloud Team",
+        "email": "contact@q-cloud.io",
+        "url": "https://www.q-cloud.io",
+        "maintainer": true
+      }
+    ],
+    "version": "1.0.2",
+    "frameworks": "arduino",
+    "platforms": "espressif32"
+  }

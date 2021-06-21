@@ -98,58 +98,18 @@ PC_15/OSC32OUT (3.3V)*
 //-----------------------------------------------
 
 // HV Voltage Bridge Offset Resistors
-#define MC_R_CAL 5000
-#define BATT_R_CAL 5000
+#define MC_R_CAL 					5000
+#define BATT_R_CAL 					5000
 
 // ADS1115 ADDR PINS: GND 48 - VDD 49 - SDA 4A - SCL 4B
-#define PDOC_ADC_ADDR								0x4B
-#define MC_HV_SENSE_ADC_ADDR						0x49
-#define BATT_HV_SENSE_ADC_ADDR						0x48
+#define PDOC_ADC_ADDR				0x4B
+#define MC_HV_SENSE_ADC_ADDR		0x49
+#define BATT_HV_SENSE_ADC_ADDR		0x48
 
 // Interval & Periods
-#define	HEARTRATE			 				1
-#define CAN_BROADCAST_INTERVAL              0.2
-#define PRECHARGE_TIMEOUT                   5
-
-//-----------------------------------------------
-// Communications Interfaces
-//-----------------------------------------------
-
-// UART Interface
-Serial pc(PA_2, PA_3);                 		//TX, RX
-
-// I2C Interface
-I2C i2c1(PB_7, PB_6);     					//SDA, SCL
-
-// CANBUS Interface
-CAN can1(PB_8, PB_9);     					// RXD, TXD
-
-// CANBUS Message Format
-CANMessage can1_msg;
-
-//-----------------------------------------------
-// Interfaces
-//-----------------------------------------------
-
-Heart heart(PRECHARGE_CONTROLLER_BASE_ID, PC_13, PA_0);
-
-Orion orion(PB_13);
-PDOC pdoc(i2c1, PDOC_ADC_ADDR, PB_15);
-IMD imd(PB_12, PA_15);
-
-HV_ADC hv_mc_sense(i2c1, MC_HV_SENSE_ADC_ADDR, MC_R_CAL);
-HV_ADC hv_battery_sense(i2c1, BATT_HV_SENSE_ADC_ADDR, BATT_R_CAL);
-
-Discharge_Module discharge_module;
-
-InterruptIn air_power(PB_3);
-
-Relay precharge_relay(PA_9);
-AIR AIR_neg_relay(PA_8, PB_10);
-AIR AIR_pos_relay(PA_10, PB_11);
-
-DigitalOut can1_rx_led(PB_1);
-DigitalOut can1_tx_led(PB_0);
+#define	HEARTRATE			 		1
+#define CAN_BROADCAST_INTERVAL      0.2
+#define PRECHARGE_TIMEOUT           5
 
 //-----------------------------------------------
 // Precharge States
@@ -230,6 +190,46 @@ typedef enum WARNING_CODES_SUB_KEY {
 } warning_state_t;
 
 //-----------------------------------------------
+// Communications Interfaces
+//-----------------------------------------------
+
+// UART Interface
+Serial pc(PA_2, PA_3);                 		//TX, RX
+
+// I2C Interface
+I2C i2c1(PB_7, PB_6);     					//SDA, SCL
+
+// CANBUS Interface
+CAN can1(PB_8, PB_9);     					// RXD, TXD
+
+// CANBUS Message Format
+CANMessage can1_msg;
+
+//-----------------------------------------------
+// Interfaces
+//-----------------------------------------------
+
+Heart heart(CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS, PC_13, PA_0);
+
+Orion orion(PB_13);
+PDOC pdoc(i2c1, PDOC_ADC_ADDR, PB_15);
+IMD imd(PB_12, PA_15);
+
+HV_ADC hv_mc_sense(i2c1, MC_HV_SENSE_ADC_ADDR, MC_R_CAL);
+HV_ADC hv_battery_sense(i2c1, BATT_HV_SENSE_ADC_ADDR, BATT_R_CAL);
+
+Discharge_Module discharge_module;
+
+InterruptIn air_power(PB_3);
+
+Relay precharge_relay(PA_9);
+AIR AIR_neg_relay(PA_8, PB_10);
+AIR AIR_pos_relay(PA_10, PB_11);
+
+DigitalOut can1_rx_led(PB_1);
+DigitalOut can1_tx_led(PB_0);
+
+//-----------------------------------------------
 // Real Time Operations
 //-----------------------------------------------
 
@@ -242,8 +242,7 @@ Timeout timeout_precharge;
 // Functions
 //-----------------------------------------------
 
-uint8_t array_to_uint8(bool arr[], int count)
-{
+uint8_t array_to_uint8(bool arr[], int count){
     int ret = 0;
     int tmp;
     for (int i = 0; i < count; i++) {
@@ -375,52 +374,52 @@ void can1_trans_cb(){
 	// can1_tx_led = !can1_tx_led;
 	char TX_data[8] = {0};
 	int dlc = 8;
-	TX_data[CAN_ERROR_1] = heart.get_error_code(0);
-	TX_data[CAN_ERROR_2] = heart.get_error_code(1);
-	TX_data[CAN_WARNING_1] = heart.get_error_code(0);
-	TX_data[CAN_WARNING_2] = heart.get_warning_code(1);
-	TX_data[CAN_AMS_OK] = orion.get_AMS_ok();
-	TX_data[CAN_PDOC_OK] = pdoc.get_pdoc_ok();
-	TX_data[CAN_IMD_OK] = imd.get_IMD_ok();
-	TX_data[CAN_ERROR_SPARE] = 0;
+	TX_data[CAN_ERROR_1] 		= heart.get_error_code(0);
+	TX_data[CAN_ERROR_2] 		= heart.get_error_code(1);
+	TX_data[CAN_WARNING_1] 		= heart.get_error_code(0);
+	TX_data[CAN_WARNING_2] 		= heart.get_warning_code(1);
+	TX_data[CAN_AMS_OK] 		= orion.get_AMS_ok();
+	TX_data[CAN_PDOC_OK] 		= pdoc.get_pdoc_ok();
+	TX_data[CAN_IMD_OK] 		= imd.get_IMD_ok();
+	TX_data[CAN_ERROR_SPARE] 	= 0;
 
-	can_transmission_h(CANMessage(PRECHARGE_CONTROLLER_BASE_ID + TS_ERROR_WARNING_ID, &TX_data[0], dlc));
+	can_transmission_h(CANMessage(CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS + TS_ERROR_WARNING_ID, &TX_data[0], dlc));
 	
 	dlc = 8;
-	TX_data[CAN_ANALOGUE_1_PDOC_TEMPERATURE_1] = (char)(pdoc.get_pdoc_temperature() >> 8);
-	TX_data[CAN_ANALOGUE_1_PDOC_TEMPERATURE_2] = (char)(pdoc.get_pdoc_temperature() & 0xFF);
-	TX_data[CAN_ANALOGUE_1_PDOC_REF_TEMPERATURE_1] = (char)(pdoc.get_pdoc_ref_temperature() >> 8);
-	TX_data[CAN_ANALOGUE_1_PDOC_REF_TEMPERATURE_2] = (char)(pdoc.get_pdoc_ref_temperature() & 0xFF);
-	TX_data[CAN_ANALOGUE_1_HV_BATTERY_SENSE_VOLTAGE_1] = (char)(hv_battery_sense.get_voltage()*10 >> 8);
-	TX_data[CAN_ANALOGUE_1_HV_BATTERY_SENSE_VOLTAGE_2] = (char)(hv_battery_sense.get_voltage()*10 & 0xFF);
-	TX_data[CAN_ANALOGUE_1_HV_MC_SENSE_VOLTAGE_1] = (char)(hv_mc_sense.get_voltage()*10 >> 8);
-	TX_data[CAN_ANALOGUE_1_HV_MC_SENSE_VOLTAGE_2] = (char)(hv_mc_sense.get_voltage()*10 & 0xFF);
+	TX_data[CAN_ANALOGUE_1_PDOC_TEMPERATURE_1] 			= (char)(pdoc.get_pdoc_temperature() >> 8);
+	TX_data[CAN_ANALOGUE_1_PDOC_TEMPERATURE_2] 			= (char)(pdoc.get_pdoc_temperature() & 0xFF);
+	TX_data[CAN_ANALOGUE_1_PDOC_REF_TEMPERATURE_1] 		= (char)(pdoc.get_pdoc_ref_temperature() >> 8);
+	TX_data[CAN_ANALOGUE_1_PDOC_REF_TEMPERATURE_2] 		= (char)(pdoc.get_pdoc_ref_temperature() & 0xFF);
+	TX_data[CAN_ANALOGUE_1_HV_BATTERY_SENSE_VOLTAGE_1]	= (char)(hv_battery_sense.get_voltage()*10 >> 8);
+	TX_data[CAN_ANALOGUE_1_HV_BATTERY_SENSE_VOLTAGE_2]	= (char)(hv_battery_sense.get_voltage()*10 & 0xFF);
+	TX_data[CAN_ANALOGUE_1_HV_MC_SENSE_VOLTAGE_1] 		= (char)(hv_mc_sense.get_voltage()*10 >> 8);
+	TX_data[CAN_ANALOGUE_1_HV_MC_SENSE_VOLTAGE_2] 		= (char)(hv_mc_sense.get_voltage()*10 & 0xFF);
 
-	can_transmission_h(CANMessage(PRECHARGE_CONTROLLER_BASE_ID + TS_ANALOGUE_1_ID, &TX_data[0], dlc));
+	can_transmission_h(CANMessage(CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS + TS_ANALOGUE_1_ID, &TX_data[0], dlc));
 
 	dlc = 8;
 
-	TX_data[CAN_ANALOGUE_2_IMD_PERIOD] = imd.get_period();
-	TX_data[CAN_ANALOGUE_2_IMD_FREQUENCY] = imd.get_frequency();
-	TX_data[CAN_ANALOGUE_2_IMD_DUTY_CYCLE] = imd.get_duty_cycle();
+	TX_data[CAN_ANALOGUE_2_IMD_PERIOD] 		= imd.get_period();
+	TX_data[CAN_ANALOGUE_2_IMD_FREQUENCY] 	= imd.get_frequency();
+	TX_data[CAN_ANALOGUE_2_IMD_DUTY_CYCLE] 	= imd.get_duty_cycle();
 	TX_data[3] = 0;
 	TX_data[4] = 0;
 	TX_data[5] = 0;
 	TX_data[6] = 0;
 	TX_data[7] = 0;
 
-	can_transmission_h(CANMessage(PRECHARGE_CONTROLLER_BASE_ID + TS_ANALOGUE_2_ID, &TX_data[0], dlc));
+	can_transmission_h(CANMessage(CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS + TS_ANALOGUE_2_ID, &TX_data[0], dlc));
 	
-	TX_data[CAN_DIGITAL_1_AIR_POWER] = air_power.read();
-	TX_data[CAN_DIGITAL_1_AIR_NEG_RELAY] = AIR_neg_relay.get_relay();
-	TX_data[CAN_DIGITAL_1_AIR_NEG_FEEDBACK] = AIR_neg_relay.get_feedback();
-	TX_data[CAN_DIGITAL_1_AIR_POS_RELAY] = AIR_neg_relay.get_relay();
-	TX_data[CAN_DIGITAL_1_AIR_POS_FEEDBACK] = AIR_neg_relay.get_feedback();
-	TX_data[CAN_DIGITAL_1_PRECHARGE_RELAY] = precharge_relay.get_relay();
-	TX_data[6] = 0;
-	TX_data[7] = 0;
+	TX_data[CAN_DIGITAL_1_AIR_POWER] 			= air_power.read();
+	TX_data[CAN_DIGITAL_1_AIR_NEG_RELAY] 		= AIR_neg_relay.get_relay();
+	TX_data[CAN_DIGITAL_1_AIR_NEG_FEEDBACK] 	= AIR_neg_relay.get_feedback();
+	TX_data[CAN_DIGITAL_1_AIR_POS_RELAY] 		= AIR_neg_relay.get_relay();
+	TX_data[CAN_DIGITAL_1_AIR_POS_FEEDBACK] 	= AIR_neg_relay.get_feedback();
+	TX_data[CAN_DIGITAL_1_PRECHARGE_RELAY] 		= precharge_relay.get_relay();
+	TX_data[6] 									= 0;
+	TX_data[7] 									= 0;
 
-	can_transmission_h(CANMessage(PRECHARGE_CONTROLLER_BASE_ID + TS_DIGITAL_1_ID, &TX_data[0], dlc));
+	can_transmission_h(CANMessage(CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS + TS_DIGITAL_1_ID, &TX_data[0], dlc));
 }
 
 	/*
@@ -432,26 +431,26 @@ void can1_recv_cb(){
 
 	if (can1.read(can1_msg)){
 		switch(can1_msg.id){
-			case DISCHARGE_MODULE_HEARTBEAT_ID:
+			case (CAN_DISCHARGE_MODULE_BASE_ADDRESS):
 				discharge_module.set_discharge_state((int)can1_msg.data[0]);
 				break;
 
-			case THROTTLE_CONTROLLER_PERIPERAL_ID:
+			case (CAN_MOTEC_THROTTLE_CONTROLLER_BASE_ADDRESS + TS_DIGITAL_1_ID):
+				// Need to add wrap around for button!
 				if (heart.get_heartbeat_state() == 1){
                     // pc.printf("Precharge button pressed, starting precharge routine\r\n");
 					start_precharge_cb();
                 }
 				break;
             
-            case TC_CHARGER_STATUS_ID:
+            case (CAN_TC_CHARGER_STATUS_ID):
                 if (heart.get_heartbeat_state() == 1){
                     // pc.printf("Charger detected, starting precharge routine\r\n");
                     start_precharge_cb();
                 }
 				break;
-            // Plenty to disassemble here.  
 
-			case ORION_BMS_STATUS_ID:
+			case (CAN_ORION_BMS_BASE_ADDRESS + TS_HEARTBEAT_ID):
 				// Big endian & MSB
 				// 0b000000, 0000001	Discharge Relay Enabled
 				// 0b000000, 0000010	Charge Relay Enabled
@@ -464,11 +463,11 @@ void can1_recv_cb(){
 
 				break;
 			
-			case ORION_BMS_VOLTAGE_ID:
+			case (CAN_ORION_BMS_BASE_ADDRESS + TS_ANALOGUE_1_ID):
 				// 1. Stash these values for later.
 				break;
 
-			case ORION_BMS_TEMPERATURE_ID:
+			case (CAN_ORION_BMS_BASE_ADDRESS + TS_ANALOGUE_2_ID):
 				// orion_high_temperature = can1_msg.data[2];
 				break;			
 		}
@@ -523,6 +522,11 @@ State Deamon
 	relays. 
 	*/
 void state_d(){
+	// Update analogue measurements to get latest information.
+	pdoc.update_adc();
+	hv_battery_sense.update_adc();
+	hv_mc_sense.update_adc();
+
 	// Perform basic error checking. Sets state to FAIL if error found.
 	heart.set_error_code(error_check(), 0);
 	heart.set_warning_code(warning_check(), 0);

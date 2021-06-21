@@ -9,7 +9,6 @@
 #include <Wire.h>
 #include <Adafruit_ADS1X15.h>
 #include <eXoCAN.h>
-#include <Ticker.h>
 
 //-----------------------------------------------
 // INTERFACES
@@ -22,7 +21,7 @@ Adafruit_ADS1115 ads;
 #define PIN_Serial1_TX           PA9
 
 // CANBus Interface
-eXoCAN can;   //11 Bit Id, 500Kbps
+eXoCAN can;
 
 // CANBus Adresses
 #define UCM_HEARTBEAT_ID             0x511        //UCM_FL_HEARTBEAT_ID
@@ -44,76 +43,115 @@ eXoCAN can;   //11 Bit Id, 500Kbps
 #define pin_PWM_Driver2                 PB1   // PWM Driver 2 (5V)
 
 //-----------------------------------------------
-// Structs and enum
+// Structs, typedef and enum
 //-----------------------------------------------
-struct msgFrame
+typedef void (*fpointer)();
+struct txFrame
 {
-  uint8_t len = 0x08;
-  MSG txMsg; // MSG is a union defined in exoCAN.h
+  uint8_t len = 8;
+  uint8_t bytes[8] = {0};
 };
 
-enum msgName : uint8_t
-{
-  // Uncomment as needed
-  Heartbeat,
-  Error,
-  Digital_1,
-  //Digital_2,
-  Analog_1,
-  // Analog_2,
-};
 //-----------------------------------------------
 // Globals
 //-----------------------------------------------
-msgFrame frames[4];
+int cnt = 0;
+txFrame heartbeatFrame {.len = 6},
+        errorFrame,
+        digitalFrame1,
+        analog1Frame1;
+
 
 //-----------------------------------------------
 // Classes
 //-----------------------------------------------
-class Heart {
-public:
-  uint8_t state = 0;
-  static uint8_t counter;
-  
-  void start() {
-    HardwareTimer *MyTim = new HardwareTimer(TIM1);
-
-    MyTim->setOverflow(100000,MICROSEC_FORMAT); // 10 Hz
-    MyTim->attachInterrupt(beat);
-    MyTim->resume();  
-  }
-
+// Ticker class, only support 5 objects at most
+class Ticker {
 private:
-  static void beat() {
-    uint8_t txData[2];
-    txData[0] = 0;
-    txData[1] = counter;
-    can.transmit(UCM_HEARTBEAT_ID, txData, 2);
-    counter++;
-    digitalToggle(PC13);
+  fpointer callback;
+  uint32_t freq_us;
+  uint8_t timerIdx;
+
+public:
+  static uint8_t objectCount;
+  Ticker (fpointer f, uint16_t freq_ms) {
+    timerIdx = objectCount;
+    callback = f;
+    freq_us = freq_ms*1000;
+    objectCount++;
   }
+  void start();
 };
-// void tickerInit()
-// {
-//   HardwareTimer *MyTim = new HardwareTimer(TIM1);
 
-//   MyTim->setOverflow(100000,MICROSEC_FORMAT); // 10 Hz
-//   MyTim->attachInterrupt(heartbeat);
-//   MyTim->resume();
+// initialize static attribute objectCount
+uint8_t Ticker::objectCount = 0; 
 
-// }
+// Ticker.start method definition
+void Ticker::start() {
+  cnt = timerIdx;
+  switch (timerIdx) {
+    case 0: {
+      HardwareTimer *Timer1 = new HardwareTimer(TIM1);
+      Timer1->setOverflow(freq_us,MICROSEC_FORMAT); // 10 Hz
+      Timer1->attachInterrupt(callback);
+      Timer1->resume();
+      break;
+    }
+    case 1: {
+      HardwareTimer *Timer2 = new HardwareTimer(TIM2);
+      Timer2->setOverflow(freq_us,MICROSEC_FORMAT); // 10 Hz
+      Timer2->attachInterrupt(callback);
+      Timer2->resume();
+      break;
+    }
+    case 2: {
+      HardwareTimer *Timer3 = new HardwareTimer(TIM3);
+      Timer3->setOverflow(freq_us,MICROSEC_FORMAT); // 10 Hz
+      Timer3->attachInterrupt(callback);
+      Timer3->resume();
+      break;
+    }
+    case 3: {
+      HardwareTimer *Timer4 = new HardwareTimer(TIM4);
+      Timer4->setOverflow(freq_us,MICROSEC_FORMAT); // 10 Hz
+      Timer4->attachInterrupt(callback);
+      Timer4->resume();
+      break;
+    }
+  }
+}
 
-// void heartbeat()
-// {
-//   static uint8_t heartbeat_counter = 0;
-//   uint8_t txData[2];
-//   txData[0] = 0;
-//   txData[1] = heartbeat_counter;
-//   can.transmit(UCM_HEARTBEAT_ID, txData, 2);
-//   //Serial.println(heartbeat_counter);
-//   heartbeat_counter++;
-//   digitalToggle(PC13);
-// }
+void heartbeat()
+{
+  static uint8_t heartbeat_counter = 0;
+  uint8_t txData[8];
+  txData[0] = cnt;
+  txData[1] = heartbeat_counter;
+  can.transmit(UCM_HEARTBEAT_ID, txData, 2);
+  //Serial.println(heartbeat_counter);
+  heartbeat_counter++;
+  digitalToggle(PC13);
+  
+}
+
+void testTX()
+{
+  uint8_t txData[2];
+  txData[0] = cnt;
+  txData[1] = 50;
+  can.transmit(UCM_DATA_ID, txData, 2);
+
+  delayMicroseconds(125);
+
+  txData[0] = 100;
+  txData[1] = 100;
+  can.transmit(0x500, txData, 2);
+
+}
+
+Ticker hearbeat_ticker(heartbeat,1000);
+Ticker test_ticker(testTX,100);
+
 void setup()
 {
   Serial1.begin(9600);
@@ -125,12 +163,13 @@ void setup()
   ads.begin(0x49);
 
   // Initiallising CAN
-  can.begin(STD_ID_LEN, BR500K, PORTB_8_9_XCVR);
+  can.begin(STD_ID_LEN, BR500K, PORTB_8_9_XCVR);   //11 Bit Id, 500Kbps
   can.filterMask16Init(0, UCM_TEST, 0x7ff);
 
-  Heart hearbeat;
-  hearbeat.start();
-  //tickerInit();
+  //test_callback(heartbeat);
+  
+  hearbeat_ticker.start();
+  test_ticker.start();
 }
 
 

@@ -197,8 +197,8 @@ void Driver() {
 void SerialPRINT() {
 
   // //Digital Input 
-  // Serial1.print("Digital Input 1: ");  Serial1.println(DigIN1); 
-  // Serial1.print("Digital Input 2: ");  Serial1.println(DigIN2); 
+  Serial1.print("Digital Input 1: ");  Serial1.println(DigIN1); 
+  Serial1.print("Digital Input 2: ");  Serial1.println(DigIN2); 
 
   // //Analogue Input
   // Serial1.print("Analogue Input 0: "); Serial1.println(adc0);

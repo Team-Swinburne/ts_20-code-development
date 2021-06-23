@@ -10,7 +10,6 @@
 // 3 Test Max Voltage 250
 // 4 Print Current Status
 // 5 Print Raw ADC Value
-#define TEST_MODE 0
 
 /* 
 To correct limited 64k flash issue: https://github.com/platformio/platform-ststm32/issues/195. Ensure device is 128k model. 
@@ -87,11 +86,6 @@ PC_15/OSC32OUT (3.3V)*
 #include "imd.h"
 #include "precharge_peripheral_devices.h"
 #include "relays.h"
-// #include "unit_test.h"
-
-// #if TEST_MODE > 0
-    
-// #endif
 
 //-----------------------------------------------
 // Device Parameters
@@ -510,13 +504,13 @@ Error Deamon
 	Checks for critical errors. Resultant value should be assigned to the Heart object; the heart
 	will send the state of the device into fail as soon as possible, and disable the vehicle.
 	*/
-uint8_t error_check(){
+uint8_t check_errors(){
 	bool error_code[8];
 
-	// error_code[ERROR_AMS_OK] 	= !orion.get_AMS_ok();
+	error_code[ERROR_AMS_OK] 	= !orion.get_AMS_ok();
 	error_code[ERROR_PDOC_OK] 	= !pdoc.get_pdoc_ok();
-	// error_code[ERROR_IMD_OK] 	= !imd.get_IMD_ok();
-	// error_code[ERROR_ORION_OK] 	= !orion.check_orion_safe();
+	error_code[ERROR_IMD_OK] 	= !imd.get_IMD_ok();
+	error_code[ERROR_ORION_OK] 	= !orion.check_orion_safe();
 	
 	error_code[ERROR_SPARE_4] = false;
 	error_code[ERROR_SPARE_5] = false;
@@ -530,7 +524,7 @@ uint8_t error_check(){
 Warning Deamon
 	Checks for non-critical errors. Resultant value should be assigned to the Heart object.
 	*/
-uint8_t warning_check(){
+uint8_t check_warnings(){
 	bool warning_code[8];
 
 	warning_code[WARNING_PCB_OVERTEMPERATURE] 			= !heart.pcb_temperature.pcb_temperature_ok();
@@ -560,14 +554,14 @@ void state_d(){
 	hv_mc_sense.update_adc();
 
 	// Perform basic error checking. Sets state to FAIL if error found.
-	// heart.set_error_code(error_check(), 0);
-	heart.set_warning_code(warning_check(), 0);
+	heart.set_error_code(check_errors(), 0);
+	heart.set_warning_code(check_warnings(), 0);
 
 	switch (heart.get_heartbeat_state()){
 		case PRECHARGE_STATE_FAIL:
 			// Do nothing. 
 			relay_state_safe();
-			if (error_check() == 0){
+			if (check_errors() == 0){
 				heart.set_heartbeat_state(PRECHARGE_STATE_IDLE);
 			}
 			break;
@@ -588,11 +582,13 @@ void state_d(){
 			break;
 
 		case PRECHARGE_STATE_PRECHARGING_TIMER:
-			// Brute force state used to bypass the voltage checks and force a precharge_sequence.
-			// Not to be used unless necessary.
-			relay_state_precharging();
-			wait(3);
-			heart.set_heartbeat_state(PRECHARGE_STATE_PRECHARGED);
+			// Brute force state used to bypass the voltage checks and force a precharge sequence.
+			// Not to be used unless ABSOLUTELY necessary.
+			if (check_errors == 0){
+				relay_state_precharging();
+				wait(3);
+				heart.set_heartbeat_state(PRECHARGE_STATE_PRECHARGED);
+			}
 			break;
 			
 		case PRECHARGE_STATE_PRECHARGED:
@@ -623,12 +619,10 @@ void setup(){
 	
     air_power.fall(&air_power_lost_cb);
 
-	// imd.start();
+	imd.start();
 }
 
 int main(){
-	#if TEST_MODE == 0
-
 	// Disable interrupts for smooth startup routine.
 	__disable_irq();
 
@@ -651,21 +645,4 @@ int main(){
 
 	pc.printf("Is this a BSOD?");
 	return 0;
-
-	#endif
-
-	#if TEST_MODE == 1
-	bool state = true;
-
-	while(1){
-		state = !state;
-		precharge_relay.set_relay(state);
-		AIR_neg_relay.set_relay(state);
-		AIR_pos_relay.set_relay(state);
-		wait(1);
-		pc.printf("AIR_NEG_MISMATCH %d :::: AIR_POS_MISMATCH %d\r\n", AIR_neg_relay.relay_ok(), AIR_pos_relay.relay_ok());
-		pc.printf("RELAY STATE! %d :::: FEEDBACK_STATE %d\r\n", AIR_neg_relay.get_relay(), AIR_neg_relay.get_feedback());
-		wait(5);
-	}
-	#endif
 }

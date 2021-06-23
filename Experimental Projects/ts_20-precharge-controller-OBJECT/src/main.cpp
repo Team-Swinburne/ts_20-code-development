@@ -1,7 +1,7 @@
 // TEAM SWINBURNE - TS_20
 // PRECHARGE CONTROLLER
 // PATRICK CURTAIN
-// REVISION 0 (29/02/2020)
+// REVISION 1 (22/06/2021)
 
 // TEST MODES
 // 0 Normal	
@@ -24,7 +24,7 @@ Use the following platformIO initialisation:
 //-----------------------------------------------
 
 The precharge controller is a PCB designed by Team Swinburne to control the precharge sequences of 
-a Formula SAE vehicle, mointor the health of the accumulator based on various inputs and react accordingly. This PCB 
+a Formula SAE vehicle, monitor the health of the accumulator based on various inputs and react accordingly. This PCB 
 integrates the precharge resistor array, precharge relay, over-temperature safety control (PDOc), safety interlock for the AMS, 
 an interface for the isolation monitoring device (IMD), and the ability to detect the voltage of the battery and motor
 controller.
@@ -100,6 +100,8 @@ PC_15/OSC32OUT (3.3V)*
 // HV Voltage Bridge Offset Resistors
 #define MC_R_CAL 					5000
 #define BATT_R_CAL 					5000
+#define MINIMUM_PRECHARGE_VOLTAGE	400
+#define MAXIMUM_PRECHARGE_VOLTAGE	600
 
 // ADS1115 ADDR PINS: GND 48 - VDD 49 - SDA 4A - SCL 4B
 #define PDOC_ADC_ADDR				0x4B
@@ -107,8 +109,7 @@ PC_15/OSC32OUT (3.3V)*
 #define BATT_HV_SENSE_ADC_ADDR		0x48
 
 // Interval & Periods
-#define	HEARTRATE			 		1
-#define CAN_BROADCAST_INTERVAL      0.2
+#define CAN_BROADCAST_INTERVAL      0.5
 #define PRECHARGE_TIMEOUT           5
 
 //-----------------------------------------------
@@ -119,6 +120,7 @@ typedef enum PREcHARGE_STATES {
 	PRECHARGE_STATE_FAIL,
 	PRECHARGE_STATE_IDLE,
 	PRECHARGE_STATE_PRECHARGING,
+	PRECHARGE_STATE_PRECHARGING_TIMER,
 	PRECHARGE_STATE_PRECHARGED,
 } precharge_states_t;
 
@@ -152,6 +154,11 @@ typedef enum CAN_ANALOGUE_2_SIGNALS{
 	CAN_ANALOGUE_2_IMD_PERIOD,
 	CAN_ANALOGUE_2_IMD_FREQUENCY,
 	CAN_ANALOGUE_2_IMD_DUTY_CYCLE,
+	CAN_ANALOGUE_2_SPARE_3,
+	CAN_ANALOGUE_2_SPARE_4,
+	CAN_ANALOGUE_2_SPARE_5,
+	CAN_ANALOGUE_2_SPARE_6,
+	CAN_ANALOGUE_2_SPARE_7,
 } can_analogue_2_signals_t;
 
 typedef enum CAN_DIGITAL_1_SIGNALS{
@@ -161,6 +168,8 @@ typedef enum CAN_DIGITAL_1_SIGNALS{
 	CAN_DIGITAL_1_AIR_POS_RELAY,
 	CAN_DIGITAL_1_AIR_POS_FEEDBACK,
 	CAN_DIGITAL_1_PRECHARGE_RELAY,
+	CAN_DIGITAL_1_SPARE_6,
+	CAN_DIGITAL_1_SPARE_7,
 } can_digital_1_signals_t;
 
 //-----------------------------------------------
@@ -285,14 +294,20 @@ void relay_state_precharged_2(){
 	 * 
      */
 bool check_precharged(){
-    if (hv_mc_sense.get_voltage() > hv_battery_sense.get_voltage()*0.95){
-        relay_state_precharged_1();
-        // pc.printf("Precharge within 95%, safe to close postive contactor\r\n");
-        heart.set_heartbeat_state(PRECHARGE_STATE_PRECHARGED);
-        return true;
-    } else {
-        return false;
-    }
+	int hv_battery_voltage = hv_battery_sense.get_voltage();
+	int hv_mc_voltage = hv_mc_sense.get_voltage();
+
+    if (hv_mc_voltage > hv_battery_voltage*0.95){
+		// Don't need additional checks, should be moved back into the object. Realisitically only needs to check one side is working.
+		if (hv_mc_voltage > MINIMUM_PRECHARGE_VOLTAGE && hv_battery_voltage > MINIMUM_PRECHARGE_VOLTAGE){
+			if (hv_mc_voltage < MAXIMUM_PRECHARGE_VOLTAGE && hv_battery_voltage < MAXIMUM_PRECHARGE_VOLTAGE){
+				relay_state_precharged_1(); 
+				pc.printf("Precharge within 95%, safe to close postive contactor\r\n");
+				return true;
+			}
+		}
+    } 
+	return false;
 }
 
 //-----------------------------------------------
@@ -358,11 +373,16 @@ void precharge_timeout_cb(){
 Start Precharge Callback
 	Called by the CAN receive callback, attaches precharge_timeout_cb() function to 
 	check if the precharge has been successful, otherwise, the precharge will be disabled.
+
+	Will reject precharge request if precharge voltage below or above defined minimum and maximum values.
 	*/
 void start_precharge_cb(){
-    relay_state_precharging();
-    timeout_precharge.attach(&precharge_timeout_cb, PRECHARGE_TIMEOUT);
-	pc.printf("Starting precharge!\r\n");
+	if (hv_battery_sense.get_voltage() > MINIMUM_PRECHARGE_VOLTAGE && hv_battery_sense.get_voltage() < MAXIMUM_PRECHARGE_VOLTAGE){
+		relay_state_precharging();
+		heart.set_heartbeat_state(PRECHARGE_STATE_PRECHARGING);
+		timeout_precharge.attach(&precharge_timeout_cb, PRECHARGE_TIMEOUT);
+		pc.printf("Starting precharge!\r\n");
+	}
 }
 
 	/*
@@ -402,11 +422,11 @@ void can1_trans_cb(){
 	TX_data[CAN_ANALOGUE_2_IMD_PERIOD] 		= imd.get_period();
 	TX_data[CAN_ANALOGUE_2_IMD_FREQUENCY] 	= imd.get_frequency();
 	TX_data[CAN_ANALOGUE_2_IMD_DUTY_CYCLE] 	= imd.get_duty_cycle();
-	TX_data[3] = 0;
-	TX_data[4] = 0;
-	TX_data[5] = 0;
-	TX_data[6] = 0;
-	TX_data[7] = 0;
+	TX_data[CAN_ANALOGUE_2_SPARE_3] 		= 0;
+	TX_data[CAN_ANALOGUE_2_SPARE_4] 		= 0;
+	TX_data[CAN_ANALOGUE_2_SPARE_5] 		= 0;
+	TX_data[CAN_ANALOGUE_2_SPARE_6] 		= 0;
+	TX_data[CAN_ANALOGUE_2_SPARE_7] 		= 0;
 
 	can_transmission_h(CANMessage(CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS + TS_ANALOGUE_2_ID, &TX_data[0], dlc));
 	
@@ -416,8 +436,8 @@ void can1_trans_cb(){
 	TX_data[CAN_DIGITAL_1_AIR_POS_RELAY] 		= AIR_neg_relay.get_relay();
 	TX_data[CAN_DIGITAL_1_AIR_POS_FEEDBACK] 	= AIR_neg_relay.get_feedback();
 	TX_data[CAN_DIGITAL_1_PRECHARGE_RELAY] 		= precharge_relay.get_relay();
-	TX_data[6] 									= 0;
-	TX_data[7] 									= 0;
+	TX_data[CAN_DIGITAL_1_SPARE_6] 				= 0;
+	TX_data[CAN_DIGITAL_1_SPARE_6] 				= 0;
 
 	can_transmission_h(CANMessage(CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS + TS_DIGITAL_1_ID, &TX_data[0], dlc));
 }
@@ -431,10 +451,17 @@ void can1_recv_cb(){
 
 	if (can1.read(can1_msg)){
 		switch(can1_msg.id){
+			// Secret method to bypass voltage checks. UNSAFE!
+			case (CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS + 0x0F):
+				heart.set_heartbeat_state(PRECHARGE_STATE_PRECHARGING_TIMER);
+				break;
+
+			// Set discharge state for checking mismatch.
 			case (CAN_DISCHARGE_MODULE_BASE_ADDRESS):
 				discharge_module.set_discharge_state((int)can1_msg.data[0]);
 				break;
-
+			
+			// Use precharge button to begin precharge sequence.
 			case (CAN_MOTEC_THROTTLE_CONTROLLER_BASE_ADDRESS + TS_DIGITAL_1_ID):
 				// Need to add wrap around for button!
 				if (heart.get_heartbeat_state() == 1){
@@ -443,6 +470,7 @@ void can1_recv_cb(){
                 }
 				break;
             
+			// Use charger presense to begin precharge sequence.
             case (CAN_TC_CHARGER_STATUS_ID):
                 if (heart.get_heartbeat_state() == 1){
                     // pc.printf("Charger detected, starting precharge routine\r\n");
@@ -450,6 +478,7 @@ void can1_recv_cb(){
                 }
 				break;
 
+			// Set Orion BMS state and check safe to use.
 			case (CAN_ORION_BMS_BASE_ADDRESS + TS_HEARTBEAT_ID):
 				// Big endian & MSB
 				// 0b000000, 0000001	Discharge Relay Enabled
@@ -463,10 +492,12 @@ void can1_recv_cb(){
 
 				break;
 			
+			// Set Orion BMS voltages and check safe to use.
 			case (CAN_ORION_BMS_BASE_ADDRESS + TS_ANALOGUE_1_ID):
 				// 1. Stash these values for later.
 				break;
 
+			// Set orion temperatures and check safe to use.
 			case (CAN_ORION_BMS_BASE_ADDRESS + TS_ANALOGUE_2_ID):
 				// orion_high_temperature = can1_msg.data[2];
 				break;			
@@ -482,10 +513,10 @@ Error Deamon
 uint8_t error_check(){
 	bool error_code[8];
 
-	error_code[ERROR_AMS_OK] 	= !orion.get_AMS_ok();
+	// error_code[ERROR_AMS_OK] 	= !orion.get_AMS_ok();
 	error_code[ERROR_PDOC_OK] 	= !pdoc.get_pdoc_ok();
-	error_code[ERROR_IMD_OK] 	= !imd.get_IMD_ok();
-	error_code[ERROR_ORION_OK] 	= !orion.check_orion_safe();
+	// error_code[ERROR_IMD_OK] 	= !imd.get_IMD_ok();
+	// error_code[ERROR_ORION_OK] 	= !orion.check_orion_safe();
 	
 	error_code[ERROR_SPARE_4] = false;
 	error_code[ERROR_SPARE_5] = false;
@@ -514,6 +545,7 @@ uint8_t warning_check(){
 	
 	return array_to_uint8(warning_code, 8);
 }
+
 	/*
 State Deamon
 	Deamon responsible for managing the state of the device.
@@ -528,13 +560,16 @@ void state_d(){
 	hv_mc_sense.update_adc();
 
 	// Perform basic error checking. Sets state to FAIL if error found.
-	heart.set_error_code(error_check(), 0);
+	// heart.set_error_code(error_check(), 0);
 	heart.set_warning_code(warning_check(), 0);
 
 	switch (heart.get_heartbeat_state()){
 		case PRECHARGE_STATE_FAIL:
 			// Do nothing. 
 			relay_state_safe();
+			if (error_check() == 0){
+				heart.set_heartbeat_state(PRECHARGE_STATE_IDLE);
+			}
 			break;
 
 		case PRECHARGE_STATE_IDLE:
@@ -547,7 +582,17 @@ void state_d(){
 			// After the precharge is advanced, the device has 5 seconds before timing out. 
 			// A timeout event will cause the device to reset to the failed state.
 			relay_state_precharging();
-            check_precharged();
+            if (check_precharged()){
+				heart.set_heartbeat_state(PRECHARGE_STATE_PRECHARGED);
+			}
+			break;
+
+		case PRECHARGE_STATE_PRECHARGING_TIMER:
+			// Brute force state used to bypass the voltage checks and force a precharge_sequence.
+			// Not to be used unless necessary.
+			relay_state_precharging();
+			wait(3);
+			heart.set_heartbeat_state(PRECHARGE_STATE_PRECHARGED);
 			break;
 			
 		case PRECHARGE_STATE_PRECHARGED:
@@ -574,12 +619,11 @@ void setup(){
 
 	can1.frequency(CANBUS_FREQUENCY);
 	can1.attach(&can1_recv_cb);
+	ticker_can_transmit.attach(&can1_trans_cb, CAN_BROADCAST_INTERVAL);
 	
     air_power.fall(&air_power_lost_cb);
 
-	ticker_can_transmit.attach(&can1_trans_cb, CAN_BROADCAST_INTERVAL);
-
-	imd.start();
+	// imd.start();
 }
 
 int main(){
@@ -601,6 +645,7 @@ int main(){
 
 	// Program loop. Error checking handled within state deamon.
 	while(1){
+		wait(0.1);
 		state_d();
 	}
 

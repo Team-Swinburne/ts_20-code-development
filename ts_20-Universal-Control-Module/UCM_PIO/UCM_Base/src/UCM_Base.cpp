@@ -1,7 +1,14 @@
 /*  TEAM SWINBURNE - TS21 
     UNIVERSAL CONTROL MODULE - HARDWARE REVISION 0
-    BEN MCINNES, NAM TRAN, BRAD
-    REVISION 1 (23/06/2021)
+    BEN MCINNES, NAM TRAN, BRADLEY REED
+    REVISION 2 (24/06/2021)
+
+    Revision     Date          Comments
+    --------   ----------     ------------
+    0.0        No clue        Initial coding
+    1.0        20/06/2021     Updated with ticker class and pcb_temp
+    2.0        24/06/2021     Rewrite Ticker as sperated header TickerInterrupt
+
 */
 
 //-----------------------------------------------
@@ -10,8 +17,8 @@
 #include <Wire.h>
 #include <Adafruit_ADS1X15.h>
 #include <eXoCAN.h>
-#include <can_addresses.h>
-
+#include "TickerInterrupt.h"
+#include "can_addresses.h"
 //-----------------------------------------------
 // INTERFACES
 //-----------------------------------------------
@@ -38,13 +45,13 @@ eXoCAN can;
 //-----------------------------------------------
 // Structs, typedef and enum
 //-----------------------------------------------
-typedef void (*fpointer)(); // function pointer for passing ticker callback
-
 struct txFrame
 {
   uint8_t len = 8;
   uint8_t bytes[8] = {0};
 };
+
+uint8_t rxData[8];
 //-----------------------------------------------
 // Globals
 //-----------------------------------------------
@@ -54,61 +61,11 @@ static txFrame heartFrame {.len = 6},
                digitalFrame1,
                analogFrame1,
                rxFrame;
+int len = -1;
 
 //-----------------------------------------------
 // Classes
 //-----------------------------------------------
-// Ticker class, only support 5 objects at most
-class Ticker {
-private:
-  fpointer callback;
-  uint32_t freq_us;
-  uint8_t timerIdx;
-  void timerInit(HardwareTimer *timer) {
-    timer->setOverflow(freq_us,MICROSEC_FORMAT); // 10 Hz
-    timer->attachInterrupt(callback);
-    timer->resume();
-  }
-public:
-  static uint8_t objectCount;
-  Ticker (fpointer f, uint16_t freq_ms) {
-    timerIdx = objectCount;
-    callback = f;
-    freq_us = freq_ms*1000;
-    objectCount++;
-  }
-  void start();
-};
-
-// initialize static attribute objectCount
-uint8_t Ticker::objectCount = 0; 
-
-// Ticker.start method definition
-void Ticker::start() {
-  cnt = timerIdx;
-  switch (timerIdx) {
-    case 0: {
-      HardwareTimer *Timer1 = new HardwareTimer(TIM1);
-      timerInit(Timer1);
-      break;
-    }
-    case 1: {
-      HardwareTimer *Timer2 = new HardwareTimer(TIM2);
-      timerInit(Timer2);
-      break;
-    }
-    case 2: {
-      HardwareTimer *Timer3 = new HardwareTimer(TIM3);
-      timerInit(Timer3);
-      break;
-    }
-    case 3: {
-      HardwareTimer *Timer4 = new HardwareTimer(TIM4);
-      timerInit(Timer4);
-      break;
-    }
-  }
-}
 class PCB_Temp {
 public:
   PCB_Temp(uint8_t pin) {
@@ -137,7 +94,6 @@ private:
 		return ((BETA * T2)/(T2 * log(R1/R2) + BETA))-270;
 	}
 };
-
 PCB_Temp pcb_temperature(PA0);
 //-----------------------------------------------
 // Functions
@@ -149,7 +105,7 @@ PCB_Temp pcb_temperature(PA0);
 void heartbeat() {
   heartFrame.bytes[HEART_COUNTER]++;
   can.transmit(CAN_UCM_BASE_ADDRESS+TS_HEARTBEAT_ID, heartFrame.bytes, heartFrame.len);
-  //digitalToggle(PC13);
+  digitalToggle(PC13);
 }
 
 void canTX_lowPriority() {
@@ -163,7 +119,7 @@ void canTX_criticalError() {
 }
 
 void canISR() {
-  can.rxMsgLen = can.receive(can.id, can.fltIdx, can.rxData.bytes);
+  len = can.receive(can.id, can.fltIdx, can.rxData.bytes);
 }
 
 void GPIO_Init() {
@@ -186,11 +142,11 @@ void GPIO_Init() {
 //-----------------------------------------------
 
 void canRX() {
-  if (can.rxMsgLen > -1) {
+  if (len > -1) {
     if (can.id == 0x309) {
-      digitalWrite(PC13,HIGH);
       rxFrame.bytes[0] = can.rxData.bytes[0];
       rxFrame.bytes[1] = can.rxData.bytes[1];
+      len = -1;
     }
   }
 }
@@ -220,8 +176,8 @@ void updateAnalog() {
   // if a higher resolution is needed, split the data into 2 bytes
   // analogFrame1.bytes[firstByte] = (byte)(adc[] & 0xFF);
   // analogFrame1.bytes[secondByte] = (byte)(adc[] >> 8);
-  analogFrame1.bytes[0] = analogRead(PA0);
-  analogFrame1.bytes[1] = adc[1];
+  analogFrame1.bytes[0] = rxFrame.bytes[0];
+  analogFrame1.bytes[1] = rxFrame.bytes[1];
   analogFrame1.bytes[2] = (byte)(adc[2] & 0xFF);
   analogFrame1.bytes[3] = (byte)(adc[2] >> 8);
   analogFrame1.bytes[4] = (byte)(adc[3] & 0xFF);
@@ -235,7 +191,7 @@ void updateHeartdata() {
 void updateDrivers() {
   // logic to determine the driver goes here
   analogWrite(pin_PWM_Driver1,rxFrame.bytes[0]);
-  analogWrite(pin_PWM_Driver1,rxFrame.bytes[1]);
+  analogWrite(pin_PWM_Driver2,rxFrame.bytes[1]);
 }
 
 void SerialPrint () {
@@ -244,9 +200,7 @@ void SerialPrint () {
   Serial1.print("Digital Input 2: ");  Serial1.println(digitalRead(pin_D2)); 
 }
 
-Ticker ticker_hearbeat          (heartbeat,           INTERVAL_HEARTBEAT);
-Ticker ticker_canTX_critical    (canTX_criticalError, INTERVAL_ERROR_WARNING_CRITICAL);
-Ticker ticker_canTX_lowPriority (canTX_lowPriority,   INTERVAL_ERROR_WARNING_LOW_PRIORITY);
+TickerInterrupt Ticker(TIM2,1);
 
 void setup()
 {
@@ -263,11 +217,10 @@ void setup()
   can.filterMask16Init(0, 0x309, 0x7ff);
   can.attachInterrupt(canISR);
 
-  ticker_hearbeat.start();
-  delay(5);
-  ticker_canTX_critical.start();
-  delay(5);
-  ticker_canTX_lowPriority.start();
+  Ticker.start();
+  Ticker.attach(heartbeat,1000);
+  Ticker.attach(canTX_criticalError,INTERVAL_ERROR_WARNING_CRITICAL);
+  Ticker.attach(canTX_lowPriority,INTERVAL_ERROR_WARNING_LOW_PRIORITY);
 }
 
 void loop()
@@ -276,6 +229,6 @@ void loop()
   updateHeartdata();
   updateAnalog();
   updateDigital();
-  //updateDrivers();
+  updateDrivers();
   //SerialPrint();
 }

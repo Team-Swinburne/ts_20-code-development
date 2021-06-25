@@ -157,6 +157,7 @@ void heartbeat_tx(){
 void data_tx(){
   uint8_t txData[8];
   txData[0] = PWM_Drive1;
+  txData[1] = PWM_Drive2;
   can.transmit(UCM2_FR_DATA_ID, txData, 8);
   //Serial1.println("Transmitting...");          
 }

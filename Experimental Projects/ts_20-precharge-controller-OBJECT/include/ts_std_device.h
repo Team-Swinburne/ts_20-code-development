@@ -238,10 +238,13 @@ public:
 	 * 
      */
 	bool set_error_code(uint8_t _error_code, int i){
-		if (_error_code > 0){
-			heartbeat_state = 0;
-		}
 		error_code[i] = _error_code;
+		if (error_code[i] > 0){
+			// heartbeat_state = 0;
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	/** set_warning code(warning_code, index)
@@ -256,6 +259,11 @@ public:
      */
 	bool set_warning_code(uint8_t _warning_code, int i){
 		warning_code[i] = _warning_code;
+		if (warning_code[i] > 0) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	void set_heartbeat_state(int _heartbeat_state){heartbeat_state = _heartbeat_state;}

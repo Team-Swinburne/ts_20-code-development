@@ -44,7 +44,7 @@ to the device.
 #define CAN_DISCHARGE_MODULE_BASE_ADDRESS           0x800
 #define CAN_DASH_BASE_ADDRESS                       0x900
 
-// Miscillanious
+// Miscillatious
 #define CAN_ORION_BMS_RINEHART_LIMITS				0x202
 #define CAN_TC_CHARGER_STATUS_ID					0x18FF50E5
 
@@ -176,5 +176,3 @@ Digital/Analogue (Medium frequency acceptable)      200
 Digital/Analogue (Low Priority)                     500
 
 */
-
-#define	HEARTRATE 1

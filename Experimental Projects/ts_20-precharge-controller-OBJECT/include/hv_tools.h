@@ -1,5 +1,11 @@
 #include <mbed.h>
 
+#define PDOC_OVER_TEMPERATURE 250 
+#define PDOC_UNDER_TEMPERATURE -40
+
+#define HV_OVER_VOLTAGE 600 
+#define HV_UNDER_VOLTAGE -5
+
 	/*
 PDOC
 	Precharge Discharge Over-Current device. Checks if precharge/discharge relays
@@ -62,17 +68,14 @@ public:
 	
 
 private:
-	const int OVER_TEMPERATURE = 250; 
-	const int UNDER_TEMPERATURE = -40;
-
-	int pdoc_temperature;
-	int pdoc_ref_temperature;
+	int16_t pdoc_temperature;
+	int16_t pdoc_ref_temperature;
 
 	DigitalIn PDOC_ok;
 
 	Adafruit_ADS1115 pdoc_adc;
 
-    float adc_to_voltage(int adc_value, int adc_resolution, float voltage_range){
+    float adc_to_voltage(int16_t adc_value, int adc_resolution, float voltage_range){
 	    float voltage = adc_value * voltage_range / adc_resolution;
 	    return voltage;
     }
@@ -95,13 +98,13 @@ private:
 
 	bool sensor_ok(){
 		bool sensor_ok = false;
-		if (pdoc_temperature < OVER_TEMPERATURE){
+		if (pdoc_temperature < PDOC_OVER_TEMPERATURE){
 			sensor_ok = true;
 		} else {
             sensor_ok = false;
         }
         
-		if (pdoc_temperature > UNDER_TEMPERATURE){
+		if (pdoc_temperature > PDOC_UNDER_TEMPERATURE){
 			sensor_ok = true;
 		} else {
             sensor_ok = false;
@@ -153,22 +156,19 @@ public:
 	bool update_adc(){
 		voltage = HV_voltageScaling(adc_to_voltage(high_voltage_adc.readADC_SingleEnded(0), 32768, 6.144));
 	    // pc.printf("MC_VOLTAGE: %d \r\n", mc_voltage);
-	    return sensor_ok(0);
+	    return sensor_ok();
 	}
 
 	int get_voltage(){return voltage;}
 
 private:
-	const int OVER_VOLTAGE = 600; 
-	const int UNDER_VOLTAGE = 250;
-
     float R_CAL;
 
-	int voltage;
+	int16_t voltage;
 
 	Adafruit_ADS1115 high_voltage_adc;
 
-    float adc_to_voltage(int adc_value, int adc_resolution, float voltage_range){
+    float adc_to_voltage(int16_t adc_value, int adc_resolution, float voltage_range){
 	    float voltage = adc_value * voltage_range / adc_resolution;
 	    return voltage;
     }
@@ -186,21 +186,20 @@ private:
         return _output;
     }
 
-	bool sensor_ok(bool enable_uv){
+	bool sensor_ok(){
 		bool sensor_ok = false;
-		if (voltage < OVER_VOLTAGE){
+		if (voltage < HV_OVER_VOLTAGE){
 			sensor_ok = true;
 		} else {
             sensor_ok = false;
         }
 
-        if (enable_uv){
-            if (voltage > UNDER_VOLTAGE){
-                sensor_ok = true;
-            } else {
-                sensor_ok = false;
-            }
+        if (voltage > HV_UNDER_VOLTAGE){
+        	sensor_ok = true;
+        } else {
+        	sensor_ok = false;
         }
 		return sensor_ok;
-	}
+    }
+		
 };

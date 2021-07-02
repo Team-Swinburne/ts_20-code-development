@@ -1,0 +1,80 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_: PRECHARGE
+
+
+BO_ 1280 PRECHARGE_HEARTBEAT: 8 PRECHARGE
+ SG_ precharge_heartbeat_state : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ precharge_heartbeat_counter : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ precharge_heartbeat_pcb_temp : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 1281 PRECHARGE_ERROR_WARNING: 8 PRECHARGE
+ SG_ precharge_ams_ok : 32|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ precharge_pdoc_ok : 40|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ precharge_imd_ok : 48|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ precharge_error_1_ams_fail : 0|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ precharge_error_1_pdoc_fail : 1|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ precharge_error_1_imd_fail : 2|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ precharge_error_1_orion_timeout : 3|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ precharge_warn_1_pcb_overtemp : 16|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ precharge_warn_1_dis_pre_mismat : 17|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ precharge_warn_air_neg_feed_mism : 18|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ precharge_warn_air_pos_feed_mism : 19|1@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 1282 PRECHARGE_DIGITAL_1: 8 PRECHARGE
+ SG_ precharge_digital_1_air_power : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ precharge_digital_1_air_neg : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ precharge_digital_1_air_neg_fb : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ precharge_digital_1_air_pos : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ precharge_digital_1_air_pos_fb : 32|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ precharge_digital_1_pch_relay : 40|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 1284 PRECHARGE_ANALOG_1: 8 PRECHARGE
+ SG_ precharge_analog_1_pdoc_temp : 0|16@1+ (1,0) [0|0] "C" Vector__XXX
+ SG_ precharge_analog_1_pdoc_ref_temp : 16|16@1+ (1,0) [0|0] "C" Vector__XXX
+ SG_ precharge_analog_1_hv_batt_volt : 32|16@1+ (0.1,0) [0|0] "V" Vector__XXX
+ SG_ precharge_analog_1_hv_mc_volt : 48|16@1+ (0.1,0) [0|0] "V" Vector__XXX
+
+BO_ 1285 PRECHARGE_ANALOGUE_2: 8 PRECHARGE
+ SG_ precharge_analog_2_imd_period : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ precharge_analog_2_imd_freq : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ precharge_analog_2_imd_duty : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+
+
+
+BA_DEF_  "BusType" STRING ;
+BA_DEF_DEF_  "BusType" "CAN";
+

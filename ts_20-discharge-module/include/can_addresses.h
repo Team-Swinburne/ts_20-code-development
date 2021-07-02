@@ -96,6 +96,8 @@ typedef enum TS_STD_CAN_MESSAGES{
     TS_DIGITAL_2_ID,
     TS_ANALOGUE_1_ID,
     TS_ANALOGUE_2_ID,
+    TS_ANALOGUE_3_ID,
+    TS_ANALOGUE_4_ID,
 } ts_std_can_messages_t;
 
 // Enumerations can also be used to parse each of these in a meaningful way. A basic template is included for that sake 

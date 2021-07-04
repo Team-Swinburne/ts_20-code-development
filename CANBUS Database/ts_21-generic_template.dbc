@@ -1,0 +1,102 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_: GENERIC
+
+
+BO_ 256 GENERIC_HEARTBEAT: 8 Vector__XXX
+ SG_ generic_heartbeat_state : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_heartbeat_counter : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_heartbeat_pcb_temp : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 257 GENERIC_ERROR_WARNING: 8 Vector__XXX
+ SG_ generic_error_1 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_error_2 : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_warning_1 : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_warning_2 : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_error_spare_1 : 32|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_error_spare_2 : 40|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_error_spare_3 : 48|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_error_spare_4 : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 258 GENERIC_DIGITAL_1: 8 Vector__XXX
+ SG_ generic_digital_1_0 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_digital_1_1 : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_digital_1_2 : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_digital_1_3 : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_digital_1_4 : 32|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_digital_1_5 : 40|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_digital_1_6 : 48|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_digital_1_7 : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 259 GENERIC_DIGITAL_2: 8 Vector__XXX
+ SG_ generic_digital_2_0 : 0|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_digital_2_1 : 1|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_digital_2_2 : 2|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_digital_2_3 : 3|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_digital_2_4 : 4|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_digital_2_5 : 5|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_digital_2_6 : 6|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_digital_2_7 : 7|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_digital_2_8 : 8|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_digital_2_9 : 9|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_digital_2_10 : 10|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_digital_2_11 : 11|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_digital_2_12 : 12|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_digital_2_13 : 13|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_digital_2_14 : 14|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_digital_2_15 : 15|1@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 260 GENERIC_ANALOGUE_1: 8 Vector__XXX
+ SG_ generic_analogue_1_0 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_analogue_1_1 : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_analogue_1_2 : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_analogue_1_3 : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_analogue_1_4 : 32|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_analogue_1_5 : 40|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_analogue_1_6 : 48|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_analogue_1_7 : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 261 GENERIC_ANALOGUE_2: 8 Vector__XXX
+ SG_ generic_analogue_2_0 : 0|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_analogue_2_1 : 16|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_analogue_2_2 : 32|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ generic_analogue_2_3 : 48|16@1+ (1,0) [0|0] "" Vector__XXX
+
+
+
+BA_DEF_  "BusType" STRING ;
+BA_DEF_DEF_  "BusType" "CAN";
+

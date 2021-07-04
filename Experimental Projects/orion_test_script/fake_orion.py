@@ -3,11 +3,11 @@ import time
 
 
 # Constants
-CANBUS_SPEED = 250000
+CANBUS_SPEED = 500000
 
-THROTTLE_CONTROLLER_PERIPERAL_ID = 0x343
+THROTTLE_CONTROLLER_PERIPERAL_ID = 0x302
 
-ORION_BMS_STATUS_ID = 0x180
+ORION_BMS_STATUS_ID = 0x100
 
 def send_handler(bus, msg):
     try:
@@ -26,7 +26,7 @@ def send_relay_status(bus):
     payload = [7,0,0,0,0,0,0,0]
     msg = can.Message(arbitration_id=ORION_BMS_STATUS_ID, data=payload)
     send_handler(bus, msg)
-    time.sleep(0.2)
+    time.sleep(0.00001)
 
 def setup():
     # may need to add serial=12093 <- or whatever number that is. 

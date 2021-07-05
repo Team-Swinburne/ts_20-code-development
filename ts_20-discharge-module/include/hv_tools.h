@@ -1,5 +1,16 @@
 #include <mbed.h>
 
+#define ADC_RESOLUTION 32768
+#define ADC_REF_VOLTAGE 6.144
+
+#define PDOC_THERMISTOR_BETA 3380
+
+#define PDOC_ADC_SENSOR_CHANNEL 0
+#define PDOC_ADC_REF_CHANNEL 1
+
+#define HV_ADC_SENSOR_CHANNEL 0
+#define HV_ADC_TSAL_CHANNEL 3
+
 #define PDOC_OVER_TEMPERATURE 250 
 #define PDOC_UNDER_TEMPERATURE -40
 
@@ -40,9 +51,9 @@ public:
 	 * 
      */
 	bool update_adc(){
-		pdoc_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(0), 32768, 6.144), 3380) + 50;
+		pdoc_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(PDOC_ADC_SENSOR_CHANNEL), ADC_RESOLUTION, ADC_REF_VOLTAGE), PDOC_THERMISTOR_BETA);
 		// pc.printf("PDOC_TEMPERAUTRE: %d \r\n", pdoc_temperature);
-		pdoc_ref_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(1), 32768, 6.144), 3380);
+		pdoc_ref_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(PDOC_ADC_REF_CHANNEL), ADC_RESOLUTION, ADC_REF_VOLTAGE), PDOC_THERMISTOR_BETA);
 		// pc.printf("PDOC_REF_TEMPERAUTRE: %d \r\n", pdoc_ref_temperature);
 		return sensor_ok();
 	}
@@ -51,12 +62,13 @@ public:
      *
 	 * Checks the PDOC is less than the reference value. 
 	 * 
-     *  @returns if pdoc temperature is less than the reference temperature. 
+     *  @returns true if either the reference temperature is within margins or the relay is still active.
+	 * Vehicle will be disabled if relay opens, however if the sensor also disagrees, then report failure.
      *  
      */
 	bool pdoc_ok(){
 		bool _pdoc_ok = false;
-		if (pdoc_temperature < pdoc_ref_temperature){
+		if (pdoc_temperature < pdoc_ref_temperature || PDOC_ok.read()){
 			_pdoc_ok = true;
 		}
 		return _pdoc_ok;
@@ -80,7 +92,7 @@ private:
 	    return voltage;
     }
 
-    int NTC_voltageToTemperature(float voltage, float BETA=3380){
+    int NTC_voltageToTemperature(float voltage, float BETA=PDOC_THERMISTOR_BETA){
         float r1 = 2000;
         float vin = 5;
         
@@ -146,25 +158,30 @@ public:
 
 	/** update_adc()
 	 * 
-	 * Read from the resistor bridge and update the member values.
+	 * Read from the resistor bridge and update the member values. Note that the TSAL
+	 * is only attached on the discharge, this value can be ignored otherwise.
 	 * 
 	 * Read ADC values with:
 	 * 	- get_voltage();
+	 *  - get_tsal_reference();
      *
      *  @returns sensor validity as boolean. 
      */
 	bool update_adc(){
-		voltage = HV_voltageScaling(adc_to_voltage(high_voltage_adc.readADC_SingleEnded(0), 32768, 6.144));
-	    // pc.printf("MC_VOLTAGE: %d \r\n", mc_voltage);
+		voltage = HV_voltageScaling(adc_to_voltage(high_voltage_adc.readADC_SingleEnded(HV_ADC_SENSOR_CHANNEL), ADC_RESOLUTION, ADC_REF_VOLTAGE));
+	    tsal_reference = adc_to_voltage(high_voltage_adc.readADC_SingleEnded(HV_ADC_TSAL_CHANNEL), ADC_RESOLUTION, ADC_REF_VOLTAGE);
+		// pc.printf("MC_VOLTAGE: %d \r\n", mc_voltage);
 	    return sensor_ok();
 	}
 
 	int get_voltage(){return voltage;}
+	int get_tsal_reference(){return tsal_reference;}
 
 private:
     float R_CAL;
 
 	int16_t voltage;
+	int16_t tsal_reference;
 
 	Adafruit_ADS1115 high_voltage_adc;
 

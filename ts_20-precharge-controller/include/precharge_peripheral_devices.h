@@ -1,11 +1,11 @@
 #include <mbed.h>
 
-#define ORION_TIMEOUT_INTERVAL 200
+#define ORION_TIMEOUT_INTERVAL 3		// 500 ms
 
 // ABSOLUTE MAXIMUMS - Not preferences, set preferences within the Orion. 
-#define MINIMUM_CELL_VOLTAGE 2400
-#define MAXIMUM_CELL_VOLTAGE 4300
-#define MAXIMUM_CELL_TEMPERATURE 80
+#define MINIMUM_CELL_VOLTAGE 2400		// 2400mV
+#define MAXIMUM_CELL_VOLTAGE 4300		// 4300mV
+#define MAXIMUM_CELL_TEMPERATURE 80		// 80 C
 
 	/*
 Discharge Module
@@ -27,15 +27,15 @@ public:
 		discharge_state = 2;
 	}
 
-	/** check_precharge_discharge_mismatch()
+	/** precharge_discharge_match()
 	 * 
 	 * Check if the internal state of the discharge is valid. 
 	 * 
 	 *	@param precharge_state Current state of the precharge.
      *
-     *  @returns boolean to show that discharge is functioning correctly.
+     *  @returns true if precharge matches discharge.
      */
-	bool check_precharge_discharge_mismatch(int precharge_state){
+	bool precharge_discharge_match(){
 		if (precharge_state > 1 && discharge_state == 0){
 			return true;
 		} else {
@@ -43,11 +43,13 @@ public:
 		}
 	}
 
-	void set_discharge_state(int _discharge_state){discharge_state = _discharge_state;}
+	void set_precharge_discharge_state(int _precharge_state, int _discharge_state)
+		{precharge_state = _precharge_state; discharge_state = _discharge_state;}
 	int get_discharge_state(){return discharge_state;}
 
 private:
 	int discharge_state;
+	int precharge_state;
 };
 
 	/*
@@ -85,6 +87,7 @@ public:
 		orion_timeout.detach();
 		orion_connection_state = true;
 		orion_timeout.attach(callback(this, &Orion::disconnect_orion_cb), ORION_TIMEOUT_INTERVAL);
+
 		if (check_orion_safe()){
 			AMS_ok = 1;
 		} else {

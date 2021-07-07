@@ -71,13 +71,17 @@ PC_15/OSC32OUT (3.3V)*
 #include <mbed.h>
 #include <CAN.h>
 #include "Adafruit_ADS1015.h"
+#include "precharge_pinout.h"
 
-#include "ts_std_device.h"
 #include "can_addresses.h"
+#include "ts_std_device.h"
+
 #include "hv_tools.h"
-#include "imd.h"
-#include "precharge_peripheral_devices.h"
 #include "relays.h"
+#include "precharge_discharge.h"
+
+#include "imd.h"
+#include "orion.h"
 
 //-----------------------------------------------
 // Device Parameters
@@ -167,9 +171,9 @@ typedef enum ERROR_CODES_SUB_KEY {
   ERROR_PDOC_FAIL,
   ERROR_IMD_FAIL,
   ERROR_ORION_TIMEOUT,
-  ERROR_SPARE_4,
-  ERROR_SPARE_5,
-  ERROR_SPARE_6,
+  ERROR_ORION_LOW_VOTLAGE,
+  ERROR_ORION_HIGH_VOLTAGE,
+  ERROR_ORION_OVERTEMPERATURE,
   ERROR_SPARE_7,
 } error_state_t;
 
@@ -178,10 +182,10 @@ typedef enum WARNING_CODES_SUB_KEY {
   WARNING_DISCHARGE_PRECHARGE_MISMATCH,
   WARNING_AIR_NEG_FEEDBACK_MISMATCH,
   WARNING_AIR_POS_FEEDBACK_MISMATCH,
-  WARNING_SPARE_4,
-  WARNING_SPARE_5,
-  WARNING_SPARE_6,
-  WARNING_SPARE_7,
+  WARNING_PDOC_SENSOR_FAILURE,
+  WARNING_MC_ADC_SENSOR_FAILURE,
+  WARNING_BATT_ADC_SENSOR_FAILURE,
+  WARNING_PDOC_RELAY_FAILURE,
 } warning_state_t;
 
 //-----------------------------------------------
@@ -189,13 +193,13 @@ typedef enum WARNING_CODES_SUB_KEY {
 //-----------------------------------------------
 
 // UART Interface
-Serial pc(PA_2, PA_3);                 		//TX, RX
+Serial pc(PIN_SERIAL_TX, PIN_SERIAL_RX);                 		//TX, RX
 
 // I2C Interface
-I2C i2c1(PB_7, PB_6);     					//SDA, SCL
+I2C i2c1(PIN_I2C_SDA, PIN_I2C_SCL);     					//SDA, SCL
 
 // CANBUS Interface
-CAN can1(PB_8, PB_9);     					// RXD, TXD
+CAN can1(PIN_CAN1_RXD, PIN_CAN1_TXD);     					// RXD, TXD
 
 // CANBUS Message Format
 CANMessage can1_msg;
@@ -204,25 +208,25 @@ CANMessage can1_msg;
 // Interfaces
 //-----------------------------------------------
 
-Heart heart(CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS, PC_13, PA_0);
+Heart heart(CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS, PIN_HEART_LED1, PIN_PCB_TEMP);
 
-Orion orion(PB_13);
-PDOC pdoc(i2c1, PDOC_ADC_ADDR, PB_15);
-IMD imd(PB_12, PA_15);
+Orion orion(PIN_AMS_OK);
+PDOC pdoc(i2c1, PDOC_ADC_ADDR, PIN_PDOC_OK);
+IMD imd(PIN_IMD_OK, PIN_IMD_DATA);
 
 HV_ADC hv_mc_sense(i2c1, MC_HV_SENSE_ADC_ADDR, MC_R_CAL);
 HV_ADC hv_battery_sense(i2c1, BATT_HV_SENSE_ADC_ADDR, BATT_R_CAL);
 
 Discharge_Module discharge_module;
 
-InterruptIn air_power(PB_3);
+InterruptIn air_power(PIN_AIR_POWER);
 
-Relay precharge_relay(PA_9);
-AIR AIR_neg_relay(PA_8, PB_10);
-AIR AIR_pos_relay(PA_10, PB_11);
+Relay precharge_relay(PIN_PRECHARGE_RELAY);
+AIR AIR_neg_relay(PIN_AIR_NEG_RELAY, PIN_AIR_NEG_RELAY_FB);
+AIR AIR_pos_relay(PIN_AIR_POS_RELAY, PIN_AIR_POS_RELAY_FB);
 
-DigitalOut can1_rx_led(PB_1);
-DigitalOut can1_tx_led(PB_0);
+DigitalOut can1_rx_led(PIN_CAN1_RX_LED);
+DigitalOut can1_tx_led(PIN_CAN1_TX_LED);
 
 //-----------------------------------------------
 // Real Time Operations
@@ -431,7 +435,7 @@ void can1_recv_cb(){
 
 	if (can1.read(can1_msg)){
 		switch(can1_msg.id){
-			// Secret method to bypass voltage checks. UNSAFE!
+			// Secret method to bypass voltage checks. UNSAFE! Use in case of emergency!
 			case (CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS + 0x0F):
 				heart.set_heartbeat_state(PRECHARGE_STATE_PRECHARGING_TIMER);
 				break;
@@ -496,12 +500,12 @@ uint8_t check_errors(){
 	error_code[ERROR_AMS_FAIL] 			= !orion.get_AMS_ok();
 	error_code[ERROR_PDOC_FAIL] 		= !pdoc.get_pdoc_ok();
 	error_code[ERROR_IMD_FAIL] 			= !imd.get_IMD_ok();
-	error_code[ERROR_ORION_TIMEOUT] 	= !orion.check_orion_safe();
+	error_code[ERROR_ORION_TIMEOUT] 	= !orion.check_orion_state();
 	
-	error_code[ERROR_SPARE_4] = false;
-	error_code[ERROR_SPARE_5] = false;
-	error_code[ERROR_SPARE_6] = false;
-	error_code[ERROR_SPARE_7] = false;
+	error_code[ERROR_ORION_LOW_VOTLAGE] = !orion.check_low_voltage();
+	error_code[ERROR_ORION_HIGH_VOLTAGE] = !orion.check_high_voltage();
+	error_code[ERROR_ORION_OVERTEMPERATURE] = !orion.check_overtemperature();
+	error_code[ERROR_SPARE_7] = 0;
 
 	return array_to_uint8(error_code, 8);
 }
@@ -518,10 +522,10 @@ uint8_t check_warnings(){
 	warning_code[WARNING_AIR_NEG_FEEDBACK_MISMATCH] 	= !AIR_neg_relay.relay_ok();
 	warning_code[WARNING_AIR_POS_FEEDBACK_MISMATCH] 	= !AIR_pos_relay.relay_ok();
 
-	warning_code[WARNING_SPARE_4] = 0;
-	warning_code[WARNING_SPARE_5] = 0;
-	warning_code[WARNING_SPARE_6] = 0;
-	warning_code[WARNING_SPARE_7] = 0;
+	warning_code[WARNING_PDOC_SENSOR_FAILURE] = !pdoc.get_sensor_ok();
+	warning_code[WARNING_MC_ADC_SENSOR_FAILURE] = !hv_mc_sense.get_sensor_ok();
+	warning_code[WARNING_BATT_ADC_SENSOR_FAILURE] = !hv_battery_sense.get_sensor_ok();
+	warning_code[WARNING_PDOC_RELAY_FAILURE] = !pdoc.check_pdoc_relay_fail();
 	
 	return array_to_uint8(warning_code, 8);
 }
@@ -627,7 +631,6 @@ int main(){
 
 	// Program loop. Error checking handled within state deamon.
 	while(1){
-		// wait(0.1);
 		state_d();
 	}
 

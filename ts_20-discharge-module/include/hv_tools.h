@@ -1,5 +1,10 @@
 #include <mbed.h>
 
+// ADS1115 ADDR PINS: GND 48 - VDD 49 - SDA 4A - SCL 4B
+#define PDOC_ADC_ADDR				0x4B
+#define MC_HV_SENSE_ADC_ADDR		0x49
+#define BATT_HV_SENSE_ADC_ADDR		0x48
+
 #define ADC_RESOLUTION 32768
 #define ADC_REF_VOLTAGE 6.144
 

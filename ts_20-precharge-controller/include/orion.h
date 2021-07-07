@@ -1,57 +1,5 @@
 #include <mbed.h>
 
-#define ORION_TIMEOUT_INTERVAL 3		// 500 ms
-
-// ABSOLUTE MAXIMUMS - Not preferences, set preferences within the Orion. 
-#define MINIMUM_CELL_VOLTAGE 2400		// 2400mV
-#define MAXIMUM_CELL_VOLTAGE 4300		// 4300mV
-#define MAXIMUM_CELL_TEMPERATURE 80		// 80 C
-
-	/*
-Discharge Module
-	Discharge Module is a slave of the precharge controller used to make the
-	vehicle safe to work on. When the first contactor closes, the discharge relay
-	must open the connection of the 4kR resistor normally connected across HV_MC- and
-	HV_MC+. A microcontroller has been included for data acquisition purposes and to 
-	generate warning messages in case that both precharge and discharge resistors are 
-	present, creating a voltage divider and failing the precharge cycle.
-	*/
-class Discharge_Module {
-public:
-	/** Discharge_Module Constructor
-     *
-	 * Initialise discharge state to open to avoid generating error messages.
-	 * 
-     */
-	Discharge_Module(){
-		discharge_state = 2;
-	}
-
-	/** precharge_discharge_match()
-	 * 
-	 * Check if the internal state of the discharge is valid. 
-	 * 
-	 *	@param precharge_state Current state of the precharge.
-     *
-     *  @returns true if precharge matches discharge.
-     */
-	bool precharge_discharge_match(){
-		if (precharge_state > 1 && discharge_state == 0){
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	void set_precharge_discharge_state(int _precharge_state, int _discharge_state)
-		{precharge_state = _precharge_state; discharge_state = _discharge_state;}
-	int get_discharge_state(){return discharge_state;}
-
-private:
-	int discharge_state;
-	int precharge_state;
-};
-
 	/*
 Orion
 	Orion Battery Management System. The Orion is used to check the health of the 
@@ -87,12 +35,7 @@ public:
 		orion_timeout.detach();
 		orion_connection_state = true;
 		orion_timeout.attach(callback(this, &Orion::disconnect_orion_cb), ORION_TIMEOUT_INTERVAL);
-
-		if (check_orion_safe()){
-			AMS_ok = 1;
-		} else {
-			AMS_ok = 0;
-		}
+		AMS_ok = !check_orion_safe();
 	}
 
 	/** connect_orion(_relay_status)
@@ -109,11 +52,7 @@ public:
 		orion_timeout.detach();
 		orion_connection_state = true;
 		orion_timeout.attach(callback(this, &Orion::disconnect_orion_cb), ORION_TIMEOUT_INTERVAL);
-		if (check_orion_safe() || relay_status > 0){
-			AMS_ok = 1;
-		} else {
-			AMS_ok = 0;
-		}
+		AMS_ok = !check_orion_safe();
 	}
 
 	/** disconnect_orion()
@@ -126,23 +65,60 @@ public:
 		AMS_ok = 0;
 	}
 
-	/** check_orion_safe()
+	/** check_orion_state()
      *
 	 * Checks if the low, high, or overtemperature values are within range.
 	 * 
 	 * @returns whether the Orion is managing it's relay correctly.
 	 * 
      */
-	bool check_orion_safe(){
-		if (low_voltage < MINIMUM_CELL_VOLTAGE){
-			return false;
-		} else if (high_voltage > MAXIMUM_CELL_VOLTAGE){
-			return false;
-		} else if (high_temperature > MAXIMUM_CELL_TEMPERATURE){
-			return false;
-		} else {
+	bool check_orion_state(){
+		if (relay_status > 0){
 			return true;
 		}
+		return false;
+	}
+
+	/** check_low_voltage()
+     *
+	 * Checks if the low, high, or overtemperature values are within range.
+	 * 
+	 * @returns True on fail.
+	 * 
+     */
+	bool check_low_voltage(){
+		if (low_voltage > MINIMUM_CELL_VOLTAGE){
+			return false;
+		}
+		return true;
+	}
+
+	/** check_high_voltage()
+     *
+	 * Checks if the low, high, or overtemperature values are within range.
+	 * 
+	 * @returns True on fail.
+	 * 
+     */
+	bool check_high_voltage(){
+		if (high_voltage > MAXIMUM_CELL_VOLTAGE){
+			return true;
+		}
+		return false;
+	}
+
+	/** check_high_temperature()
+     *
+	 * Checks if the low, high, or overtemperature values are within range.
+	 * 
+	 * @returns True on fail.
+	 * 
+     */
+	bool check_overtemperature(){
+		if (high_temperature > MAXIMUM_CELL_TEMPERATURE){
+			return true;
+		}
+		return false;
 	}
 
 	void set_AMS_ok(bool _AMS_ok){AMS_ok = _AMS_ok;}
@@ -167,4 +143,18 @@ private:
 	int high_temperature;
 
 	Timeout orion_timeout;
+
+	/** check_orion_safe()
+     *
+	 * Checks if the relay states, low, high, or overtemperature values are within range.
+	 * 
+	 * @returns True on fail.
+	 * 
+     */
+	bool check_orion_safe(){
+		if (check_orion_state() || check_low_voltage() || check_high_voltage() || check_overtemperature()){
+			return true;
+		}
+		return false;
+	}
 };

@@ -72,13 +72,14 @@ PC_15/OSC32OUT (3.3V)*
 #include <mbed.h>
 #include <CAN.h>
 #include "Adafruit_ADS1015.h"
+#include "discharge_pinout.h"
+
 #include "can_addresses.h"
 #include "ts_std_device.h"
 
 #include "hv_tools.h"
 #include "relays.h"
-
-#include "discharge_peripheral_devices.h"
+#include "precharge_discharge.h"
 
 //-----------------------------------------------
 // Device Parameters
@@ -86,11 +87,6 @@ PC_15/OSC32OUT (3.3V)*
 
 // HV Voltage Bridge Offset Resistors
 #define MC_R_CAL 					5000
-
-// ADS1115 ADDR PINS: GND 48 - VDD 49 - SDA 4A - SCL 4B
-#define PDOC_ADC_ADDR				0x4B
-#define MC_HV_SENSE_ADC_ADDR		0x49
-// #define BATT_HV_SENSE_ADC_ADDR	0x48
 
 // Interval & Periods
 #define CAN_BROADCAST_INTERVAL      0.5
@@ -131,7 +127,6 @@ typedef enum CAN_ANALOGUE_1_SIGNALS{
 	CAN_ANALOGUE_1_TSAL_REFERENCE_2,
 } can_analogue_1_signals_t;
 
-
 //-----------------------------------------------
 // Error/Warning Flags
 //-----------------------------------------------
@@ -163,13 +158,13 @@ typedef enum WARNING_CODES_SUB_KEY {
 //-----------------------------------------------
 
 // UART Interface
-Serial pc(PA_2, PA_3);                 		// TX, RX
+Serial pc(PIN_SERIAL_TX, PIN_SERIAL_RX);    // TX, RX
 
 // I2C Interface
-I2C i2c1(PB_7, PB_6);     					// SDA, SCL
+I2C i2c1(PIN_I2C_SDA, PIN_I2C_SCL);     	// SDA, SCL
 
 // CANBUS Interface
-CAN can1(PB_8, PB_9);     					// RXD, TXD
+CAN can1(PIN_CAN1_RXD, PIN_CAN1_TXD);     	// RXD, TXD
 
 // CANBUS Message Format
 CANMessage can1_msg;
@@ -178,18 +173,18 @@ CANMessage can1_msg;
 // Interfaces
 //-----------------------------------------------
 
-Heart heart(CAN_DISCHARGE_MODULE_BASE_ADDRESS, PC_13, PA_0);
+Heart heart(CAN_DISCHARGE_MODULE_BASE_ADDRESS, PIN_HEART_LED1, PIN_PCB_TEMP);
 
-PDOC pdoc(i2c1, PDOC_ADC_ADDR, PB_15);
+PDOC pdoc(i2c1, PDOC_ADC_ADDR, PIN_PDOC_OK);
 
 HV_ADC hv_mc_sense(i2c1, MC_HV_SENSE_ADC_ADDR, MC_R_CAL);
 
 Precharge_Controller precharge_controller;
 
-DigitalIn discharge_relay(PB_11);
+DigitalIn discharge_relay(PIN_DISCHARGE_RELAY);
 
-DigitalOut can1_rx_led(PB_1);
-DigitalOut can1_tx_led(PB_0);
+DigitalOut can1_rx_led(PIN_CAN1_RX_LED);
+DigitalOut can1_tx_led(PIN_CAN1_TX_LED);
 
 //-----------------------------------------------
 // Real Time Operations
@@ -244,7 +239,6 @@ void heartbeat_cb(){
         pc.printf("Hearts dead :(\r\n");
     }
 }
-
 
 	/*
 CAN Transmit
@@ -306,10 +300,10 @@ uint8_t check_errors(){
 	error_code[ERROR_SPARE_2] 		= 0;
 	error_code[ERROR_SPARE_3] 		= 0;
 	
-	error_code[ERROR_SPARE_4] 		= false;
-	error_code[ERROR_SPARE_5] 		= false;
-	error_code[ERROR_SPARE_6] 		= false;
-	error_code[ERROR_SPARE_7] 		= false;
+	error_code[ERROR_SPARE_4] 		= 0;
+	error_code[ERROR_SPARE_5] 		= 0;
+	error_code[ERROR_SPARE_6] 		= 0;
+	error_code[ERROR_SPARE_7] 		= 0;
 
 	return array_to_uint8(error_code, 8);
 }
@@ -411,7 +405,6 @@ int main(){
 
 	// Program loop. Error checking handled within state deamon.
 	while(1){
-		// wait(0.1);
 		state_d();
 	}
 

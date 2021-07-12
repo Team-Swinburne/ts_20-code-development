@@ -93,7 +93,7 @@ public:
 			soft_pdoc_fail = true;
 		}
 
-		if (soft_pdoc_fail = !PDOC_ok){
+		if (soft_pdoc_fail != PDOC_ok){
 			return false;
 		}
 		return true;

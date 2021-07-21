@@ -562,11 +562,13 @@ void state_d(){
 
 			// In order for the device to latch into a fail, this must be disabled.
 			// and an infinite loop included to force the latch. 
-			// For testing, this is unnessesary.
+			// For testing, this is unnessesary. 
+	
 			// while(1){
 			// 	heart.set_heartbeat_state(PRECHARGE_STATE_FAIL);
 			// }
 
+			// ENSURE THIS IS REMOVED!
 			if (check_errors() == 0){
 				heart.set_heartbeat_state(PRECHARGE_STATE_IDLE);
 			}
@@ -622,7 +624,6 @@ void setup(){
 	__disable_irq();
 
 	ticker_heartbeat.attach(&heartbeat_cb, HEARTRATE);
-	heart.set_heartbeat_state(PRECHARGE_STATE_FAIL);
 
 	can1.frequency(CANBUS_FREQUENCY);
 	can1.attach(&can1_recv_cb);
@@ -634,7 +635,9 @@ void setup(){
 	// Re-enable interrupts again, now that startup has competed.
 	__enable_irq();
 
-	// Perform initial error check.
+	// Assume device in failure mode, then perform initial error check to 
+	// force into idle mode, otherwise, latch in fail.
+	heart.set_heartbeat_state(PRECHARGE_STATE_FAIL);
 	update_precharge();
 
 	wait(1);

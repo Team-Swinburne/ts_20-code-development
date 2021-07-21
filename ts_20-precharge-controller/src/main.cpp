@@ -193,7 +193,7 @@ typedef enum WARNING_CODES_SUB_KEY {
 //-----------------------------------------------
 
 // UART Interface
-Serial pc(PIN_SERIAL_TX, PIN_SERIAL_RX);                 		//TX, RX
+Serial pc(PIN_SERIAL_TX, PIN_SERIAL_RX);                 	//TX, RX
 
 // I2C Interface
 I2C i2c1(PIN_I2C_SDA, PIN_I2C_SCL);     					//SDA, SCL
@@ -347,7 +347,7 @@ void air_power_lost_cb(){
 	/*
 Precharge Timeout Callback
 	Called after 5 seconds of the precharge. Performs quick check to make sure the 
-	precharge hasn't completed yet. This callback is set within the start_precharge_cb()
+	precharge hasn't completed yet. This callback is set within the start_precharge_sequence_cb()
 	call, which is itself called from the receive callback if the charger or precharge button is pressed.
 	...
 	timeout_precharge.attach(&precharge_timeout_cb, PRECHARGE_TIMEOUT);
@@ -367,7 +367,7 @@ Start Precharge Callback
 
 	Will reject precharge request if precharge voltage below or above defined minimum and maximum values.
 	*/
-void start_precharge_cb(){
+void start_precharge_sequence_cb(){
 	if (hv_battery_sense.get_voltage() > MINIMUM_PRECHARGE_VOLTAGE && hv_battery_sense.get_voltage() < MAXIMUM_PRECHARGE_VOLTAGE){
 		relay_state_precharging();
 		heart.set_heartbeat_state(PRECHARGE_STATE_PRECHARGING);
@@ -450,7 +450,7 @@ void can1_recv_cb(){
 				// Need to add wrap around for button!
 				if (heart.get_heartbeat_state() == 1){
                     // pc.printf("Precharge button pressed, starting precharge routine\r\n");
-					start_precharge_cb();
+					start_precharge_sequence_cb();
                 }
 				break;
             
@@ -458,7 +458,7 @@ void can1_recv_cb(){
             case (CAN_TC_CHARGER_STATUS_ID):
                 if (heart.get_heartbeat_state() == 1){
                     // pc.printf("Charger detected, starting precharge routine\r\n");
-                    start_precharge_cb();
+                    start_precharge_sequence_cb();
                 }
 				break;
 
@@ -635,11 +635,15 @@ void setup(){
 	// Re-enable interrupts again, now that startup has competed.
 	__enable_irq();
 
-	// Assume device in failure mode, then perform initial error check to 
-	// force into idle mode, otherwise, latch in fail.
+	// Assume device in failure mode, hold until all start up faults then 
+	// force into idle mode.
 	heart.set_heartbeat_state(PRECHARGE_STATE_FAIL);
-	update_precharge();
+	do {
+		update_precharge();
+	} while (heart.get_error_code(0) > 0);
+	heart.set_heartbeat_state(PRECHARGE_STATE_IDLE);
 
+	// Allow some time to settle!
 	wait(1);
 }
 
@@ -649,7 +653,7 @@ int main(){
 
 	setup();
 
-	pc.printf("Startup completed!\r\n");
+	pc.printf("Faults cleared, startup completed!\r\n");
 
 	// Program loop. Error checking handled within state deamon.
 	while(1){

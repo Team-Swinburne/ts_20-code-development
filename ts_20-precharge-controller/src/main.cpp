@@ -531,13 +531,10 @@ uint8_t check_warnings(){
 }
 
 	/*
-State Deamon
-	Deamon responsible for managing the state of the device.
-	NB. Many of the functions are handled by interrupt routines, 
-	care should be taken to ensure that this simply manages errors and the 
-	relays. 
+Update Precharge
+	Updates the device as required, and checks for errors.
 	*/
-void state_d(){
+void update_precharge(){
 	// Update analogue measurements to get latest information.
 	pdoc.update_adc();
 	hv_battery_sense.update_adc();
@@ -546,11 +543,30 @@ void state_d(){
 	// Perform basic error checking. Sets state to FAIL if error found.
 	heart.set_error_code(check_errors(), 0);
 	heart.set_warning_code(check_warnings(), 0);
+}
+
+	/*
+State Deamon
+	Deamon responsible for managing the state of the device.
+	NB. Many of the functions are handled by interrupt routines, 
+	care should be taken to ensure that this simply manages errors and the 
+	relays. 
+	*/
+void state_d(){
+	update_precharge();
 
 	switch (heart.get_heartbeat_state()){
 		case PRECHARGE_STATE_FAIL:
 			// Do nothing. 
 			relay_state_safe();
+
+			// In order for the device to latch into a fail, this must be disabled.
+			// and an infinite loop included to force the latch. 
+			// For testing, this is unnessesary.
+			// while(1){
+			// 	heart.set_heartbeat_state(PRECHARGE_STATE_FAIL);
+			// }
+
 			if (check_errors() == 0){
 				heart.set_heartbeat_state(PRECHARGE_STATE_IDLE);
 			}
@@ -617,6 +633,9 @@ void setup(){
 	imd.start();
 	// Re-enable interrupts again, now that startup has competed.
 	__enable_irq();
+
+	// Perform initial error check.
+	update_precharge();
 
 	wait(1);
 }

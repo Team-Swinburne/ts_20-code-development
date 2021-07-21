@@ -339,8 +339,7 @@ AIR Power Lost Callback
 	Set the AMS_ok to zero just to make sure nothing strange is happening.
 	*/
 void air_power_lost_cb(){
-	orion.set_AMS_ok(0);
-    heart.set_heartbeat_state(PRECHARGE_STATE_FAIL);
+    heart.set_heartbeat_state(PRECHARGE_STATE_IDLE);
 	pc.printf("AIR Power Lost!\r\n");
 }
 	
@@ -353,17 +352,19 @@ Precharge Timeout Callback
 	timeout_precharge.attach(&precharge_timeout_cb, PRECHARGE_TIMEOUT);
 	*/
 void precharge_timeout_cb(){
-	if (!check_precharged()){
-		heart.set_heartbeat_state(PRECHARGE_STATE_FAIL);
-		orion.set_AMS_ok(0);
-		pc.printf("Precharge timed out!\r\n");
+	if (heart.get_heartbeat_state() != PRECHARGE_STATE_PRECHARGED){
+		if (!check_precharged()){
+			heart.set_heartbeat_state(PRECHARGE_STATE_IDLE);
+			pc.printf("Precharge timed out!\r\n");
+		}
 	}
 }
 
 	/*
-Start Precharge Callback
+Start Precharge Sequence Callback
 	Called by the CAN receive callback, attaches precharge_timeout_cb() function to 
-	check if the precharge has been successful, otherwise, the precharge will be disabled.
+	check if the precharge has been successful after 5 seconds
+	otherwise, the precharge will reset to the idle state.
 
 	Will reject precharge request if precharge voltage below or above defined minimum and maximum values.
 	*/
@@ -497,13 +498,13 @@ Check Errors
 uint8_t check_errors(){
 	bool error_code[8];
 
-	error_code[ERROR_AMS_FAIL] 			= !orion.get_AMS_ok();
-	error_code[ERROR_PDOC_FAIL] 		= !pdoc.get_pdoc_ok();
-	error_code[ERROR_IMD_FAIL] 			= !imd.get_IMD_ok();
-	error_code[ERROR_ORION_TIMEOUT] 	= !orion.check_orion_state();
+	error_code[ERROR_AMS_FAIL] 				= !orion.get_AMS_ok();
+	error_code[ERROR_PDOC_FAIL] 			= !pdoc.get_pdoc_ok();
+	error_code[ERROR_IMD_FAIL] 				= !imd.get_IMD_ok();
+	error_code[ERROR_ORION_TIMEOUT] 		= !orion.check_orion_state();
 	
-	error_code[ERROR_ORION_LOW_VOTLAGE] = !orion.check_low_voltage();
-	error_code[ERROR_ORION_HIGH_VOLTAGE] = !orion.check_high_voltage();
+	error_code[ERROR_ORION_LOW_VOTLAGE] 	= !orion.check_low_voltage();
+	error_code[ERROR_ORION_HIGH_VOLTAGE] 	= !orion.check_high_voltage();
 	error_code[ERROR_ORION_OVERTEMPERATURE] = !orion.check_overtemperature();
 	error_code[ERROR_SPARE_7] = 0;
 
@@ -522,10 +523,10 @@ uint8_t check_warnings(){
 	warning_code[WARNING_AIR_NEG_FEEDBACK_MISMATCH] 	= !AIR_neg_relay.relay_ok();
 	warning_code[WARNING_AIR_POS_FEEDBACK_MISMATCH] 	= !AIR_pos_relay.relay_ok();
 
-	warning_code[WARNING_PDOC_SENSOR_FAILURE] = !pdoc.get_sensor_ok();
-	warning_code[WARNING_MC_ADC_SENSOR_FAILURE] = !hv_mc_sense.get_sensor_ok();
-	warning_code[WARNING_BATT_ADC_SENSOR_FAILURE] = !hv_battery_sense.get_sensor_ok();
-	warning_code[WARNING_PDOC_RELAY_FAILURE] = !pdoc.check_pdoc_relay_fail();
+	warning_code[WARNING_PDOC_SENSOR_FAILURE] 			= !pdoc.get_sensor_ok();
+	warning_code[WARNING_MC_ADC_SENSOR_FAILURE] 		= !hv_mc_sense.get_sensor_ok();
+	warning_code[WARNING_BATT_ADC_SENSOR_FAILURE]		= !hv_battery_sense.get_sensor_ok();
+	warning_code[WARNING_PDOC_RELAY_FAILURE] 			= !pdoc.check_pdoc_relay_fail();
 	
 	return array_to_uint8(warning_code, 8);
 }
@@ -563,15 +564,14 @@ void state_d(){
 			// In order for the device to latch into a fail, this must be disabled.
 			// and an infinite loop included to force the latch. 
 			// For testing, this is unnessesary. 
-	
-			// while(1){
-			// 	heart.set_heartbeat_state(PRECHARGE_STATE_FAIL);
-			// }
+			while(1){
+				heart.set_heartbeat_state(PRECHARGE_STATE_FAIL);
+			}
 
 			// ENSURE THIS IS REMOVED!
-			if (check_errors() == 0){
-				heart.set_heartbeat_state(PRECHARGE_STATE_IDLE);
-			}
+			// if (check_errors() == 0){
+			// 	heart.set_heartbeat_state(PRECHARGE_STATE_IDLE);
+			// }
 			break;
 
 		case PRECHARGE_STATE_IDLE:
@@ -624,6 +624,7 @@ void setup(){
 	__disable_irq();
 
 	ticker_heartbeat.attach(&heartbeat_cb, HEARTRATE);
+	heart.set_heartbeat_state(PRECHARGE_STATE_FAIL);
 
 	can1.frequency(CANBUS_FREQUENCY);
 	can1.attach(&can1_recv_cb);
@@ -632,19 +633,18 @@ void setup(){
     air_power.fall(&air_power_lost_cb);
 
 	imd.start();
-	// Re-enable interrupts again, now that startup has competed.
+	// Re-enable interrupts again, now that interrupts are ready.
 	__enable_irq();
 
+	// Allow some time to settle!
+	wait(1);
+
 	// Assume device in failure mode, hold until all start up faults then 
-	// force into idle mode.
-	heart.set_heartbeat_state(PRECHARGE_STATE_FAIL);
+	// force into idle mode. Mandated by EV.8.2.3.
 	do {
 		update_precharge();
 	} while (heart.get_error_code(0) > 0);
 	heart.set_heartbeat_state(PRECHARGE_STATE_IDLE);
-
-	// Allow some time to settle!
-	wait(1);
 }
 
 int main(){

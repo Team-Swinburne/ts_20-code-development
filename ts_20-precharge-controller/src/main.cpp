@@ -82,6 +82,7 @@ PC_15/OSC32OUT (3.3V)*
 
 #include "imd.h"
 #include "orion.h"
+#include "watchdogs.h"
 
 //-----------------------------------------------
 // Device Parameters
@@ -161,7 +162,7 @@ typedef enum CAN_DIGITAL_1_SIGNALS{
 	CAN_DIGITAL_1_SPARE_6,
 	CAN_DIGITAL_1_SPARE_7,
 } can_digital_1_signals_t;
-
+Orion af(PC_13);
 //-----------------------------------------------
 // Error/Warning Flags
 //-----------------------------------------------
@@ -388,7 +389,7 @@ void can1_trans_cb(){
 	int dlc = 8;
 	TX_data[CAN_ERROR_1] 		= heart.get_error_code(0);
 	TX_data[CAN_ERROR_2] 		= heart.get_error_code(1);
-	TX_data[CAN_WARNING_1] 		= heart.get_error_code(0);
+	TX_data[CAN_WARNING_1] 		= heart.get_warning_code(0);
 	TX_data[CAN_WARNING_2] 		= heart.get_warning_code(1);
 	TX_data[CAN_AMS_OK] 		= orion.get_AMS_ok();
 	TX_data[CAN_PDOC_OK] 		= pdoc.get_pdoc_ok();
@@ -399,11 +400,11 @@ void can1_trans_cb(){
 	TX_data[CAN_DIGITAL_1_AIR_POWER] 			= air_power.read();
 	TX_data[CAN_DIGITAL_1_AIR_NEG_RELAY] 		= AIR_neg_relay.get_relay();
 	TX_data[CAN_DIGITAL_1_AIR_NEG_FEEDBACK] 	= AIR_neg_relay.get_feedback();
-	TX_data[CAN_DIGITAL_1_AIR_POS_RELAY] 		= AIR_neg_relay.get_relay();
-	TX_data[CAN_DIGITAL_1_AIR_POS_FEEDBACK] 	= AIR_neg_relay.get_feedback();
+	TX_data[CAN_DIGITAL_1_AIR_POS_RELAY] 		= AIR_pos_relay.get_relay();
+	TX_data[CAN_DIGITAL_1_AIR_POS_FEEDBACK] 	= AIR_pos_relay.get_feedback();
 	TX_data[CAN_DIGITAL_1_PRECHARGE_RELAY] 		= precharge_relay.get_relay();
-	TX_data[CAN_DIGITAL_1_SPARE_6] 				= 0;
-	TX_data[CAN_DIGITAL_1_SPARE_6] 				= 0;
+	TX_data[CAN_DIGITAL_1_SPARE_6] 				= (char)(orion.get_low_voltage()/10);
+	TX_data[CAN_DIGITAL_1_SPARE_7] 				= (char)(orion.get_high_voltage()/10);
 	can_transmission_h(CANMessage(CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS + TS_DIGITAL_1_ID, &TX_data[0], dlc));
 
 	TX_data[CAN_ANALOGUE_1_PDOC_TEMPERATURE_1] 			= (char)(pdoc.get_pdoc_temperature() >> 8);
@@ -478,8 +479,8 @@ void can1_recv_cb(){
 			
 			// Set Orion BMS voltages and check safe to use.
 			case (CAN_ORION_BMS_BASE_ADDRESS + TS_ANALOGUE_1_ID):
-				orion.set_low_voltage(can1_msg.data[0]);
-				orion.set_high_voltage(can1_msg.data[1]);
+				orion.set_low_voltage(can1_msg.data[0]*10);
+				orion.set_high_voltage(can1_msg.data[1]*10);
 				break;
 
 			// Set orion temperatures and check safe to use.

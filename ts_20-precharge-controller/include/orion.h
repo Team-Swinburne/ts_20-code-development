@@ -123,7 +123,7 @@ public:
 
 	void set_AMS_ok(bool _AMS_ok){AMS_ok = _AMS_ok;}
 	void set_low_voltage(int _low_voltage){low_voltage = _low_voltage;}
-	void set_high_voltage(int _high_voltage){low_voltage = _high_voltage;}
+	void set_high_voltage(int _high_voltage){high_voltage = _high_voltage;}
 	void set_high_temperature(int _high_temperature){high_temperature = _high_temperature;}
 
 	bool get_AMS_ok(){return AMS_ok;}

@@ -1,6 +1,6 @@
 #include <mbed.h>
 
-#define ORION_TIMEOUT_INTERVAL 3		// 500 ms
+#define ORION_TIMEOUT_INTERVAL 3		// 500 ms or 3s?
 
 // ABSOLUTE MAXIMUMS - Not preferences, set preferences within the Orion. 
 #define MINIMUM_CELL_VOLTAGE 2400		// 2400mV

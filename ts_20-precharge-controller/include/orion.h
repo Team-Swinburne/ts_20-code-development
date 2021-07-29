@@ -35,7 +35,7 @@ public:
 		orion_timeout.detach();
 		orion_connection_state = true;
 		orion_timeout.attach(callback(this, &Orion::disconnect_orion_cb), ORION_TIMEOUT_INTERVAL);
-		AMS_ok = !check_orion_safe();
+		AMS_ok_status = !check_orion_safe();
 	}
 
 	/** connect_orion(_relay_status)
@@ -52,7 +52,7 @@ public:
 		orion_timeout.detach();
 		orion_connection_state = true;
 		orion_timeout.attach(callback(this, &Orion::disconnect_orion_cb), ORION_TIMEOUT_INTERVAL);
-		AMS_ok = !check_orion_safe();
+		AMS_ok_status = !check_orion_safe();
 	}
 
 	/** disconnect_orion()
@@ -62,7 +62,7 @@ public:
      */
 	void disconnect_orion_cb(){
 		orion_connection_state = false;
-		AMS_ok = 0;
+		AMS_ok_status = 0;
 	}
 
 	/** check_orion_state()
@@ -126,7 +126,7 @@ public:
 	void set_high_voltage(int _high_voltage){high_voltage = _high_voltage;}
 	void set_high_temperature(int _high_temperature){high_temperature = _high_temperature;}
 
-	bool get_AMS_ok(){return AMS_ok;}
+	bool get_AMS_ok(){return AMS_ok_status;}
 	int get_low_voltage(){return low_voltage;}
 	int get_high_voltage(){return high_voltage;}
 	int get_high_temperature(){return high_temperature;}
@@ -135,6 +135,7 @@ private:
 	DigitalOut AMS_ok;
 
 	bool orion_connection_state;
+	bool AMS_ok_status;
 
 	uint8_t relay_status;
 

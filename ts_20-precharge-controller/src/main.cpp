@@ -113,6 +113,7 @@ typedef enum PREcHARGE_STATES {
 	PRECHARGE_STATE_PRECHARGING,
 	PRECHARGE_STATE_PRECHARGING_TIMER,
 	PRECHARGE_STATE_PRECHARGED,
+	PRECHARGE_STATE_DRIVE,
 } precharge_states_t;
 
 //-----------------------------------------------
@@ -225,6 +226,10 @@ InterruptIn air_power(PIN_AIR_POWER);
 Relay precharge_relay(PIN_PRECHARGE_RELAY);
 AIR AIR_neg_relay(PIN_AIR_NEG_RELAY, PIN_AIR_NEG_RELAY_FB);
 AIR AIR_pos_relay(PIN_AIR_POS_RELAY, PIN_AIR_POS_RELAY_FB);
+
+Watchdogs UCM4_Inverter;
+Watchdogs UCM5_Accumulator;
+Watchdogs Motor_Controller;
 
 DigitalOut can1_rx_led(PIN_CAN1_RX_LED);
 DigitalOut can1_tx_led(PIN_CAN1_TX_LED);
@@ -449,13 +454,26 @@ void can1_recv_cb(){
 			
 			// Use precharge button to begin precharge sequence.
 			case (CAN_MOTEC_THROTTLE_CONTROLLER_BASE_ADDRESS + TS_DIGITAL_1_ID):
-				// Need to add wrap around for button!
-				if (heart.get_heartbeat_state() == 1){
+				// check if precharge button is pressed
+				if (can1_msg.data[0] == 1)
+					if (heart.get_heartbeat_state() == PRECHARGE_STATE_IDLE){
                     // pc.printf("Precharge button pressed, starting precharge routine\r\n");
 					start_precharge_sequence_cb();
                 }
+
+				if (can1_msg.data[0] == 2)
+					if (heart.get_heartbeat_state() == PRECHARGE_STATE_PRECHARGED){
+                    // pc.printf("Precharge button pressed, starting precharge routine\r\n");
+					heart.set_heartbeat_state(PRECHARGE_STATE_DRIVE);
+                }
+
 				break;
-            
+            case (CAN_UCM4_BASE_ADDRESS+TS_ERROR_WARNING_ID):
+				UCM4_Inverter.set_device_error(can1_msg.data[1]);
+
+			case (CAN_UCM5_BASE_ADDRESS+TS_ERROR_WARNING_ID):
+				UCM5_Accumulator.set_device_error(can1_msg.data[1]);
+
 			// Use charger presense to begin precharge sequence.
             case (CAN_TC_CHARGER_STATUS_ID):
                 if (heart.get_heartbeat_state() == 1){
@@ -556,6 +574,9 @@ State Deamon
 	*/
 void state_d(){
 	update_precharge();
+	if (heart.get_error_code(0) > 0){
+		heart.set_heartbeat_state(PRECHARGE_STATE_FAIL);
+	}
 
 	switch (heart.get_heartbeat_state()){
 		case PRECHARGE_STATE_FAIL:
@@ -565,9 +586,9 @@ void state_d(){
 			// In order for the device to latch into a fail, this must be disabled.
 			// and an infinite loop included to force the latch. 
 			// For testing, this is unnessesary. 
-			while(1){
-				heart.set_heartbeat_state(PRECHARGE_STATE_FAIL);
-			}
+			//while(1){
+			//	heart.set_heartbeat_state(PRECHARGE_STATE_FAIL);
+			//}
 
 			// ENSURE THIS IS REMOVED!
 			// if (check_errors() == 0){
@@ -601,14 +622,27 @@ void state_d(){
 			break;
 			
 		case PRECHARGE_STATE_PRECHARGED:
-			// The drive or charging state fo the vehicle. This state is deactivated by breaking the 
+			// Precharged state, waiting for drive button or charging state.This state is deactivated by breaking the 
+			// green loop. The intended way being the cockpit E-Stop, or by power cycling the vehicle...
+			// Otherwise something's gone wrong.
+			relay_state_precharged();
+			break;
+		case PRECHARGE_STATE_DRIVE:
+			// The drive of the vehicle. This state is deactivated by breaking the 
 			// green loop. The intended way being the cockpit E-Stop, or by power cycling the vehicle...
 			// Otherwise something's gone wrong.
 			relay_state_precharged();
 			break;
 	}
 }
-
+/*
+	Since there are only 2 controllable safety loop relay on the precharge, i.e. IMD and Orion, 
+	we ultilise the orion relay to also trigger based on other events in the car such as pump fault
+	or Motor Controller fault
+*/
+void safetyloop_d() {
+	orion.set_AMS_ok(orion.get_AMS_ok() && !UCM4_Inverter.get_device_ok() && !UCM5_Accumulator.get_device_ok());
+}
 //-----------------------------------------------
 // Initialisations
 //-----------------------------------------------
@@ -659,6 +693,7 @@ int main(){
 	// Program loop. Error checking handled within state deamon.
 	while(1){
 		state_d();
+		safetyloop_d();
 	}
 
 	pc.printf("Is this a BSOD?");

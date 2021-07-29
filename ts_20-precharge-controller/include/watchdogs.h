@@ -32,18 +32,22 @@ public:
         device_connection_status = DISCONNECTED;
 
     }
-    bool check_device() {
-        if (device_error && device_connection_status) {
-            return true;
-        }
-        return false;
-    }
 
     void set_device_error(bool _device_error){device_error = _device_error;}
     bool get_device_ok(){return check_device();}
 private:
-    const float TIMEOUT_INTERVAL;
+    const float TIMEOUT_INTERVAL = -1;
 
     Timeout device_timeout;
-    bool device_connection_status = DISCONNECTED, device_error;
+
+    bool device_connection_status = DISCONNECTED;
+    bool device_error = true;
+
+    bool check_device() {
+        if (TIMEOUT_INTERVAL > -1)
+            if (!device_error && device_connection_status) {
+                return true;
+            }
+        else return device_error;
+    }
 };

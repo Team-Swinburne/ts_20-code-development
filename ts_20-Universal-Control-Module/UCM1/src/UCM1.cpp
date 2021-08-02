@@ -30,16 +30,16 @@
 #include <eXoCAN.h>
 #include "TickerInterrupt.h"
 #include "can_addresses.h"
-#include "Arduino.h"
+
 /*--------------------------------------------------------------------------- 
 `								INTERFACES 
 ---------------------------------------------------------------------------*/
 
 // I2C Interface
 Adafruit_ADS1115 ads;
-#define Serial_UART_INSTANCE    1 //ex: 2 for Serial2 (USART2)
-#define PIN_Serial_RX           PA10
-#define PIN_Serial_TX           PA9
+#define Serial1_UART_INSTANCE    1 //ex: 2 for Serial2 (USART2)
+#define PIN_Serial1_RX           PA10
+#define PIN_Serial1_TX           PA9
 
 // CANBus Interface
 eXoCAN can;
@@ -232,8 +232,8 @@ void updateDrivers() {
 // print values on to serial
 void SerialPrint () {
 	//Digital Input 
-  	Serial.print("Digital Input 1: ");  Serial.println(digitalRead(pin_DigIn1)); 
-  	Serial.print("Digital Input 2: ");  Serial.println(digitalRead(pin_DigIn2)); 
+  	Serial1.print("Digital Input 1: ");  Serial1.println(digitalRead(pin_DigIn1)); 
+  	Serial1.print("Digital Input 2: ");  Serial1.println(digitalRead(pin_DigIn2)); 
 }
 
 /*--------------------------------------------------------------------------- 
@@ -242,8 +242,8 @@ void SerialPrint () {
 
 void setup()
 {
-  	Serial.begin(250000);
-  	Serial.print("Start");
+  	Serial1.begin(250000);
+  	Serial1.print("Start");
 
   	GPIO_Init();
 

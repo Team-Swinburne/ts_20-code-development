@@ -35,14 +35,14 @@ to the device.
 */
 
 #define CAN_ORION_BMS_BASE_ADDRESS                  0x100
-#define CAN_BRAKE_MODULE_BASE_ADDRESS               0x150
-#define CAN_MOTEC_THROTTLE_CONTROLLER_BASE_ADDRESS  0x200
-#define CAN_AMK_MOTOR_CONTROLLER_BASE_ADDRESS       0x250
-#define CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS       0x300
-#define CAN_UCM_BASE_ADDRESS                        0x350       // Note that for each UCM, there will be multiple addresses 0x510, 0x520,... etc.      
-#define CAN_ORION_TEMP_MODULE_BASE_ADDRESS          0x400
-#define CAN_DISCHARGE_MODULE_BASE_ADDRESS           0x450
-#define CAN_DASH_BASE_ADDRESS                       0x500
+#define CAN_BRAKE_MODULE_BASE_ADDRESS               0x200
+#define CAN_MOTEC_THROTTLE_CONTROLLER_BASE_ADDRESS  0x300
+#define CAN_AMK_MOTOR_CONTROLLER_BASE_ADDRESS       0x400
+#define CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS       0x500
+#define CAN_UCM_BASE_ADDRESS                        0x600       // Note that for each UCM, there will be multiple addresses 0x510, 0x520,... etc.      
+#define CAN_ORION_TEMP_MODULE_BASE_ADDRESS          0x700
+#define CAN_DISCHARGE_MODULE_BASE_ADDRESS           0x800
+#define CAN_DASH_BASE_ADDRESS                       0x900
 
 // Miscillanious
 #define CAN_ORION_BMS_RINEHART_LIMITS				0x202

@@ -170,7 +170,7 @@ public:
      */
 	bool update_adc(){
 		voltage = HV_voltageScaling(adc_to_voltage(high_voltage_adc.readADC_SingleEnded(HV_ADC_SENSOR_CHANNEL), ADC_RESOLUTION, ADC_REF_VOLTAGE));
-	    tsal_reference = adc_to_voltage(high_voltage_adc.readADC_SingleEnded(HV_ADC_TSAL_CHANNEL), ADC_RESOLUTION, ADC_REF_VOLTAGE)
+	    tsal_reference = adc_to_voltage(high_voltage_adc.readADC_SingleEnded(HV_ADC_TSAL_CHANNEL), ADC_RESOLUTION, ADC_REF_VOLTAGE);
 		// pc.printf("MC_VOLTAGE: %d \r\n", mc_voltage);
 	    return sensor_ok();
 	}

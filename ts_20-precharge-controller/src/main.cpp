@@ -621,14 +621,24 @@ int main(){
     pc.printf("Starting ts_20 Precharge Controller (STM32F103C8T6 128k) \
 	\r\nCOMPILED: %s\r\n",__TIMESTAMP__);
 
-	setup();
+	// setup();
 
 	pc.printf("Startup completed!\r\n");
 
 	// Program loop. Error checking handled within state deamon.
 	while(1){
-		// wait(0.1);
-		state_d();
+		// precharge_relay.set_relay(!precharge_relay.get_relay());
+		// AIR_neg_relay.set_relay(!AIR_neg_relay.get_relay());
+		// AIR_pos_relay.set_relay(!AIR_pos_relay.get_relay());
+		precharge_relay.activate_relay();
+		AIR_neg_relay.activate_relay();
+		AIR_pos_relay.activate_relay();
+		wait(5);	
+		precharge_relay.disable_relay();
+		AIR_neg_relay.disable_relay();
+		AIR_pos_relay.disable_relay();
+		wait(5);
+		// state_d();
 	}
 
 	pc.printf("Is this a BSOD?");

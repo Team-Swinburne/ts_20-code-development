@@ -240,7 +240,8 @@ DigitalOut can1_tx_led(PIN_CAN1_TX_LED);
 
 // Programmable Interrupt Timer Instances
 Ticker ticker_heartbeat;
-Ticker ticker_can_transmit;
+Ticker ticker_can_transmit1;
+Ticker ticker_can_transmit2;
 Timeout timeout_precharge;
 
 //-----------------------------------------------
@@ -384,11 +385,12 @@ void start_precharge_sequence_cb(){
 }
 
 	/*
-CAN Transmit
+CAN Transmit 1
 	Sent CAN messages relevant to the device. These should follow the Team Swinburne
-	Standard format for ease of debugging.
+	Standard format for ease of debugging. They are split in 2 to ensure callback executing time
+	is not too long for the interupt.
 	*/
-void can1_trans_cb(){
+void can1_trans_cb1(){
 	// can1_tx_led = !can1_tx_led;
 	char TX_data[8] = {0};
 	int dlc = 8;
@@ -412,6 +414,17 @@ void can1_trans_cb(){
 	TX_data[CAN_DIGITAL_1_SPARE_7] 				= (char)(orion.get_high_voltage()/10);
 	can_transmission_h(CANMessage(CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS + TS_DIGITAL_1_ID, &TX_data[0], dlc));
 
+}
+
+	/*
+CAN Transmit 2
+	Sent CAN messages relevant to the device. These should follow the Team Swinburne
+	Standard format for ease of debugging. They are split in 2 to ensure callback executing time
+	is not top long for the interupt.
+	*/
+void can1_trans_cb2(){
+	char TX_data[8] = {0};
+	int dlc = 8;
 	TX_data[CAN_ANALOGUE_1_PDOC_TEMPERATURE_1] 			= (char)(pdoc.get_pdoc_temperature() >> 8);
 	TX_data[CAN_ANALOGUE_1_PDOC_TEMPERATURE_2] 			= (char)(pdoc.get_pdoc_temperature() & 0xFF);
 	TX_data[CAN_ANALOGUE_1_PDOC_REF_TEMPERATURE_1] 		= (char)(pdoc.get_pdoc_ref_temperature() >> 8);
@@ -432,7 +445,6 @@ void can1_trans_cb(){
 	TX_data[CAN_ANALOGUE_2_SPARE_7] 		= 0;
 	can_transmission_h(CANMessage(CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS + TS_ANALOGUE_2_ID, &TX_data[0], dlc));
 }
-
 	/*
 CAN Receive
 	Message box for CANBUS. Switch handles which message is being serviced.
@@ -663,7 +675,11 @@ void setup(){
 
 	can1.frequency(CANBUS_FREQUENCY);
 	can1.attach(&can1_recv_cb);
-	ticker_can_transmit.attach(&can1_trans_cb, CAN_BROADCAST_INTERVAL);
+	ticker_can_transmit1.attach(&can1_trans_cb1, CAN_BROADCAST_INTERVAL);
+
+	wait(1);
+
+	ticker_can_transmit2.attach(&can1_trans_cb2, CAN_BROADCAST_INTERVAL);
 	
     air_power.fall(&air_power_lost_cb);
 

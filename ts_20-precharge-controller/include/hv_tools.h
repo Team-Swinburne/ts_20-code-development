@@ -1,5 +1,10 @@
 #include <mbed.h>
 
+// ADS1115 ADDR PINS: GND 48 - VDD 49 - SDA 4A - SCL 4B
+#define PDOC_ADC_ADDR				0x4B
+#define MC_HV_SENSE_ADC_ADDR		0x49
+#define BATT_HV_SENSE_ADC_ADDR		0x48
+
 #define ADC_RESOLUTION 32768
 #define ADC_REF_VOLTAGE 6.144
 
@@ -75,14 +80,36 @@ public:
 		return _pdoc_ok;
 	}
 
+	/** check_pdoc_relay_fail()
+     *
+	 * Checks the PDOC's reference value and the relay state match. Checks comparitor is outputting.
+	 * 
+     *  @returns True on fail.
+     *  
+     */
+	bool check_pdoc_relay_fail(){
+		bool soft_pdoc_fail = false;
+		if (pdoc_temperature > pdoc_ref_temperature){
+			soft_pdoc_fail = true;
+		}
+
+		if (soft_pdoc_fail != PDOC_ok){
+			return false;
+		}
+		return true;
+	}
+
 	int get_pdoc_ok(){return PDOC_ok.read();}
 	int get_pdoc_temperature(){return pdoc_temperature;}
 	int get_pdoc_ref_temperature(){return pdoc_ref_temperature;}
+	bool get_sensor_ok(){return sensor_ok_flag;}
 	
 
 private:
 	int16_t pdoc_temperature;
 	int16_t pdoc_ref_temperature;
+
+	bool sensor_ok_flag;
 
 	DigitalIn PDOC_ok;
 
@@ -122,6 +149,7 @@ private:
 		} else {
             sensor_ok = false;
         }
+		sensor_ok_flag = sensor_ok;
 		return sensor_ok;
 	}
 };
@@ -177,12 +205,15 @@ public:
 
 	int get_voltage(){return voltage;}
 	int get_tsal_reference(){return tsal_reference;}
+	bool get_sensor_ok(){return sensor_ok_flag;}
 
 private:
     float R_CAL;
 
 	int16_t voltage;
 	int16_t tsal_reference;
+
+	bool sensor_ok_flag;
 
 	Adafruit_ADS1115 high_voltage_adc;
 
@@ -217,6 +248,7 @@ private:
         } else {
         	sensor_ok = false;
         }
+		sensor_ok_flag = sensor_ok;
 		return sensor_ok;
     }
 		

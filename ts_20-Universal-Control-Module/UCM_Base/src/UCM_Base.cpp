@@ -1,6 +1,6 @@
 // TEAM SWINBURNE - UNIVERSAL CONTROL MODULE - HARDWARE REVISION 0
 // BEN MCINNES, NAM TRAN, BRADLEY REED, PATRICK CURTAIN
-// REVISION 2 (24/06/2021)
+// REVISION 2.1 (29/07/2021)
 
 /***************************************************************************
     TickerInterrupt.cpp
@@ -17,6 +17,7 @@
     0.0        No clue        Initial coding
     1.0        20/06/2021     Updated with ticker class and pcb_temp
     2.0        24/06/2021     Rewrite Ticker as sperated header TickerInterrupt
+	2.1		   29/07/2021	  Organize code
 
 ****************************************************************************/
 
@@ -70,40 +71,6 @@ static msgFrame	heartFrame {.len = 6},
                	analogFrame1;
 
 uint8_t rxData[8];
-
-/*--------------------------------------------------------------------------- 
-`								CLASSES 
----------------------------------------------------------------------------*/
-
-class PCB_Temp {
-public:
-  PCB_Temp(uint8_t pin) {
-    _pin = pin;
-  }
-  int read(){
-		return resistanceToTemperature(voltageToResistance(3.3*analogRead(_pin)));
-	}
-private:
-  const float r1 = 10000;
-	const float vin = 4.35;
-
-	const float BETA = 3430;
-	const float R2 = 10000;
-	const float T2 = 25 + 270;
-
-	float _resistance;
-	int _temperature;
-  uint8_t _pin;
-
-	float voltageToResistance(float vout) {
-		return r1/((vin/vout)-1);
-	}
-
-	uint8_t resistanceToTemperature(float R1){
-		return ((BETA * T2)/(T2 * log(R1/R2) + BETA))-270;
-	}
-};
-PCB_Temp pcb_temperature(PA0);
 
 /*--------------------------------------------------------------------------- 
 `								FUNCTIONS 

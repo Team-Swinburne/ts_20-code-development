@@ -67,9 +67,9 @@ public:
 
 	/** check_orion_state()
      *
-	 * Checks if the low, high, or overtemperature values are within range.
+	 * Checks whether the Orion is managing it's relay correctly
 	 * 
-	 * @returns whether the Orion is managing it's relay correctly.
+	 * @returns 0 if relay is correct
 	 * 
      */
 	bool check_orion_state(){
@@ -81,9 +81,9 @@ public:
 
 	/** check_low_voltage()
      *
-	 * Checks if the low, high, or overtemperature values are within range.
+	 * Checks if the cells' low voltage is within range.
 	 * 
-	 * @returns True on fail.
+	 * @returns 0 if low voltage is valid.
 	 * 
      */
 	bool check_low_voltage(){
@@ -95,9 +95,9 @@ public:
 
 	/** check_high_voltage()
      *
-	 * Checks if the low, high, or overtemperature values are within range.
+	 * Checks if the cells' low voltage is within range.
 	 * 
-	 * @returns True on fail.
+	 * @returns 0 if high voltage is valid.
 	 * 
      */
 	bool check_high_voltage(){
@@ -107,11 +107,11 @@ public:
 		return false;
 	}
 
-	/** check_high_temperature()
+	/** check_overtemperature()
      *
-	 * Checks if the low, high, or overtemperature values are within range.
+	 * Checks if the overtemperatured.
 	 * 
-	 * @returns True on fail.
+	 * @returns 1 if the cells are too hot.
 	 * 
      */
 	bool check_overtemperature(){

@@ -1,23 +1,23 @@
 // TEAM SWINBURNE - UNIVERSAL CONTROL MODULE - HARDWARE REVISION 0
 // BEN MCINNES, NAM TRAN, BRADLEY REED, PATRICK CURTAIN
-// REVISION 2.1 (29/07/2021)
+// REVISION 2 (24/06/2021)
 
 /***************************************************************************
-    TickerInterrupt.cpp
+    UCM1.cpp
 
     INTRO
     This is the base Arduino code for the UCM
 	DO NOT change this if you want to implement it on one of the UCMs. Instead, create another copy
 	with name UCM{number}, e.g. UCM1
 
-	As of 01/07/2021, UCM1 & 2 has a fried isolation chip so we use the low side drive for pwm fan control
+	UCM 1 & 2 has 4 digital input instead of 2 like the other fan. Drive 1 is purely on off while Driver 2
+	can do PWM (low side).
 
     Revision     Date          Comments
     --------   ----------     ------------
     0.0        No clue        Initial coding
     1.0        20/06/2021     Updated with ticker class and pcb_temp
     2.0        24/06/2021     Rewrite Ticker as sperated header TickerInterrupt
-	2.1		   29/07/2021	  Organize code
 
 ****************************************************************************/
 
@@ -38,8 +38,8 @@
 // I2C Interface
 Adafruit_ADS1115 ads;
 #define Serial1_UART_INSTANCE    1 //ex: 2 for Serial2 (USART2)
-#define PIN_Serial1_RX           PA10
-#define PIN_Serial1_TX           PA9
+#define PIN_SERIAL1_RX           PA10
+#define PIN_SERIAL1_TX           PA9
 
 // CANBus Interface
 eXoCAN can;
@@ -49,12 +49,12 @@ eXoCAN can;
 `								GPIOs 
 ---------------------------------------------------------------------------*/
 
-#define pin_D1                          PB10  // Digital Input 1
-#define pin_D2                          PB11  // Digital Input 2
-#define pin_Driver1                     PB15  // Driver 1 (24V)
-#define pin_Driver2                     PB14  // Driver 2 (24V)
-#define pin_PWM_Driver1                 PB0   // PWM Driver 1 (5V)
-#define pin_PWM_Driver2                 PB1   // PWM Driver 2 (5V)
+#define pin_DigIn1               PB10  // Digital Input 1
+#define pin_DigIn2               PB11  // Digital Input 2
+#define pin_DigIn3				 PB12  // Digital Input 3
+#define pin_DigIn4				 PB13  // Digital Input 4
+#define pin_Driver1              PB15  // Driver 1 (24V)
+#define pin_Driver2              PB1   // Driver 2 (PWM)
 
 /*--------------------------------------------------------------------------- 
 `								GLOBALS 
@@ -73,6 +73,40 @@ static msgFrame	heartFrame {.len = 6},
 uint8_t rxData[8];
 
 /*--------------------------------------------------------------------------- 
+`								CLASSES 
+---------------------------------------------------------------------------*/
+
+class PCB_Temp {
+public:
+  PCB_Temp(uint8_t pin) {
+    _pin = pin;
+  }
+  int read(){
+		return resistanceToTemperature(voltageToResistance(3.3*analogRead(_pin)));
+	}
+private:
+  const float r1 = 10000;
+	const float vin = 4.35;
+
+	const float BETA = 3430;
+	const float R2 = 10000;
+	const float T2 = 25 + 270;
+
+	float _resistance;
+	int _temperature;
+  uint8_t _pin;
+
+	float voltageToResistance(float vout) {
+		return r1/((vin/vout)-1);
+	}
+
+	uint8_t resistanceToTemperature(float R1){
+		return ((BETA * T2)/(T2 * log(R1/R2) + BETA))-270;
+	}
+};
+PCB_Temp pcb_temperature(PA0);
+
+/*--------------------------------------------------------------------------- 
 `								FUNCTIONS 
 ---------------------------------------------------------------------------*/
 
@@ -82,14 +116,14 @@ void GPIO_Init() {
 	pinMode(PC13, OUTPUT);
   
 	// Configuring the Digital Input Pins.
-  	pinMode(pin_D1, INPUT);
-  	pinMode(pin_D2, INPUT);
+  	pinMode(pin_DigIn1, INPUT);
+  	pinMode(pin_DigIn2, INPUT);
+	pinMode(pin_DigIn3, INPUT);
+	pinMode(pin_DigIn4, INPUT);
 
 	// Configuring Driver Pins.
   	pinMode(pin_Driver1, OUTPUT);
   	pinMode(pin_Driver2, OUTPUT);
-  	pinMode(pin_PWM_Driver1, OUTPUT);
-  	pinMode(pin_PWM_Driver2, OUTPUT);
 }
 
 // Transmit hearbeat, letting the other pals know you're alive
@@ -101,12 +135,13 @@ void heartbeat() {
 	digitalToggle(PC13);
 }
 
-// Transmit messages with low priorities
+// Transmit digital message
 void canTX_Digital1() {
   	can.transmit(CAN_UCM_BASE_ADDRESS+TS_DIGITAL_1_ID, 
   				digitalFrame1.bytes, 
 				digitalFrame1.len);
 }
+// Transmit analog message
 void canTX_Analog1() {
   	can.transmit(CAN_UCM_BASE_ADDRESS+TS_ANALOGUE_1_ID, 
   				analogFrame1.bytes, 
@@ -145,8 +180,12 @@ void canRX() {
 // digital update daemon
 void updateDigital() {
 
-  digitalFrame1.bytes[0] = (byte)(digitalRead(pin_D1) << 1);
-  digitalFrame1.bytes[0] |= (byte)(digitalRead(pin_D2));
+  digitalFrame1.bytes[0] = (byte)(digitalRead(pin_DigIn1) << 3);
+  digitalFrame1.bytes[0] |= (byte)(digitalRead(pin_DigIn2) << 2);
+  digitalFrame1.bytes[0] |= (byte)(digitalRead(pin_DigIn3) << 1);
+  digitalFrame1.bytes[0] |= (byte)(digitalRead(pin_DigIn4));
+
+  digitalFrame1.bytes[0] = 1;
 }
 
 // analog update daemon
@@ -186,17 +225,15 @@ void updateHeartdata() {
 
 // update the drivers value, both PWM and 24V drivers
 void updateDrivers() {
-	analogWrite(pin_PWM_Driver1,rxData[0]);
-	analogWrite(pin_PWM_Driver2,rxData[1]);
 	digitalWrite(pin_Driver1,rxData[2]);
-	digitalWrite(pin_Driver2,rxData[3]);
+	digitalWrite(pin_Driver2,rxData[1]);
 }
 
 // print values on to serial
 void SerialPrint () {
 	//Digital Input 
-  	Serial1.print("Digital Input 1: ");  Serial1.println(digitalRead(pin_D1)); 
-  	Serial1.print("Digital Input 2: ");  Serial1.println(digitalRead(pin_D2)); 
+  	Serial1.print("Digital Input 1: ");  Serial1.println(digitalRead(pin_DigIn1)); 
+  	Serial1.print("Digital Input 2: ");  Serial1.println(digitalRead(pin_DigIn2)); 
 }
 
 /*--------------------------------------------------------------------------- 
@@ -222,7 +259,7 @@ void setup()
 	TickerInterrupt Ticker(TIM2,1);
   	Ticker.start();
   	Ticker.attach(heartbeat,INTERVAL_HEARTBEAT);
-  	Ticker.attach(canTX_criticalError,INTERVAL_ERROR_WARNING_CRITICAL);
+  	//Ticker.attach(canTX_criticalError,INTERVAL_ERROR_WARNING_CRITICAL);
   	Ticker.attach(canTX_Digital1,INTERVAL_ERROR_WARNING_LOW_PRIORITY);
 	Ticker.attach(canTX_Analog1,INTERVAL_ERROR_WARNING_LOW_PRIORITY);
 }

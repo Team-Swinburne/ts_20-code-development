@@ -20,8 +20,8 @@ public:
                         device_connection_status(DISCONNECTED) {}
     Watchdogs(float interval) : TIMEOUT_INTERVAL(interval) {}
 
-    void connect() {
-        if (TIMEOUT_INTERVAL > 0) {
+    void connect(bool errorFlag) {
+        if (TIMEOUT_INTERVAL > 0 && errorFlag == 0) {
             device_timeout.detach();
             device_connection_status = CONNECTED;
             device_timeout.attach(callback(this, &Watchdogs::disconnect), TIMEOUT_INTERVAL);
@@ -33,21 +33,11 @@ public:
 
     }
 
-    void set_device_error(bool _device_error){device_error = _device_error;}
-    bool get_device_ok(){return check_device();}
+    bool get_device_ok(){return device_connection_status;}
 private:
     const float TIMEOUT_INTERVAL = -1;
 
     Timeout device_timeout;
 
     bool device_connection_status = DISCONNECTED;
-    bool device_error = true;
-
-    bool check_device() {
-        if (TIMEOUT_INTERVAL > -1)
-            if (!device_error && device_connection_status) {
-                return true;
-            }
-        else return device_error;
-    }
 };

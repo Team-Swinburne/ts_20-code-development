@@ -477,7 +477,7 @@ void can1_recv_cb(){
 					if (heart.get_heartbeat_state() == PRECHARGE_STATE_PRECHARGED){
                     // pc.printf("Precharge button pressed, starting precharge routine\r\n");
 					heart.set_heartbeat_state(PRECHARGE_STATE_DRIVE);
-                }
+                } 	
 
 				break;
             case (CAN_UCM4_BASE_ADDRESS+TS_ERROR_WARNING_ID):
@@ -598,9 +598,9 @@ void state_d(){
 			// In order for the device to latch into a fail, this must be disabled.
 			// and an infinite loop included to force the latch. 
 			// For testing, this is unnessesary. 
-			//while(1){
-			//	heart.set_heartbeat_state(PRECHARGE_STATE_FAIL);
-			//}
+			while(1){
+				heart.set_heartbeat_state(PRECHARGE_STATE_FAIL);
+			}
 
 			// ENSURE THIS IS REMOVED!
 			// if (check_errors() == 0){

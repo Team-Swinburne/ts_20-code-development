@@ -36,8 +36,8 @@ to the device.
 
 #define CAN_ORION_BMS_BASE_ADDRESS                  0x100
 #define CAN_BRAKE_MODULE_BASE_ADDRESS               0x150
-#define CAN_MOTEC_THROTTLE_CONTROLLER_BASE_ADDRESS  0x200
-#define CAN_AMK_MOTOR_CONTROLLER_BASE_ADDRESS       0x250
+#define CAN_AMK_MOTOR_CONTROLLER_BASE_ADDRESS       0x200
+#define CAN_MOTEC_THROTTLE_CONTROLLER_BASE_ADDRESS  0x250
 #define CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS       0x300
 
 #define CAN_UCM1_BASE_ADDRESS                       0x350       // Note that for each UCM, there will be multiple addresses 0x510, 0x520,... etc.   

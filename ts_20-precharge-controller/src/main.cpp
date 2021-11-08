@@ -485,7 +485,7 @@ void can1_recv_cb(){
 					if (heart.get_heartbeat_state() == PRECHARGE_STATE_PRECHARGED){
                     // pc.printf("Precharge button pressed, starting precharge routine\r\n");
 					heart.set_heartbeat_state(PRECHARGE_STATE_DRIVE);
-                }
+                } 	
 
 				break;
       case (CAN_UCM4_BASE_ADDRESS+TS_ERROR_WARNING_ID):

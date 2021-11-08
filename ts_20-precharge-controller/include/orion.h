@@ -18,7 +18,7 @@ public:
 	 * 
      */
 	Orion(PinName AMS_ok_pin) : AMS_ok(AMS_ok_pin) {
-		orion_connection_state = false;
+		orion_connected = false;
 		relay_status = 0;
 		low_voltage = 0;
 		high_voltage = 0;
@@ -33,9 +33,9 @@ public:
      */
 	void connect_orion(){
 		orion_timeout.detach();
-		orion_connection_state = true;
+		orion_connected = true;
 		orion_timeout.attach(callback(this, &Orion::disconnect_orion_cb), ORION_TIMEOUT_INTERVAL);
-		AMS_ok_status = !check_orion_safe();
+		AMS_ok = !check_orion_fail();
 	}
 
 	/** connect_orion(_relay_status)
@@ -50,9 +50,9 @@ public:
 	void connect_orion(uint16_t _relay_status){
 		relay_status = _relay_status;
 		orion_timeout.detach();
-		orion_connection_state = true;
+		orion_connected = true;
 		orion_timeout.attach(callback(this, &Orion::disconnect_orion_cb), ORION_TIMEOUT_INTERVAL);
-		AMS_ok_status = !check_orion_safe();
+		AMS_ok = !check_orion_fail();
 	}
 
 	/** disconnect_orion()
@@ -61,22 +61,8 @@ public:
 	 * 
      */
 	void disconnect_orion_cb(){
-		orion_connection_state = false;
-		AMS_ok_status = 0;
-	}
-
-	/** check_orion_state()
-     *
-	 * Checks whether the Orion is managing it's relay correctly
-	 * 
-	 * @returns 0 if relay is correct
-	 * 
-     */
-	bool check_orion_state(){
-		if (relay_status > 0){
-			return true;
-		}
-		return false;
+		orion_connected = false;
+		AMS_ok = false;
 	}
 
 	/** check_low_voltage()
@@ -126,16 +112,16 @@ public:
 	void set_high_voltage(int _high_voltage){high_voltage = _high_voltage;}
 	void set_high_temperature(int _high_temperature){high_temperature = _high_temperature;}
 
-	bool get_AMS_ok(){return AMS_ok_status;}
+	bool get_AMS_ok(){return AMS_ok;}
 	int get_low_voltage(){return low_voltage;}
 	int get_high_voltage(){return high_voltage;}
 	int get_high_temperature(){return high_temperature;}
+	bool get_orion_connection_ok(){return orion_connected;}
 
 private:
 	DigitalOut AMS_ok;
 
-	bool orion_connection_state;
-	bool AMS_ok_status;
+	bool orion_connected;
 
 	uint8_t relay_status;
 
@@ -145,17 +131,23 @@ private:
 
 	Timeout orion_timeout;
 
-	/** check_orion_safe()
+	/** check_orion_fail()
      *
 	 * Checks if the relay states, low, high, or overtemperature values are within range.
 	 * 
 	 * @returns True on fail.
 	 * 
      */
-	bool check_orion_safe(){
-		if (check_orion_state() || check_low_voltage() || check_high_voltage() || check_overtemperature()){
-			return true;
+	bool check_orion_fail(){
+		bool error_found = true;
+		if (relay_status > 0){
+			error_found = false;
 		}
-		return false;
+		
+		if (check_low_voltage() || check_high_voltage() || check_overtemperature()){
+			error_found = true;
+		}
+		AMS_ok = !error_found;
+		return error_found;
 	}
 };

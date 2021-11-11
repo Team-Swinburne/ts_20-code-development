@@ -566,7 +566,7 @@ uint8_t check_warnings(){
 	warning_code[WARNING_PDOC_SENSOR_FAILURE] 			= !pdoc.get_sensor_ok();
 	warning_code[WARNING_MC_ADC_SENSOR_FAILURE] 		= !hv_mc_sense.get_sensor_ok();
 	warning_code[WARNING_BATT_ADC_SENSOR_FAILURE]		= !hv_battery_sense.get_sensor_ok();
-	warning_code[WARNING_PDOC_RELAY_FAILURE] 			= !pdoc.check_pdoc_relay_fail();
+	warning_code[WARNING_PDOC_RELAY_FAILURE] 			= pdoc.check_pdoc_relay_fail();
 	
 	return array_to_uint8(warning_code, 8);
 }

@@ -631,10 +631,10 @@ void state_d(){
 			}
 			
 			relay_state_precharging();
-            //if (check_precharged()){
-				wait(3);
+      if (check_precharged()){
+				//wait(3);
 				heart.set_heartbeat_state(PRECHARGE_STATE_PRECHARGED);
-			//}
+			}
 			break;
 
 		case PRECHARGE_STATE_PRECHARGING_TIMER:

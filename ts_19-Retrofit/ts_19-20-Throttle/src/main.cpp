@@ -95,14 +95,17 @@ void check_trailbraking() {
 
 //Heartbeat - Broadcasts that the throttle is still alive and functional with a counter so we know when it has failed if it does
 void heartbeat_cb(){
+  can1_tx_led = !can1_tx_led;
   heart.update_counter();
 
 	char TX_data[2];
   int dlc = 2;
-  TX_data[0] = (char)heart.get_heartbeat_state();
-  TX_data[1] = (char)heart.get_heartbeat_counter();
+  TX_data[0] = 1;//(char)heart.get_heartbeat_state();
+  TX_data[1] = 2;//(char)heart.get_heartbeat_counter();
 
-	can1.write(CANMessage(THROTTLE_HEARTBEAT_ID, &TX_data[0], dlc)); 
+	if (can1.write(CANMessage(THROTTLE_HEARTBEAT_ID, &TX_data[0], dlc))) {
+    //can1_tx_led = !can1_tx_led;
+  }
 }
 
 void canTX_cb(){
@@ -213,25 +216,27 @@ void state_d() {
 }
 //setup on power
 void setup() {
-
-  __disable_irq(); // disable for smooth startup routine 
-  can1.frequency(250000);
-  can1.attach(&canRX_cb);
+  can1_rx_led = 1;
+  can1_tx_led = 1;
+  wait_us(1000000);
+  //__disable_irq(); // disable for smooth startup routine 
+  can1.frequency(500000);
+  //can1.attach(&canRX_cb);
 
   ticker_heartbeat.attach(&heartbeat_cb, THROTTLE_HEARTRATE);
-  ticker_buttons.attach(&checkButtons_cb,BUTTON_CHECK_INTERVAL_CHRONO);
+  //ticker_buttons.attach(&checkButtons_cb,BUTTON_CHECK_INTERVAL_CHRONO);
   ticker_can_transmit.attach(&canTX_cb, CAN_BROADCAST_INTERVAL);
 
-	__enable_irq(); // Re-enable interrupts again, now that interrupts are ready.
+	//__enable_irq(); // Re-enable interrupts again, now that interrupts are ready.
 
-  rtds.activate(100ms); //indicate throttle finished setup
+  //rtds.activate(100ms); //indicate throttle finished setup
 }
 
 int main() {
   setup();
 
   while(1) {
-    state_d();
+    //state_d();
   }
 
   return 0;

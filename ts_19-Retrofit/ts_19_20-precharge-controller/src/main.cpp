@@ -107,7 +107,7 @@ PC_15/OSC32OUT (3.3V)*
 // Precharge States
 //-----------------------------------------------
 
-typedef enum PREcHARGE_STATES {
+typedef enum PRECHARGE_STATES {
 	PRECHARGE_STATE_FAIL,
 	PRECHARGE_STATE_IDLE,
 	PRECHARGE_STATE_PRECHARGING,
@@ -210,7 +210,7 @@ CANMessage can1_msg;
 // Interfaces
 //-----------------------------------------------
 
-Heart heart(AMS_HEARTBEAT_ID, PIN_HEART_LED1, PIN_PCB_TEMP);
+Heart heart(CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS + TS_HEARTBEAT_ID, PIN_HEART_LED1, PIN_PCB_TEMP);
 
 Orion orion(PIN_AMS_OK);
 PDOC pdoc(i2c1, PDOC_ADC_ADDR, PIN_PDOC_OK);
@@ -294,19 +294,19 @@ bool check_precharged(){
 	int hv_battery_voltage = hv_battery_sense.get_voltage();
 	int hv_mc_voltage = hv_mc_sense.get_voltage();
 
-    if (hv_mc_voltage > hv_battery_voltage*0.80){
+    if (hv_mc_voltage > hv_battery_voltage*0.95){
 		// Don't need additional checks, should be moved back into the object. 
 		// Realisitically only needs to check one side is working.
 		if (hv_mc_voltage > MINIMUM_PRECHARGE_VOLTAGE && hv_battery_voltage > MINIMUM_PRECHARGE_VOLTAGE){
 			if (hv_mc_voltage < MAXIMUM_PRECHARGE_VOLTAGE && hv_battery_voltage < MAXIMUM_PRECHARGE_VOLTAGE){
 				relay_state_precharged_transition(); 
-				pc.printf("Precharge within 80%, safe to close postive contactor\r\n");
+				pc.printf("Precharge within 95%, safe to close postive contactor\r\n");
 				return true;
 			}
 		}
     } 
 	return false;
-}
+}	
 
 //-----------------------------------------------
 // Handlers
@@ -349,7 +349,7 @@ void air_power_lost_cb(){
     heart.set_heartbeat_state(PRECHARGE_STATE_IDLE);
 	pc.printf("AIR Power Lost!\r\n");
 }
-	
+
 	/*
 Precharge Timeout Callback
 	Called after 5 seconds of the precharge. Performs quick check to make sure the 
@@ -392,116 +392,58 @@ CAN Transmit 1
 	Standard format for ease of debugging. They are split in 2 to ensure callback executing time
 	is not too long for the interupt.
 	*/
-void can1_trans_cb1(){
-	// can1_tx_led = !can1_tx_led;
-
-    char TX_data[8] = {0};
-	int dlc = 8;
-	TX_data[0] 		= heart.get_heartbeat_state();
-	TX_data[1] 		= heart.get_error_code(1);
-	TX_data[2] 		= orion.check_overtemperature();
-	TX_data[3] 		= orion.check_high_voltage();
-	TX_data[4] 		= orion.check_low_voltage();
-	TX_data[5]		= !imd.get_IMD_ok();
-	TX_data[6]		= !pdoc.get_pdoc_ok();
-	TX_data[7] 		= !orion.get_orion_connection_ok();
-	can_transmission_h(CANMessage(AMS_DATA_ID, &TX_data[0], dlc));
-
-	// char TX_data[8] = {0};
-	// int dlc = 7;
-	// TX_data[CAN_ERROR_1] 		= heart.get_error_code(0);
-	// TX_data[CAN_ERROR_2] 		= heart.get_error_code(1);
-	// TX_data[CAN_WARNING_1] 		= heart.get_warning_code(0);
-	// TX_data[CAN_WARNING_2] 		= heart.get_warning_code(1);
-	// TX_data[CAN_AMS_OK] 		= orion.get_AMS_ok();
-	// TX_data[CAN_PDOC_OK] 		= pdoc.get_pdoc_ok();
-	// TX_data[CAN_IMD_OK] 		= imd.get_IMD_ok();
-	// //TX_data[CAN_ERROR_SPARE] 	= 0;
-	// can_transmission_h(CANMessage(CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS + TS_ERROR_WARNING_ID, &TX_data[0], dlc));
-	
-	// dlc = 6;
-	// TX_data[CAN_DIGITAL_1_AIR_POWER] 			= air_power.read();
-	// TX_data[CAN_DIGITAL_1_AIR_NEG_RELAY] 		= AIR_neg_relay.get_relay();
-	// TX_data[CAN_DIGITAL_1_AIR_NEG_FEEDBACK] 	= AIR_neg_relay.get_feedback();
-	// TX_data[CAN_DIGITAL_1_AIR_POS_RELAY] 		= AIR_pos_relay.get_relay();
-	// TX_data[CAN_DIGITAL_1_AIR_POS_FEEDBACK] 	= AIR_pos_relay.get_feedback();
-	// TX_data[CAN_DIGITAL_1_PRECHARGE_RELAY] 		= precharge_relay.get_relay();
-	// //TX_data[CAN_DIGITAL_1_SPARE_6] 				= 0;
-	// //TX_data[CAN_DIGITAL_1_SPARE_7] 				= 0;
-	// can_transmission_h(CANMessage(CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS + TS_DIGITAL_1_ID, &TX_data[0], dlc));
-
-	wait_us(1000);
-	dlc = 8;
-	TX_data[CAN_ANALOGUE_1_PDOC_TEMPERATURE_1] 			= (char)(pdoc.get_pdoc_temperature() >> 8);
-	TX_data[CAN_ANALOGUE_1_PDOC_TEMPERATURE_2] 			= (char)(pdoc.get_pdoc_temperature() & 0xFF);
-	TX_data[CAN_ANALOGUE_1_PDOC_REF_TEMPERATURE_1] 		= (char)(pdoc.get_pdoc_ref_temperature() >> 8);
-	TX_data[CAN_ANALOGUE_1_PDOC_REF_TEMPERATURE_2] 		= (char)(pdoc.get_pdoc_ref_temperature() & 0xFF);
-	TX_data[CAN_ANALOGUE_1_HV_MC_SENSE_VOLTAGE_1] 		= (char)(hv_mc_sense.get_voltage()*10 >> 8);
-	TX_data[CAN_ANALOGUE_1_HV_MC_SENSE_VOLTAGE_2] 		= (char)(hv_mc_sense.get_voltage()*10 & 0xFF);
-	TX_data[CAN_ANALOGUE_1_HV_BATTERY_SENSE_VOLTAGE_1]	= (char)(hv_battery_sense.get_voltage()*10 >> 8);
-	TX_data[CAN_ANALOGUE_1_HV_BATTERY_SENSE_VOLTAGE_2]	= (char)(hv_battery_sense.get_voltage()*10 & 0xFF);
-	can_transmission_h(CANMessage(0x600 + TS_ANALOGUE_1_ID, &TX_data[0], dlc));
-}
-
-	/*
-CAN Transmit 2
-	Sent CAN messages relevant to the device. These should follow the Team Swinburne
-	Standard format for ease of debugging. They are split in 2 to ensure callback executing time
-	is not top long for the interupt.
-	*/
-void can1_trans_cb2(){
+void can1_trans_cb1() {
 	char TX_data[8] = {0};
-	int dlc = 3;
+	int dlc = 7;
+	TX_data[CAN_ERROR_1] 		= heart.get_error_code(0);
+	TX_data[CAN_ERROR_2] 		= heart.get_error_code(1);
+	TX_data[CAN_WARNING_1] 		= heart.get_warning_code(0);
+	TX_data[CAN_WARNING_2] 		= heart.get_warning_code(1);
+	TX_data[CAN_AMS_OK] 		= orion.get_AMS_ok();
+	TX_data[CAN_PDOC_OK] 		= pdoc.get_pdoc_ok();
+	TX_data[CAN_IMD_OK] 		= imd.get_IMD_ok();
+	can_transmission_h(CANMessage(CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS + TS_ERROR_WARNING_ID, &TX_data[0], dlc));
+	
+	wait_us(1000);
 
-	TX_data[CAN_ANALOGUE_2_IMD_PERIOD] 		= (char)(imd.get_period());
-	TX_data[CAN_ANALOGUE_2_IMD_FREQUENCY] 	= imd.get_frequency();
-	TX_data[CAN_ANALOGUE_2_IMD_DUTY_CYCLE] 	= imd.get_duty_cycle();
-	TX_data[CAN_ANALOGUE_2_SPARE_3] 		= 0;
-	TX_data[CAN_ANALOGUE_2_SPARE_4] 		= 0;
-	TX_data[CAN_ANALOGUE_2_SPARE_5] 		= 0;
-	TX_data[CAN_ANALOGUE_2_SPARE_6] 		= 0;
-	TX_data[CAN_ANALOGUE_2_SPARE_7] 		= 0;
-	can_transmission_h(CANMessage(CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS + TS_ANALOGUE_2_ID, &TX_data[0], dlc));
-
-	can_transmission_h(CANMessage(CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS + TS_ANALOGUE_1_ID, &TX_data[0], dlc));
-
-	can_transmission_h(CANMessage(CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS + TS_ANALOGUE_3_ID, &TX_data[0], dlc));
+	dlc = 6;
+	TX_data[CAN_DIGITAL_1_AIR_POWER] 			= air_power.read();
+	TX_data[CAN_DIGITAL_1_AIR_NEG_RELAY] 		= AIR_neg_relay.get_relay();
+	TX_data[CAN_DIGITAL_1_AIR_NEG_FEEDBACK] 	= AIR_neg_relay.get_feedback();
+	TX_data[CAN_DIGITAL_1_AIR_POS_RELAY] 		= AIR_pos_relay.get_relay();
+	TX_data[CAN_DIGITAL_1_AIR_POS_FEEDBACK] 	= AIR_pos_relay.get_feedback();
+	TX_data[CAN_DIGITAL_1_PRECHARGE_RELAY] 		= precharge_relay.get_relay();
+	can_transmission_h(CANMessage(CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS + TS_DIGITAL_1_ID, &TX_data[0], dlc));
 }
-	/*
-CAN Receive
+
+/*
+	CAN Receive
 	Message box for CANBUS. Switch handles which message is being serviced.
-	*/
+*/
 void can1_recv_cb(){
 	can1_rx_led = !can1_rx_led;
 
 	if (can1.read(can1_msg)){
 		switch(can1_msg.id){
-			// Secret method to bypass voltage checks. UNSAFE! Use in case of emergency!
-			case (AMS_HEARTBEAT_ID + 0x0F):
-				heart.set_heartbeat_state(PRECHARGE_STATE_PRECHARGING_TIMER);
-				break;
-
 			// Set discharge state for checking mismatch.
 			//case (CAN_DISCHARGE_MODULE_BASE_ADDRESS):
 			//	discharge_module.set_precharge_discharge_state(heart.get_heartbeat_state(), (int)can1_msg.data[0]);
 			//	break;
 			
 			// Use precharge button to begin precharge sequence.
-			case (THROTTLE_OUTPUT_ID):
+			case (CAN_MOTEC_THROTTLE_CONTROLLER_BASE_ADDRESS+TS_DIGITAL_1_ID):
 				// check if precharge button is pressed
-				if (can1_msg.data[1] == 1)
-					if (heart.get_heartbeat_state() == PRECHARGE_STATE_IDLE){
-                    // pc.printf("Precharge button pressed, starting precharge routine\r\n");
-					start_precharge_sequence_cb();
+				if (can1_msg.data[0] == 1)
+					if (heart.get_heartbeat_state() == PRECHARGE_STATE_IDLE) {
+						heart.set_heartbeat_state(PRECHARGE_STATE_PRECHARGING_TIMER);
                 }
 
 				if (can1_msg.data[2] == 1)
-					if (heart.get_heartbeat_state() == PRECHARGE_STATE_PRECHARGED){
-                    // pc.printf("Precharge button pressed, starting precharge routine\r\n");
-					heart.set_heartbeat_state(PRECHARGE_STATE_DRIVE);
+					if (heart.get_heartbeat_state() == PRECHARGE_STATE_PRECHARGED) {
+						heart.set_heartbeat_state(PRECHARGE_STATE_DRIVE);
                 } 	
-
 				break;
+
 			// Use charger presense to begin precharge sequence.
             case (CAN_TC_CHARGER_STATUS_ID):
                 if (heart.get_heartbeat_state() == 1){
@@ -524,10 +466,14 @@ void can1_recv_cb(){
 				break;
 			
 			// Set Orion BMS voltages and check safe to use.
-			case (ORION_DATA_ID):
+			case (CAN_ORION_BMS_BASE_ADDRESS + TS_ANALOGUE_1_ID):
 				orion.set_low_voltage(can1_msg.data[0]*50);
 				orion.set_high_voltage(can1_msg.data[1]*50);
-				orion.set_high_temperature(can1_msg.data[2]);
+				break;
+
+			// Set orion temperatures and check safe to use.
+			case (CAN_ORION_BMS_BASE_ADDRESS + TS_ANALOGUE_2_ID):
+				orion.set_high_temperature(can1_msg.data[1]);
 				break;			
 		}
 	}

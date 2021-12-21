@@ -34,47 +34,13 @@ to the device.
 
 */
 
-// CAN IDs
-//AMS
-#define AMS_HEARTBEAT_ID                            0x300
-#define AMS_DATA_ID       	                     	0x301
-#define AMS_DATA2_ID                                0x302
-
-//Throttle
-#define THROTTLE_HEARTBEAT_ID						0x304
-#define THROTTLE_SENSORS_ID							0x305
-#define THROTTLE_OUTPUT_ID							0x306
-#define THROTTLE_ERRORS_ID							0x307
-
-//Brake
-#define BRAKE_HEARTBEAT_ID							0x308
-#define BRAKE_SENSORS_ID							0x309
-#define BRAKE_SAFETY_ID								0x30A
-
-//Temp Sensor
-#define TEMP_HEARTBEAT_ID                   		0x310
-#define TEMP_SUMMARY_ID                     		0x311
-#define TEMP_ERRORS_ID                      		0x31A
-
-//Orion
-#define ORION_DATA_ID        						0x20B	 		//orion battery data message
-#define ORION_CURRENT_ID     						0x70B			//orion current
-#define ORION_SAFETY_ID								0x03C			//orion charge and discharge relay
-
-//TC Charger
-#define CHARGER_STATUS_ID							0x18FF50E5
 
 #define CAN_ORION_BMS_BASE_ADDRESS                  0x100
 #define CAN_BRAKE_MODULE_BASE_ADDRESS               0x150
-#define CAN_AMK_MOTOR_CONTROLLER_BASE_ADDRESS       0x200
-#define CAN_MOTEC_THROTTLE_CONTROLLER_BASE_ADDRESS  0x250
-#define CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS       0x300
+#define CAN_MOTOR_CONTROLLER_BASE_ADDRESS           0x200
+#define CAN_MOTEC_THROTTLE_CONTROLLER_BASE_ADDRESS  0x300
+#define CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS       0x350
 
-#define CAN_UCM1_BASE_ADDRESS                       0x350       // Note that for each UCM, there will be multiple addresses 0x510, 0x520,... etc.   
-#define CAN_UCM2_BASE_ADDRESS                       0x360 
-#define CAN_UCM3_BASE_ADDRESS                       0x370 
-#define CAN_UCM4_BASE_ADDRESS                       0x380 
-#define CAN_UCM5_BASE_ADDRESS                       0x390 
 
 #define CAN_ORION_TEMP_MODULE_BASE_ADDRESS          0x450
 #define CAN_DISCHARGE_MODULE_BASE_ADDRESS           0x500

@@ -37,18 +37,38 @@ to the device.
 
 #define CAN_ORION_BMS_BASE_ADDRESS                  0x100
 #define CAN_BRAKE_MODULE_BASE_ADDRESS               0x150
-#define CAN_MOTOR_CONTROLLER_BASE_ADDRESS           0x200
 #define CAN_MOTEC_THROTTLE_CONTROLLER_BASE_ADDRESS  0x300
 #define CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS       0x350
 
 
-#define CAN_ORION_TEMP_MODULE_BASE_ADDRESS          0x450
+#define CAN_TEMP_MODULE_BASE_ADDRESS                0x400
 #define CAN_DISCHARGE_MODULE_BASE_ADDRESS           0x500
 #define CAN_DASH_BASE_ADDRESS                       0x550
 
 // Miscillanious
 #define CAN_ORION_BMS_RINEHART_LIMITS				0x202
 #define CAN_TC_CHARGER_STATUS_ID					0x18FF50E5
+
+//Motor controller
+//RMS
+#define RMS_ID                              		0x200          	//Base address
+#define RMS_TEMPERATURE_SET_1               		RMS_ID + 0xA0
+#define RMS_TEMPERATURE_SET_2        				RMS_ID + 0xA1
+#define RMS_TEMPERATURE_SET_3        				RMS_ID + 0xA2
+#define RMS_ANALOG_INPUT_VOLTAGES    				RMS_ID + 0xA3
+#define RMS_DIGITAL_INPUT_STATUS     				RMS_ID + 0xA4
+#define RMS_MOTOR_POSITION_INFO      				RMS_ID + 0xA5  	//used for reading speed of motor
+#define RMS_CURRENT_INFO             				RMS_ID + 0xA6
+#define RMS_VOLTAGE_INFO             				RMS_ID + 0xA7
+#define RMS_FLUX_ID_IQ_INFO          				RMS_ID + 0xA8
+#define RMS_INTERNAL_VOLTAGES        				RMS_ID + 0xA9
+#define RMS_INTERNAL_STATES          				RMS_ID + 0xAA
+#define RMS_FAULT_CODES              				RMS_ID + 0xAB
+#define RMS_TORQUE_AND_TIMER_INFO    				RMS_ID + 0xAC
+#define RMS_MODULATION_AND_FLUX_INFO 				RMS_ID + 0xAD
+#define RMS_FIRMWARE_INFO            				RMS_ID + 0xAE
+#define RMS_DIAG_DATA                				RMS_ID + 0xAF
+#define RMS_COMMAND_MESSAGE          				RMS_ID + 0xC0  //Messages to Motor Controller - speed setting
 
 /*
 

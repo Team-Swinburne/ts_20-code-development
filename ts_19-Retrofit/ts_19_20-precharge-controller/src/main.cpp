@@ -89,18 +89,18 @@ PC_15/OSC32OUT (3.3V)*
 //-----------------------------------------------
 
 // HV Voltage Bridge Offset Resistors
-#define MC_R_CAL 										5000
-#define BATT_R_CAL 									5000
+#define MC_R_CAL 						5000
+#define BATT_R_CAL 						5000
 #define MINIMUM_PRECHARGE_VOLTAGE		400
 #define MAXIMUM_PRECHARGE_VOLTAGE		600
 
 // ADS1115 ADDR PINS: GND 48 - VDD 49 - SDA 4A - SCL 4B
-#define PDOC_ADC_ADDR								0x4B
-#define MC_HV_SENSE_ADC_ADDR				0x49
+#define PDOC_ADC_ADDR					0x4B
+#define MC_HV_SENSE_ADC_ADDR			0x49
 #define BATT_HV_SENSE_ADC_ADDR			0x48
 
 // Interval & Periods
-#define CAN_BROADCAST_INTERVAL      0.2
+#define CAN_BROADCAST_INTERVAL      0.1
 #define PRECHARGE_TIMEOUT           6
 
 //-----------------------------------------------
@@ -132,10 +132,10 @@ typedef enum CAN_ERROR_WARNING_SIGNALS{
 } can_error_warning_flag_t;
 
 typedef enum CAN_ANALOGUE_1_SIGNALS{
-	CAN_ANALOGUE_1_PDOC_TEMPERATURE_1,
-	CAN_ANALOGUE_1_PDOC_TEMPERATURE_2,
-	CAN_ANALOGUE_1_PDOC_REF_TEMPERATURE_1,
-	CAN_ANALOGUE_1_PDOC_REF_TEMPERATURE_2,
+	// CAN_ANALOGUE_1_PDOC_TEMPERATURE_1,
+	// CAN_ANALOGUE_1_PDOC_TEMPERATURE_2,
+	// CAN_ANALOGUE_1_PDOC_REF_TEMPERATURE_1,
+	// CAN_ANALOGUE_1_PDOC_REF_TEMPERATURE_2,
 	CAN_ANALOGUE_1_HV_MC_SENSE_VOLTAGE_1,
 	CAN_ANALOGUE_1_HV_MC_SENSE_VOLTAGE_2,
 	CAN_ANALOGUE_1_HV_BATTERY_SENSE_VOLTAGE_1,
@@ -216,8 +216,10 @@ Orion orion(PIN_AMS_OK);
 PDOC pdoc(i2c1, PDOC_ADC_ADDR, PIN_PDOC_OK);
 IMD imd(PIN_IMD_OK, PIN_IMD_DATA);
 
-HV_ADC hv_mc_sense(i2c1, MC_HV_SENSE_ADC_ADDR, MC_R_CAL);
-HV_ADC hv_battery_sense(i2c1, BATT_HV_SENSE_ADC_ADDR, BATT_R_CAL);
+//HV_ADC hv_mc_sense(i2c1, MC_HV_SENSE_ADC_ADDR, MC_R_CAL);
+//HV_ADC hv_battery_sense(i2c1, BATT_HV_SENSE_ADC_ADDR, BATT_R_CAL);
+HV_CAN hv_mc_can;
+HV_CAN hv_battery_can;
 
 Discharge_Module discharge_module;
 
@@ -291,10 +293,10 @@ void relay_state_precharged(){
 	 * 
      */
 bool check_precharged(){
-	int hv_battery_voltage = hv_battery_sense.get_voltage();
-	int hv_mc_voltage = hv_mc_sense.get_voltage();
+	int hv_battery_voltage = hv_battery_can.get_voltage();
+	int hv_mc_voltage = hv_mc_can.get_voltage();
 
-    if (hv_mc_voltage > hv_battery_voltage*0.95){
+    if (hv_mc_voltage > hv_battery_voltage*0.90){
 		// Don't need additional checks, should be moved back into the object. 
 		// Realisitically only needs to check one side is working.
 		if (hv_mc_voltage > MINIMUM_PRECHARGE_VOLTAGE && hv_battery_voltage > MINIMUM_PRECHARGE_VOLTAGE){
@@ -414,6 +416,20 @@ void can1_trans_cb1() {
 	TX_data[CAN_DIGITAL_1_AIR_POS_FEEDBACK] 	= AIR_pos_relay.get_feedback();
 	TX_data[CAN_DIGITAL_1_PRECHARGE_RELAY] 		= precharge_relay.get_relay();
 	can_transmission_h(CANMessage(CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS + TS_DIGITAL_1_ID, &TX_data[0], dlc));
+
+	wait_us(1000);
+
+	dlc = 8;
+	TX_data[CAN_ANALOGUE_1_HV_MC_SENSE_VOLTAGE_1] = (char)(hv_mc_can.get_voltage()*10 >> 8);
+	TX_data[CAN_ANALOGUE_1_HV_MC_SENSE_VOLTAGE_2] = (char)(hv_mc_can.get_voltage()*10 & 0xFF);
+	TX_data[CAN_ANALOGUE_1_HV_BATTERY_SENSE_VOLTAGE_1] = (char)(hv_battery_can.get_voltage()*10 >> 8);
+	TX_data[CAN_ANALOGUE_1_HV_BATTERY_SENSE_VOLTAGE_2] = (char)(hv_battery_can.get_voltage()*10 & 0xFF);
+	TX_data[4] = (char)(orion.get_high_temperature());
+	TX_data[5] 		= (char)(imd.get_period());
+	TX_data[6] 	= imd.get_frequency();
+	TX_data[7] 	= imd.get_duty_cycle();
+	
+	can_transmission_h(CANMessage(CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS + TS_ANALOGUE_1_ID, &TX_data[0], dlc));
 }
 
 /*
@@ -435,6 +451,7 @@ void can1_recv_cb(){
 				// check if precharge button is pressed
 				if (can1_msg.data[0] == 1)
 					if (heart.get_heartbeat_state() == PRECHARGE_STATE_IDLE) {
+						//start_precharge_sequence_cb();
 						heart.set_heartbeat_state(PRECHARGE_STATE_PRECHARGING_TIMER);
                 }
 
@@ -448,7 +465,8 @@ void can1_recv_cb(){
             case (CAN_TC_CHARGER_STATUS_ID):
                 if (heart.get_heartbeat_state() == 1){
                     // pc.printf("Charger detected, starting precharge routine\r\n");
-                    start_precharge_sequence_cb();
+					heart.set_heartbeat_state(PRECHARGE_STATE_PRECHARGING_TIMER);
+                    //start_precharge_sequence_cb();
                 }
 				break;
 
@@ -471,10 +489,20 @@ void can1_recv_cb(){
 				orion.set_high_voltage(can1_msg.data[1]*50);
 				break;
 
-			// Set orion temperatures and check safe to use.
-			case (CAN_ORION_BMS_BASE_ADDRESS + TS_ANALOGUE_2_ID):
+			// Set temperatures and check safe to use.
+			case (CAN_TEMP_MODULE_BASE_ADDRESS + TS_ANALOGUE_1_ID):
 				orion.set_high_temperature(can1_msg.data[1]);
 				break;			
+
+			//recevive Battery voltage from Orion
+			case (CAN_ORION_BMS_BASE_ADDRESS + TS_ANALOGUE_3_ID):
+				hv_battery_can.set_voltage((can1_msg.data[0]*256 + can1_msg.data[1])/10);
+				//need change later on the orion and this
+				break;
+
+			case (RMS_VOLTAGE_INFO):
+				hv_mc_can.set_voltage( ((can1_msg.data[0] << 8) | can1_msg.data[1])/10);
+				break;
 		}
 	}
 }
@@ -514,8 +542,8 @@ uint8_t check_warnings(){
 	warning_code[WARNING_AIR_POS_FEEDBACK_MISMATCH] 	= !AIR_pos_relay.relay_ok();
 
 	warning_code[WARNING_PDOC_SENSOR_FAILURE] 			= !pdoc.get_sensor_ok();
-	warning_code[WARNING_MC_ADC_SENSOR_FAILURE] 		= !hv_mc_sense.get_sensor_ok();
-	warning_code[WARNING_BATT_ADC_SENSOR_FAILURE]		= !hv_battery_sense.get_sensor_ok();
+	warning_code[WARNING_MC_ADC_SENSOR_FAILURE] 		= 0; //RESERVED !hv_mc_sense.get_sensor_ok();
+	warning_code[WARNING_BATT_ADC_SENSOR_FAILURE]		= 0; //RESERVED !hv_battery_sense.get_sensor_ok();
 	warning_code[WARNING_PDOC_RELAY_FAILURE] 			= pdoc.check_pdoc_relay_fail();
 	
 	return array_to_uint8(warning_code, 8);
@@ -528,8 +556,6 @@ Update Precharge
 void update_precharge(){
 	// Update analogue measurements to get latest information.
 	pdoc.update_adc();
-	hv_battery_sense.update_adc();
-	hv_mc_sense.update_adc();
 
 	// Perform basic error checking. Sets state to FAIL if error found.
 	heart.set_error_code(check_errors(), 0);
@@ -596,7 +622,7 @@ void state_d(){
 
 			if (check_errors() == 0){
 				relay_state_precharging();
-				wait(3);
+				wait(PRECHARGE_TIMEOUT);
 				heart.set_heartbeat_state(PRECHARGE_STATE_PRECHARGED);
 			}
 			break;
@@ -645,7 +671,7 @@ void setup(){
 
 	//ticker_can_transmit2.attach(&can1_trans_cb2, CAN_BROADCAST_INTERVAL);
 	
-  air_power.fall(&air_power_lost_cb);
+  	air_power.fall(&air_power_lost_cb);
 
 	imd.start();
 	// Re-enable interrupts again, now that interrupts are ready.

@@ -159,97 +159,117 @@ HV_ADC
 	High Voltage measurement interface. Isoalted interface that is used to 
 	check if measurements are valid and returns them for later data acquisition purposes.
 	*/
-class HV_ADC{
+// class HV_ADC{
+// public:
+// 	/** HV_ADC Constructor
+//      *
+// 	 * Connect to bus and set address.
+// 	 * 
+//      *  @param &i2c1 I2C bus to interface.
+//      *  @param _adc_addr Address of ADS1115 unit. 
+// 	 *
+//      */
+// 	HV_ADC(I2C &_i2c1, int _adc_addr) : high_voltage_adc(&_i2c1, _adc_addr){
+//         R_CAL = 0;
+//     };
+
+// 	/** HV_ADC Constructor
+//      *
+// 	 * Initialise bus, set address, and the calibration offset on the resistor bridge.
+// 	 * 
+//      *  @param &i2c1 I2C bus to interface.
+//      *  @param _adc_addr Address of ADS1115 unit. 
+// 	 * 	@param _R_CAL value of lowest pot in resistor bridge.
+//      */
+// 	HV_ADC(I2C &_i2c1, int _adc_addr, float _R_CAL) : high_voltage_adc(&_i2c1, _adc_addr){
+//         R_CAL = _R_CAL;
+//     };
+
+// 	/** update_adc()
+// 	 * 
+// 	 * Read from the resistor bridge and update the member values. Note that the TSAL
+// 	 * is only attached on the discharge, this value can be ignored otherwise.
+// 	 * 
+// 	 * Read ADC values with:
+// 	 * 	- get_voltage();
+// 	 *  - get_tsal_reference();
+//      *
+//      *  @returns sensor validity as boolean. 
+//      */
+// 	bool update_adc(){
+// 		voltage = HV_voltageScaling(adc_to_voltage(high_voltage_adc.readADC_SingleEnded(HV_ADC_SENSOR_CHANNEL), ADC_RESOLUTION, ADC_REF_VOLTAGE));
+// 	    tsal_reference = adc_to_voltage(high_voltage_adc.readADC_SingleEnded(HV_ADC_TSAL_CHANNEL), ADC_RESOLUTION, ADC_REF_VOLTAGE);
+// 		// pc.printf("MC_VOLTAGE: %d \r\n", mc_voltage);
+// 	    return sensor_ok();
+// 	}
+
+// 	int get_voltage(){return voltage;}
+// 	int get_tsal_reference(){return tsal_reference;}
+// 	bool get_sensor_ok(){return sensor_ok_flag;}
+
+// private:
+//     float R_CAL;
+
+// 	int16_t voltage;
+// 	int16_t tsal_reference;
+
+// 	bool sensor_ok_flag;
+
+// 	Adafruit_ADS1115 high_voltage_adc;
+
+//     float adc_to_voltage(int16_t adc_value, int adc_resolution, float voltage_range){
+// 	    float voltage = adc_value * voltage_range / adc_resolution;
+// 	    return voltage;
+//     }
+
+//     int HV_voltageScaling(float input){
+//         float R1 = 330000 * 4;
+//         float R2 = 10000 + R_CAL;
+
+//         float R1_R2 = R1 + R2;
+//         float scaling_factor = (R2 / R1_R2);
+//         float output = input / scaling_factor;
+        
+//         int _output = output;
+
+//         return _output;
+//     }
+
+// 	bool sensor_ok(){
+// 		bool sensor_ok = false;
+// 		if (voltage < HV_OVER_VOLTAGE){
+// 			sensor_ok = true;
+// 		} else {
+//             sensor_ok = false;
+//         }
+
+//         if (voltage > HV_UNDER_VOLTAGE){
+//         	sensor_ok = true;
+//         } else {
+//         	sensor_ok = false;
+//         }
+// 		sensor_ok_flag = sensor_ok;
+// 		return sensor_ok;
+//     }
+		
+// };
+
+	/*
+HV_CAN
+	High Voltage CAN interface. Retrieve High Voltage information over CAN rather than using
+	the built-in ADC
+	*/
+class HV_CAN {
 public:
-	/** HV_ADC Constructor
-     *
-	 * Connect to bus and set address.
-	 * 
-     *  @param &i2c1 I2C bus to interface.
-     *  @param _adc_addr Address of ADS1115 unit. 
-	 *
+	/** HV_CAN Constructor
      */
-	HV_ADC(I2C &_i2c1, int _adc_addr) : high_voltage_adc(&_i2c1, _adc_addr){
-        R_CAL = 0;
+	HV_CAN() {
+        voltage = 0;
     };
 
-	/** HV_ADC Constructor
-     *
-	 * Initialise bus, set address, and the calibration offset on the resistor bridge.
-	 * 
-     *  @param &i2c1 I2C bus to interface.
-     *  @param _adc_addr Address of ADS1115 unit. 
-	 * 	@param _R_CAL value of lowest pot in resistor bridge.
-     */
-	HV_ADC(I2C &_i2c1, int _adc_addr, float _R_CAL) : high_voltage_adc(&_i2c1, _adc_addr){
-        R_CAL = _R_CAL;
-    };
-
-	/** update_adc()
-	 * 
-	 * Read from the resistor bridge and update the member values. Note that the TSAL
-	 * is only attached on the discharge, this value can be ignored otherwise.
-	 * 
-	 * Read ADC values with:
-	 * 	- get_voltage();
-	 *  - get_tsal_reference();
-     *
-     *  @returns sensor validity as boolean. 
-     */
-	bool update_adc(){
-		voltage = HV_voltageScaling(adc_to_voltage(high_voltage_adc.readADC_SingleEnded(HV_ADC_SENSOR_CHANNEL), ADC_RESOLUTION, ADC_REF_VOLTAGE));
-	    tsal_reference = adc_to_voltage(high_voltage_adc.readADC_SingleEnded(HV_ADC_TSAL_CHANNEL), ADC_RESOLUTION, ADC_REF_VOLTAGE);
-		// pc.printf("MC_VOLTAGE: %d \r\n", mc_voltage);
-	    return sensor_ok();
-	}
-
-	int get_voltage(){return voltage;}
-	int get_tsal_reference(){return tsal_reference;}
-	bool get_sensor_ok(){return sensor_ok_flag;}
+ 	int16_t get_voltage(){return voltage;}
+	void set_voltage(int16_t _voltage){voltage = _voltage;}
 
 private:
-    float R_CAL;
-
 	int16_t voltage;
-	int16_t tsal_reference;
-
-	bool sensor_ok_flag;
-
-	Adafruit_ADS1115 high_voltage_adc;
-
-    float adc_to_voltage(int16_t adc_value, int adc_resolution, float voltage_range){
-	    float voltage = adc_value * voltage_range / adc_resolution;
-	    return voltage;
-    }
-
-    int HV_voltageScaling(float input){
-        float R1 = 330000 * 4;
-        float R2 = 10000 + R_CAL;
-
-        float R1_R2 = R1 + R2;
-        float scaling_factor = (R2 / R1_R2);
-        float output = input / scaling_factor;
-        
-        int _output = output;
-
-        return _output;
-    }
-
-	bool sensor_ok(){
-		bool sensor_ok = false;
-		if (voltage < HV_OVER_VOLTAGE){
-			sensor_ok = true;
-		} else {
-            sensor_ok = false;
-        }
-
-        if (voltage > HV_UNDER_VOLTAGE){
-        	sensor_ok = true;
-        } else {
-        	sensor_ok = false;
-        }
-		sensor_ok_flag = sensor_ok;
-		return sensor_ok;
-    }
-		
 };

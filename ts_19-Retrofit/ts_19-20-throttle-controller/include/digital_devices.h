@@ -69,8 +69,12 @@ public:
      * @param rtds_on_interval(ms) chrono time duration in
      */
     void activate(std::chrono::milliseconds rtds_on_interval) {
-        rtds_OUT = 1;
+        rtds_OUT = 0;
         rtds_timeout.attach(callback(this, &RTDS::deactivate_cb),rtds_on_interval);
+    }
+
+    void deactivate_cb() {
+        rtds_OUT = 0;
     }
 
     void set_sounded(bool _rtds_sounded) {rtds_sounded=_rtds_sounded;}
@@ -82,7 +86,5 @@ private:
     DigitalOut rtds_OUT;
     Timeout rtds_timeout;
 
-    void deactivate_cb() {
-        rtds_OUT = 0;
-    }
+
 };

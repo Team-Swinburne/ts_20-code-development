@@ -1,0 +1,160 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_:
+
+
+BO_ 59 MSGID_0X3B: 5 BMS
+ SG_ Pack_Current : 7|16@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Pack_Inst_Voltage : 23|16@0+ (0,0) [0|0] "" Vector__XXX
+ SG_ CRC_Checksum : 39|8@0+ (1,64) [0|0] "" Vector__XXX
+
+BO_ 971 MSGID_0X3CB: 7 BMS
+ SG_ Pack_DCL : 7|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Pack_CCL : 15|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Low_Cell_Voltage : 23|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ High_Temperature : 31|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ High_Temperature : 39|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Low_Temperature : 47|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ CRC_Checksum : 55|8@0+ (1,981) [0|0] "" Vector__XXX
+
+BO_ 1714 MSGID_0X6B2: 8 BMS
+ SG_ Voltage_Failsafe : 0|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Current_Failsafe : 1|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Ready_Power_Signal : 2|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Charge_Power_Signal : 3|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ J1772_Charge_Allowed : 4|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ MultiPurpose_Output_4 : 5|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ MultiPurpose_Output_3 : 6|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Error_MIL_Output : 7|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Pack_SOC : 15|8@0+ (0,0) [0|0] "" Vector__XXX
+ SG_ Pack_Resistance : 23|16@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Pack_Open_Voltage : 39|16@0+ (0,0) [0|0] "" Vector__XXX
+ SG_ Pack_Amphours : 55|8@0+ (0,0) [0|0] "" Vector__XXX
+ SG_ CRC_Checksum : 63|8@0+ (1,1722) [0|0] "" Vector__XXX
+
+BO_ 523 MSGID_0X20B: 7 BMS
+ SG_ Constant_Value : 7|8@0+ (1,0) [3|3] "" Vector__XXX
+ SG_ High_Temperature : 15|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ High_Cell_Voltage : 23|16@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Low_Cell_Voltage : 39|16@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ CRC_Checksum : 55|8@0+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 1803 MSGID_0X70B: 8 BMS
+ SG_ Blank : 7|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Pack_Current : 15|16@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Current_ADC2 : 31|16@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Current_ADC1 : 47|16@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Blank : 63|8@0+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 2550588916 MSGID_0X1806E5F4: 8 BMS
+ SG_ Maximum_Pack_Voltage : 7|16@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Pack_CCL : 23|16@0+ (10,0) [0|0] "" Vector__XXX
+ SG_ Blank : 32|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 33|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 34|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 35|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 36|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 37|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 38|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ DTC_P0A08_Charger_Safety_Relay_Fault : 39|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 47|8@0+ (10,0) [0|0] "" Vector__XXX
+ SG_ Blank : 55|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Blank : 63|8@0+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 2550589940 MSGID_0X1806E9F4: 8 BMS
+ SG_ Maximum_Pack_Voltage : 7|16@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Pack_CCL : 23|16@0+ (10,0) [0|0] "" Vector__XXX
+ SG_ Blank : 32|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 33|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 34|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 35|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 36|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 37|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 38|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ DTC_P0A08_Charger_Safety_Relay_Fault : 39|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 47|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Blank : 55|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Blank : 63|8@0+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 2566869221 MSGID_0X18FF50E5: 8Vector__XXX
+ SG_ Blank : 7|8@0+ (1,0) [0|0] ""  BMS
+ SG_ Blank : 15|8@0+ (1,0) [0|0] ""  BMS
+ SG_ Blank : 23|8@0+ (1,0) [0|0] ""  BMS
+ SG_ Blank : 31|8@0+ (1,0) [0|0] ""  BMS
+ SG_ Blank : 39|8@0+ (1,0) [0|0] ""  BMS
+ SG_ Blank : 47|8@0+ (1,0) [0|0] ""  BMS
+ SG_ Blank : 55|8@0+ (1,0) [0|0] ""  BMS
+ SG_ Blank : 63|8@0+ (1,0) [0|0] ""  BMS
+
+BO_ 832 MSGID_0X340: 1 BMS
+ SG_ Blank : 0|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 1|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 2|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 3|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 4|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 5|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 6|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_  : 7|1@1+ (1,0) [0|1] "" Vector__XXX
+
+BO_ 514 MSGID_0X202: 4 BMS
+ SG_ Pack_DCL : 0|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Blank : 16|16@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 2550589428 MSGID_0X1806E7F4: 8 BMS
+ SG_ Maximum_Pack_Voltage : 7|16@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Pack_CCL : 23|16@0+ (10,0) [0|0] "" Vector__XXX
+ SG_ Blank : 32|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 33|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 34|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 35|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 36|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 37|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 38|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ DTC_P0A08_Charger_Safety_Relay_Fault : 39|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Blank : 47|8@0+ (10,0) [0|0] "" Vector__XXX
+ SG_ Blank : 55|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Blank : 63|8@0+ (1,0) [0|0] "" Vector__XXX
+
+CM_ BO_ 59 "This ID Transmits at 8 ms.";
+CM_ BO_ 971 "This ID Transmits at 104 ms.";
+CM_ BO_ 1714 "This ID Transmits at 104 ms.";
+CM_ BO_ 523 "This ID Transmits at 512 ms.";
+CM_ BO_ 1803 "This ID Transmits at 512 ms.";
+CM_ BO_ 2550588916 "This ID Transmits at 808 ms.";
+CM_ BO_ 2550589940 "This ID Transmits at 808 ms.";
+CM_ BO_ 832 "This ID Transmits at 8 ms.";
+CM_ BO_ 514 "This ID Transmits at 8 ms.";
+CM_ BO_ 2550589428 "This ID Transmits at 808 ms.";

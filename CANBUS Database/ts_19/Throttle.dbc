@@ -1,0 +1,65 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_: Throttle
+
+
+BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
+ SG_ Throttle_Right : 16|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Throttle_Left : 0|16@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 772 THROTTLE_HEARTBEAT_ID: 3 Throttle
+ SG_ throttle_heartbeat_state : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ throttle_heartbeat_counter : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 773 THROTTLE_SENSORS_ID: 8 Throttle
+
+BO_ 774 THROTTLE_OUTPUT_ID: 4 Throttle
+ SG_ throttle_rtds : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ throttle_precharge_btn_pressed : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ throttle_drive_btn_pressed : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ throttle_apps_avg_percent : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 775 THROTTLE_ERRORS_ID: 8 Vector__XXX
+ SG_ throttle_error_apps_disagree : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ throttle_error_trailbraking_acti : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+
+
+
+CM_ SG_ 772 throttle_heartbeat_state "Reserved for the states in the PCB. 
+1. Idle
+2. Drive
+3. Fail";
+

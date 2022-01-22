@@ -1,0 +1,60 @@
+VERSION "HIPBNYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY/4/%%%/4/'%**4YYY///"
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+
+BS_:
+
+BU_: TCU Dash Orion
+
+
+BO_ 768 Throttle_Sensors_id: 8 TCU
+ SG_ Throttle1 : 0|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Throttle2 : 16|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Brake1 : 32|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Brake2 : 48|16@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 769 Throttle_Errors_id: 1 TCU
+ SG_ Dash_is_present : 3|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ LV_is_present : 4|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ AMS_is_present : 5|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Throttle_disagree : 6|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Throtttle_out_of_range : 0|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Brake_pressure_under : 1|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Brake_pressure_over : 2|1@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 1282 Dash_Set_Lights_id: 2 TCU
+ SG_ AMS_Error : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ IMD_Error : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 1803 Orion_Current: 8 Orion
+ SG_ PackCurrent : 47|16@0+ (1,0) [0|0] "A" Vector__XXX
+
+
+CM_ BO_ 768 "brake and throttle values";
+CM_ SG_ 768 Brake1 "";
+CM_ BO_ 769 "errors";
+CM_ SG_ 769 Throtttle_out_of_range "";
+CM_ BO_ 1282 "leds";
+CM_ BO_ 1803 "pack current etc";
+CM_ SG_ 1803 PackCurrent "";

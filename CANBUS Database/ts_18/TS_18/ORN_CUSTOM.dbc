@@ -1,0 +1,56 @@
+VERSION "HIPBNYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY/4/%%%/4/'%**4YYY///"
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+
+BS_:
+
+BU_:
+
+
+BO_ 59 ORN_CUSTOM_1: 5 Vector__XXX
+ SG_ pack_current : 0|8@1+ (1,0) [0|0] "Amps" Vector__XXX
+ SG_ pack_instantaneous_voltage : 8|8@1+ (0.1,0) [0|0] "Volts" Vector__XXX
+
+BO_ 971 ORN_CUSTOM_2: 7 Vector__XXX
+ SG_ pack_dcl : 0|8@1+ (1,0) [0|0] "Current" Vector__XXX
+ SG_ low_cell_voltage : 16|8@1+ (1,0) [0|0] "Volts" Vector__XXX
+ SG_ high_temperature : 24|8@1+ (1,0) [0|0] "Degrees" Vector__XXX
+ SG_ high_temperature1 : 32|8@1+ (1,0) [0|0] "Degrees" Vector__XXX
+
+BO_ 1714 ORN_CUSTOM_3: 8 Vector__XXX
+ SG_ pack_resistance : 16|16@1+ (1,0) [0|0] "Ohms" Vector__XXX
+ SG_ pack_open_voltage : 32|16@1+ (0.1,0) [0|0] "Volts" Vector__XXX
+ SG_ pack_amphours : 48|8@1+ (0.2,0) [0|0] "Amphours" Vector__XXX
+
+BO_ 523 ORN_CUSTOM_4: 7 Vector__XXX
+ SG_ high_temperature : 8|8@1+ (1,0) [0|0] "Degrees" Vector__XXX
+ SG_ high_cell_voltage : 16|16@1+ (1,0) [0|0] "Volts" Vector__XXX
+ SG_ low_cell_voltage : 32|16@1+ (1,0) [0|0] "Volts" Vector__XXX
+
+BO_ 1803 ORN_CUSTOM_5: 8 Vector__XXX
+ SG_ pack_current : 8|16@1+ (1,0) [0|0] "Amps" Vector__XXX
+ SG_ current_adc2 : 24|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ current_adc1 : 40|16@1+ (1,0) [0|0] "" Vector__XXX
+
+

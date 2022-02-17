@@ -53,10 +53,13 @@ static msgFrame	actualValue1, actualValue2, debug;
 uint8_t rxData[8];
 bool bInverterOn, bDcOn, bEnable = false;
 
-uint16_t motor_highest_temp = 0;
-uint16_t rineheart_highest_temp = 0;
-float max_accum_temp = 0;
-uint16_t rineheart_voltage = 0;
+uint8_t msb = 0, lsb = 0;
+volatile static int motor_highest_temp = 0;
+volatile static int rineheart_highest_temp = 0;
+volatile static float max_accum_temp = 0;
+volatile static int rineheart_voltage = 0;
+
+volatile static uint8_t telemHeartbeat = 0;
 
 /*---------------------------------------------------------------------------
   `								FUNCTIONS
@@ -69,18 +72,6 @@ void TX_Debug() {
   can.transmit(0x100,
                debug.bytes,
                debug.len);
-}
-
-// Actual value 1
-void TX_actualValue1() {
-  /*can.transmit(CAN_INV_ACTUAL_VALUE1,
-  			actualValue1.bytes,
-  			actualValue1.len);
-    digitalToggle(PC13);
-    delay(5);
-    can.transmit(CAN_INV1_ACTUAL_VALUE1,
-       actualValue1.bytes,
-       actualValue1.len);*/
 }
 
 // Can receive interupt service routine
@@ -150,10 +141,10 @@ void canRX() {
           rxData[7] = can.rxData.bytes[7];
           can.rxMsgLen = -1;
 
-          rineheart_highest_temp = rxData[0] | (rxData[1] << 8);
+          rineheart_highest_temp = (rxData[0] | (rxData[1] << 8))/10;
           //Serial1.print("Motor Controller Temperature: ");
           //Serial1.println(rineheart_highest_temp);
-
+        break;
         }
       case RMS_TEMPERATURE_SET_3:
         {
@@ -168,9 +159,10 @@ void canRX() {
           rxData[7] = can.rxData.bytes[7];
           can.rxMsgLen = -1;
 
-          motor_highest_temp = rxData[4] | (rxData[5] << 8);
+          motor_highest_temp = (rxData[4] | (rxData[5] << 8 )/10);
           //Serial1.print("Motor Temperature: ");
           //Serial1.println(motor_highest_temp);
+        break;
         }
       case RMS_VOLTAGE_INFO:
         {
@@ -187,6 +179,7 @@ void canRX() {
           rineheart_voltage = (rxData[0] | (rxData[1] << 8))/10;
           //Serial1.print("Motor Controller Voltage: ");
           //Serial1.println(rineheart_voltage);
+        break;
         }
       case ACCUMULATOR_TEMP:
         {
@@ -203,6 +196,7 @@ void canRX() {
           max_accum_temp = (float)rxData[1];
           //Serial1.print("Accumulator Temperature: ");
           //Serial1.println(max_accum_temp);
+      break;
       }
     }
   }
@@ -213,17 +207,30 @@ void telemTransmitHeartbeat() {
 }
 
 void TX_Serial(){
+
+  //Heartbeat
+  Serial1.print("HB: ");
+  if (telemHeartbeat > 255){
+    telemHeartbeat = 0;
+  }
+  Serial1.print(telemHeartbeat);
+  telemHeartbeat++;
+  Serial1.print("        ");
+  
   //Motor Controller Temp
-  Serial1.print("Motor Controller Temperature: ");
-  Serial1.println(rineheart_highest_temp);
+  Serial1.print("RH Temp: ");
+  Serial1.print(rineheart_highest_temp);
+  Serial1.print("        "); 
   //Motor Temp
-  Serial1.print("Motor Temperature: ");
-  Serial1.println(motor_highest_temp);
+  Serial1.print("Emrax Temp: ");
+  Serial1.print(motor_highest_temp);
+  Serial1.print("        ");
   //Motor Controller Voltage
-  Serial1.print("Motor Controller Voltage: ");
-  Serial1.println(rineheart_voltage);
+  Serial1.print("RH Volts: ");
+  Serial1.print(rineheart_voltage);
+  Serial1.print("        "); //Motor Temp
   //Accumulator Temperature
-  Serial1.print("Accumulator Temperature: ");
+  Serial1.print("Eddie Temp: ");
   Serial1.println(max_accum_temp);
 }
 
@@ -233,6 +240,7 @@ void TX_Serial(){
 
 void setup()
 {
+  Serial1.begin(57600);
   //delay(2000);
   pinMode(PC13, OUTPUT);
   // Initiallising CAN
@@ -247,8 +255,8 @@ void setup()
   Ticker.start();
   //Ticker.attach(TX_actualValue1, 500);
   //Ticker.attach(TX_Debug, 500);
-  Serial1.begin(57600);
-  Ticker.attach(TX_Serial, 500);
+  
+  Ticker.attach(TX_Serial, 100);
 }
 
 /*---------------------------------------------------------------------------
@@ -258,5 +266,6 @@ void setup()
 void loop()
 {
   canRX();
+  //Serial1.println("Hello");
   //telemTransmitHeartbeat();
 }

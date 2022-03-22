@@ -1,6 +1,6 @@
 // TEAM SWINBURNE - TS STANDARD CANBUS DESIGN RULES
 // BEN MCINNES, NAM TRAN, LUKE DELTON, PATRICK CURTAIN
-// REVISION 0 (21/06/21)
+// REVISION 0.1 (21/06/21)
 
 /***************************************************************************
     can_addresses.h
@@ -18,8 +18,8 @@
 
     Revision     Date          Comments
     --------   ----------     ------------
-    1.0        21/06/2021     Initial address space
-    2.0        22/03/2021     Change address space to 50 instead of 100
+    0.0        21/06/2021     Initial address space
+    0.1        22/03/2021     Change address space to 50 instead of 100
 ****************************************************************************/
 
 #define CANBUS_FREQUENCY							BR500K

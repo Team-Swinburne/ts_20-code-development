@@ -42,7 +42,7 @@ struct tickerInfo {
 */
 class TickerInterrupt {
 public:
-    TickerInterrupt(TIM_TypeDef *_hardwareTimer = TIM2, double _interval = 10);
+    TickerInterrupt(TIM_TypeDef *_hardwareTimer, double _interval);
     
     /// Start the Hardware timer
     void start();

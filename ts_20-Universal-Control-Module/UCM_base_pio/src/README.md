@@ -123,7 +123,27 @@ enum CAN_HEART_SIGNALS {
     HEART_COMPILE_DATE,
     HEART_COMPILE_TIME,
 };
+    // typedef enum CAN_ANALOGUE_1_SIGNALS{
+    //     CAN_ANALOGUE_1_PDOC_TEMPERATURE_1,
+    //     CAN_ANALOGUE_1_PDOC_TEMPERATURE_2,
+    //     CAN_ANALOGUE_1_PDOC_REF_TEMPERATURE_1,
+    //     CAN_ANALOGUE_1_PDOC_REF_TEMPERATURE_2,
+    //     CAN_ANALOGUE_1_HV_BATTERY_SENSE_VOLTAGE_1,
+    //     CAN_ANALOGUE_1_HV_BATTERY_SENSE_VOLTAGE_2,
+    //     CAN_ANALOGUE_1_HV_MC_SENSE_VOLTAGE_1,
+    //     CAN_ANALOGUE_1_HV_MC_SENSE_VOLTAGE_2,
+    // } can_analogue_1_signals_t;
 
+    // ... then within the TX Callback routine, this is the code that can be used to assign the byte array.
+
+    // TX_data[CAN_ANALOGUE_1_PDOC_TEMPERATURE_1] 			= (char)(pdoc.get_pdoc_temperature() >> 8);
+	// TX_data[CAN_ANALOGUE_1_PDOC_TEMPERATURE_2] 			= (char)(pdoc.get_pdoc_temperature() & 0xFF);
+	// TX_data[CAN_ANALOGUE_1_PDOC_REF_TEMPERATURE_1] 		= (char)(pdoc.get_pdoc_ref_temperature() >> 8);
+	// TX_data[CAN_ANALOGUE_1_PDOC_REF_TEMPERATURE_2] 		= (char)(pdoc.get_pdoc_ref_temperature() & 0xFF);
+	// TX_data[CAN_ANALOGUE_1_HV_BATTERY_SENSE_VOLTAGE_1]	= (char)(hv_battery_sense.get_voltage()*10 >> 8);
+	// TX_data[CAN_ANALOGUE_1_HV_BATTERY_SENSE_VOLTAGE_2]	= (char)(hv_battery_sense.get_voltage()*10 & 0xFF);
+	// TX_data[CAN_ANALOGUE_1_HV_MC_SENSE_VOLTAGE_1] 		= (char)(hv_mc_sense.get_voltage()*10 >> 8);
+	// TX_data[CAN_ANALOGUE_1_HV_MC_SENSE_VOLTAGE_2] 		= (char)(hv_mc_sense.get_voltage()*10 & 0xFF);
 
 // The error and warning messages can be handled within a similar mannor, turning a byte array into a bit array
 // with a simple function.

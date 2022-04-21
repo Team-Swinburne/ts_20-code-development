@@ -58,22 +58,35 @@ volatile static int motor_highest_temp = 0;
 volatile static int rineheart_highest_temp = 0;
 volatile static float max_accum_temp = 0;
 volatile static int rineheart_voltage = 0;
-
+volatile static int brake = 0;
 volatile static uint8_t telemHeartbeat = 0;
+
+struct PayLoadInfo
+{
+   uint8_t brakePosition;
+   uint8_t throttlePosition;
+   uint8_t motorControllerTemperature;
+   uint8_t motorTemperature;
+   uint8_t accumulatorTemperature;
+   uint8_t accumulatorVoltage[2];  
+};
+struct SerialFields
+{
+  uint8_t startFlag[2];
+  uint8_t packetLength;
+  PayLoadInfo payload;
+};
+union SerialData
+{
+  SerialFields fields;
+  uint8_t data[10];
+};
+
+SerialData txBuffer;
 
 /*---------------------------------------------------------------------------
   `								FUNCTIONS
   ---------------------------------------------------------------------------*/
-void TX_Debug() {
-  debug.bytes[0] = bDcOn;
-  debug.bytes[1] = bInverterOn;
-  debug.bytes[2] = bEnable;
-
-  can.transmit(0x100,
-               debug.bytes,
-               debug.len);
-}
-
 // Can receive interupt service routine
 void canISR() {
   can.rxMsgLen = can.receive(can.id, can.fltIdx, can.rxData.bytes);
@@ -140,10 +153,12 @@ void canRX() {
           rxData[6] = can.rxData.bytes[6];
           rxData[7] = can.rxData.bytes[7];
           can.rxMsgLen = -1;
-
+          
           rineheart_highest_temp = (rxData[0] | (rxData[1] << 8))/10;
+          txBuffer.fields.payload.motorControllerTemperature = rineheart_highest_temp;
           //Serial1.print("Motor Controller Temperature: ");
           //Serial1.println(rineheart_highest_temp);
+          
         break;
         }
       case RMS_TEMPERATURE_SET_3:
@@ -160,11 +175,13 @@ void canRX() {
           can.rxMsgLen = -1;
 
           motor_highest_temp = (rxData[4] | (rxData[5] << 8 )/10);
+          txBuffer.fields.payload.motorTemperature = motor_highest_temp;
           //Serial1.print("Motor Temperature: ");
           //Serial1.println(motor_highest_temp);
         break;
         }
-      case RMS_VOLTAGE_INFO:
+        //accumulator VOLTAGE
+      case ACCUMULATOR_VOLTAGE:
         {
           rxData[0] = can.rxData.bytes[0];
           rxData[1] = can.rxData.bytes[1]; 
@@ -175,8 +192,11 @@ void canRX() {
           rxData[6] = can.rxData.bytes[6];
           rxData[7] = can.rxData.bytes[7];
           can.rxMsgLen = -1;
-
-          rineheart_voltage = (rxData[0] | (rxData[1] << 8))/10;
+          
+          //rineheart_voltage = (rxData[0] | (rxData[1] << 8))/10;
+          txBuffer.fields.payload.accumulatorVoltage[0] = rxData[0];
+          txBuffer.fields.payload.accumulatorVoltage[1] = rxData[1];
+          //
           //Serial1.print("Motor Controller Voltage: ");
           //Serial1.println(rineheart_voltage);
         break;
@@ -192,22 +212,85 @@ void canRX() {
           rxData[6] = can.rxData.bytes[6];
           rxData[7] = can.rxData.bytes[7];
           can.rxMsgLen = -1;
-
-          max_accum_temp = (float)rxData[1];
+          txBuffer.fields.payload.accumulatorTemperature = rxData[2];
+          //max_accum_temp = (float)rxData[1];
           //Serial1.print("Accumulator Temperature: ");
           //Serial1.println(max_accum_temp);
       break;
       }
+      case BRAKE_POSITION:
+        {
+          rxData[0] = can.rxData.bytes[0];
+          rxData[1] = can.rxData.bytes[1]; 
+          rxData[2] = can.rxData.bytes[2];
+          rxData[3] = can.rxData.bytes[3];
+          rxData[4] = can.rxData.bytes[4];
+          rxData[5] = can.rxData.bytes[5];
+          rxData[6] = can.rxData.bytes[6];
+          rxData[7] = can.rxData.bytes[7];
+          can.rxMsgLen = -1;
+          txBuffer.fields.payload.brakePosition = rxData[2];
+      break;
+      }
+      case THROTTLE_POSITION:
+      {
+          rxData[0] = can.rxData.bytes[0];
+          rxData[1] = can.rxData.bytes[1]; 
+          rxData[2] = can.rxData.bytes[2];
+          rxData[3] = can.rxData.bytes[3];
+          rxData[4] = can.rxData.bytes[4];
+          rxData[5] = can.rxData.bytes[5];
+          rxData[6] = can.rxData.bytes[6];
+          rxData[7] = can.rxData.bytes[7];
+          can.rxMsgLen = -1;
+          txBuffer.fields.payload.throttlePosition = rxData[2];
+          break;
+      }
     }
   }
 }
+
+void SetData()
+{
+  txBuffer.fields.startFlag[0] = 0x19;
+  txBuffer.fields.startFlag[1] = 0x94;
+  txBuffer.fields.packetLength = 7;
+}
+/*
+void SendData()
+{
+  Serial.write(txBuffer.fields.startFlag[0]);
+  Serial.write(txBuffer.fields.startFlag[1]);
+  Serial.write(txBuffer.fields.packetLength);
+  Serial.write(txBuffer.fields.payload.brakePosition);
+  Serial.write(txBuffer.fields.payload.throttlePosition);
+  Serial.write(txBuffer.fields.payload.motorControllerTemperature);
+  Serial.write(txBuffer.fields.payload.motorTemperature);
+  Serial.write(txBuffer.fields.payload.accumulatorTemperature);
+  Serial.write(txBuffer.fields.payload.accumulatorVoltage[0]);
+  Serial.write(txBuffer.fields.payload.accumulatorVoltage[1]);
+}
+*/
 
 void telemTransmitHeartbeat() {
   Serial1.println("Hello World ");
 }
 
 void TX_Serial(){
-
+  for (int i=0; i<10; i++) {
+    Serial1.write(txBuffer.data[i]);
+  }
+//  Serial1.print(txBuffer.fields.startFlag[0]);
+//  Serial1.print(txBuffer.fields.startFlag[1]);
+//  Serial1.print(txBuffer.fields.packetLength);
+//  Serial1.print(txBuffer.fields.payload.brakePosition);
+//  Serial1.print(txBuffer.fields.payload.throttlePosition);
+//  Serial1.print(txBuffer.fields.payload.motorControllerTemperature);
+//  Serial1.print(txBuffer.fields.payload.motorTemperature);
+//  Serial1.print(txBuffer.fields.payload.accumulatorTemperature);
+//  Serial1.print(txBuffer.fields.payload.accumulatorVoltage[0]);
+//  Serial1.print(txBuffer.fields.payload.accumulatorVoltage[1]);
+  /*
   //Heartbeat
   Serial1.print("HB: ");
   if (telemHeartbeat > 255){
@@ -232,6 +315,8 @@ void TX_Serial(){
   //Accumulator Temperature
   Serial1.print("Eddie Temp: ");
   Serial1.println(max_accum_temp);
+  */
+  //Serial1.println(brake);
 }
 
 /*---------------------------------------------------------------------------
@@ -255,8 +340,9 @@ void setup()
   Ticker.start();
   //Ticker.attach(TX_actualValue1, 500);
   //Ticker.attach(TX_Debug, 500);
-  
-  Ticker.attach(TX_Serial, 100);
+ 
+  Ticker.attach(TX_Serial, 20); 
+  SetData();
 }
 
 /*---------------------------------------------------------------------------
@@ -265,7 +351,7 @@ void setup()
 
 void loop()
 {
-  canRX();
+  //canRX();
   //Serial1.println("Hello");
   //telemTransmitHeartbeat();
 }

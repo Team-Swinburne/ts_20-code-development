@@ -159,7 +159,7 @@ void updateDigital() {
 void updateAnalog() {
   // use bitwise operation to split the data
 	int16_t adc[4] = {0};
-	int16_t mapFrom[4][2]  = {{0,1023}, {0,1023}, {0,1023}, {0,1023}};
+	int16_t mapFrom[4][2]  = {{0,65536}, {0,65536}, {0,1023}, {0,1023}};
 	int16_t mapTo[4][2] = {{0,100}, {0,100}, {0,500}, {0, 500}};
   
   	// read ADC values

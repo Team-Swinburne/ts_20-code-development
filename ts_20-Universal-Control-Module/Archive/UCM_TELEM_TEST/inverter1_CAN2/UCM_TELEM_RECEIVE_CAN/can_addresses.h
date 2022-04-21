@@ -209,5 +209,7 @@ Digital/Analogue (Low Priority)                     500
 //TS_19 Addresses for testing Telemetry:
 #define RMS_TEMPERATURE_SET_2         0x2A1
 #define RMS_TEMPERATURE_SET_3         0x2A2
-#define RMS_VOLTAGE_INFO              0x2A7
+#define ACCUMULATOR_VOLTAGE          0X106
 #define ACCUMULATOR_TEMP              0x404
+#define BRAKE_POSITION                0x154
+#define THROTTLE_POSITION             0x304

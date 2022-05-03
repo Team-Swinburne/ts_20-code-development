@@ -7,7 +7,7 @@
 **********************************************************************************/
 
 /* ---------------------------------- GUARD --------------------------------- */
-#ifdef USE_UCM1 //only enable the code if the current selected board is UCM1
+#ifdef USE_UCM2 //only enable the code if the current selected board is UCM2
  
 /* -------------------------------------------------------------------------- */
 /*                                   INCLUDES                                 */
@@ -15,7 +15,6 @@
 #include <mbed.h>
 #include "ucm_pinout.h"
 #include "can_addresses.h"
-#include "ADS1015.h"
 
 /* -------------------------------------------------------------------------- */
 /*                                   DEFINES                                  */

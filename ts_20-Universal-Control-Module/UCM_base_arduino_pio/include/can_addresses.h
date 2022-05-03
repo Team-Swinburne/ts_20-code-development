@@ -2,32 +2,24 @@
 // BEN MCINNES, NAM TRAN, LUKE DELTON, PATRICK CURTAIN
 // REVISION 0 (21/06/21)
 
-/***************************************************************************
-    can_addresses.h
-
-    Derived from https://docs.google.com/spreadsheets/d/1s9SunyjSyh4vkgJb64f5PWy6DnKNB9WHros9Rx-3RJg/edit?usp=sharing
-
-    INTRO
-    Team Swinburne devices shall make use of a standard format for increasing 
-    the readability of the CAN. Note that this is not a networking stack, nor
-    the framework for a networking stack, but rather a simple oranisation of
-    the vehicle's data link layer for ease of interpretation. 
-
-    The TS_22 vehicle shall included one global CANBUS, and two CANBUS dedicated to a link between 
-    the throttle controller and inverters.
-
-    Revision     Date          Comments
-    --------   ----------     ------------
-    1.0        21/06/2021     Initial address space
-    2.0        22/03/2021     Change address space to 50 instead of 100
-****************************************************************************/
+// MODIFIED FOR UCM
 
 #define CANBUS_FREQUENCY							BR500K
 
 #define TEST_ADDRESS                                0x600
 /*
 
+Derived from https://docs.google.com/spreadsheets/d/1s9SunyjSyh4vkgJb64f5PWy6DnKNB9WHros9Rx-3RJg/edit?usp=sharing
 
+INTRODUCTION
+
+Team Swinburne devices shall make use of a standard format for increasing 
+the readability of the CAN. Note that this is not a networking stack, nor
+the framework for a networking stack, but rather a simple oranisation of
+the vehicle's data link layer for ease of interpretation. 
+
+The TS_21 vehicle shall included one global CANBUS, and two CANBUS dedicated to a link between 
+the throttle controller and inverters.
 
 DEVICE ADDRESS SPACE
 
@@ -44,19 +36,16 @@ The thrid byte is the message code, an address space that is directly related
 to the device.
 
 */
+
 #define CAN_ORION_BMS_BASE_ADDRESS                  0x100
-#define CAN_BRAKE_MODULE_BASE_ADDRESS               0x150
-#define CAN_AMK_MOTOR_CONTROLLER_BASE_ADDRESS       0x200
-#define CAN_MOTEC_THROTTLE_CONTROLLER_BASE_ADDRESS  0x250
-#define CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS       0x300
-#define CAN_UCM1_BASE_ADDRESS                       0x350 
-#define CAN_UCM2_BASE_ADDRESS                       0x360 
-#define CAN_UCM3_BASE_ADDRESS                       0x370 
-#define CAN_UCM4_BASE_ADDRESS                       0x380 
-#define CAN_UCM5_BASE_ADDRESS                       0x390 
-#define CAN_ORION_TEMP_MODULE_BASE_ADDRESS          0x450
-#define CAN_DISCHARGE_MODULE_BASE_ADDRESS           0x500
-#define CAN_DASH_BASE_ADDRESS                       0x550
+#define CAN_BRAKE_MODULE_BASE_ADDRESS               0x200
+#define CAN_MOTEC_THROTTLE_CONTROLLER_BASE_ADDRESS  0x300
+#define CAN_AMK_MOTOR_CONTROLLER_BASE_ADDRESS       0x400
+#define CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS       0x500
+#define CAN_UCM_BASE_ADDRESS                        0x620       // Note that for each UCM, there will be multiple addresses 0x510, 0x520,... etc.      
+#define CAN_ORION_TEMP_MODULE_BASE_ADDRESS          0x700
+#define CAN_DISCHARGE_MODULE_BASE_ADDRESS           0x800
+#define CAN_DASH_BASE_ADDRESS                       0x900
 
 // Miscillatious
 #define CAN_ORION_BMS_RINEHART_LIMITS				0x202
@@ -123,7 +112,27 @@ enum CAN_HEART_SIGNALS {
     HEART_COMPILE_DATE,
     HEART_COMPILE_TIME,
 };
+    // typedef enum CAN_ANALOGUE_1_SIGNALS{
+    //     CAN_ANALOGUE_1_PDOC_TEMPERATURE_1,
+    //     CAN_ANALOGUE_1_PDOC_TEMPERATURE_2,
+    //     CAN_ANALOGUE_1_PDOC_REF_TEMPERATURE_1,
+    //     CAN_ANALOGUE_1_PDOC_REF_TEMPERATURE_2,
+    //     CAN_ANALOGUE_1_HV_BATTERY_SENSE_VOLTAGE_1,
+    //     CAN_ANALOGUE_1_HV_BATTERY_SENSE_VOLTAGE_2,
+    //     CAN_ANALOGUE_1_HV_MC_SENSE_VOLTAGE_1,
+    //     CAN_ANALOGUE_1_HV_MC_SENSE_VOLTAGE_2,
+    // } can_analogue_1_signals_t;
 
+    // ... then within the TX Callback routine, this is the code that can be used to assign the byte array.
+
+    // TX_data[CAN_ANALOGUE_1_PDOC_TEMPERATURE_1] 			= (char)(pdoc.get_pdoc_temperature() >> 8);
+	// TX_data[CAN_ANALOGUE_1_PDOC_TEMPERATURE_2] 			= (char)(pdoc.get_pdoc_temperature() & 0xFF);
+	// TX_data[CAN_ANALOGUE_1_PDOC_REF_TEMPERATURE_1] 		= (char)(pdoc.get_pdoc_ref_temperature() >> 8);
+	// TX_data[CAN_ANALOGUE_1_PDOC_REF_TEMPERATURE_2] 		= (char)(pdoc.get_pdoc_ref_temperature() & 0xFF);
+	// TX_data[CAN_ANALOGUE_1_HV_BATTERY_SENSE_VOLTAGE_1]	= (char)(hv_battery_sense.get_voltage()*10 >> 8);
+	// TX_data[CAN_ANALOGUE_1_HV_BATTERY_SENSE_VOLTAGE_2]	= (char)(hv_battery_sense.get_voltage()*10 & 0xFF);
+	// TX_data[CAN_ANALOGUE_1_HV_MC_SENSE_VOLTAGE_1] 		= (char)(hv_mc_sense.get_voltage()*10 >> 8);
+	// TX_data[CAN_ANALOGUE_1_HV_MC_SENSE_VOLTAGE_2] 		= (char)(hv_mc_sense.get_voltage()*10 & 0xFF);
 
 // The error and warning messages can be handled within a similar mannor, turning a byte array into a bit array
 // with a simple function.
@@ -182,7 +191,7 @@ Digital/Analogue (Low Priority)                     500
 // CANBUS Intervals (in milliseconds)
 
 #define INTERVAL_HEARTBEAT                      1000
-#define INTERVAL_DRIVER_REACTION                10
+#define INTERVAL_DRIVER_RECTION                 10
 #define INTERVAL_HIGH_PRIORITY                  50
 #define INTERVAL_ERROR_WARNING_CRITICAL         100
 #define INTERVAL_MEDIUM_PRIORITY                200

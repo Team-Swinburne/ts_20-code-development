@@ -334,7 +334,6 @@ void canInverter() {
           rxData[2] = can.rxData.bytes[2];
           rxData[3] = can.rxData.bytes[3];
           can.rxMsgLen = -1;
-          
           tArray[0] = (256*rxData[3] + rxData[2])/10;
         break;
         }
@@ -392,26 +391,26 @@ void fanControl()
   highestTemp();
   //this line maps the temperature of the motor controller onto a value from 0-256 to be outputted to the
   //fans. The 
-  int y = 0.000336538*(tArray[3]^3)+27.31;
-  analogWrite(fanControlPin,(y/100)*225);
-  /*
-  if (y <20) 
+  float pwmPercentage = 0.000336538*(tArray[3]^3)+27.31;
+  pwmPercentage = (pwmPercentage/100)*255;
+  int pwmSignal = (int) pwmPercentage;
+  
+  if (tArray[0] <20) 
   {
     analogWrite(fanControlPin, 120);
   }
-  else if ( y > 60 && 120 >= y)
+  else if ( tArray[0] > 60 && 120 >= tArray[0])
   {
     analogWrite(fanControlPin, 255);
   }
-  else if( y > 120)
+  else if(tArray[0] > 120)
   {
     analogWrite(fanControlPin, 179);
   }
   else
   {
-    analogWrite(fanControlPin, y/100*255);
+    analogWrite(fanControlPin, pwmSignal);
   }
-  */
 }
 
 /*---------------------------------------------------------------------------
@@ -448,6 +447,7 @@ void setup()
 
 void loop()
 {
+  Serial1.println(tArray[3]);
   canInverter();
   fanControl();
   //canRX();

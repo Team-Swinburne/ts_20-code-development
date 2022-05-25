@@ -50,7 +50,7 @@ struct msgFrame
   uint8_t len = 8;
   uint8_t bytes[8] = {0};
 };
-uint8_t tArray[4];
+float tArray[4];
 
 static msgFrame actualValue1, actualValue2, debug;
 
@@ -280,9 +280,14 @@ void telemTransmitHeartbeat() {
   Serial1.println("Hello World ");
 }
 
-void TX_Serial(){
-  for (int i=0; i<10; i++) {
-    Serial1.write(txBuffer.data[i]);
+void TX_Can(){
+  debug.bytes[0] = 1;
+    debug.bytes[1] = 1;
+    debug.bytes[2] = 1;
+    
+    can.transmit(0x350, 
+        debug.bytes, 
+        8);
   }
 //  Serial1.print(txBuffer.fields.startFlag[0]);
 //  Serial1.print(txBuffer.fields.startFlag[1]);
@@ -321,22 +326,30 @@ void TX_Serial(){
   Serial1.println(max_accum_temp);
   */
   //Serial1.println(brake);
-}
 
 //Motor Inverter Messages off CAN
 void canInverter() {
   if (can.rxMsgLen > -1) {
   switch (can.id)
     {
-      case inverterTemp1:
+      case CAN_INV_ACTUAL_VALUE2:
         {
           //Motor Inverter Temperature:
+          rxData[0] = can.rxData.bytes[0];
+          rxData[1] = can.rxData.bytes[1]; 
           rxData[2] = can.rxData.bytes[2];
           rxData[3] = can.rxData.bytes[3];
+          rxData[4] = can.rxData.bytes[4];
+          rxData[5] = can.rxData.bytes[5];
+          rxData[6] = can.rxData.bytes[6];
+          rxData[7] = can.rxData.bytes[7];
           can.rxMsgLen = -1;
-          tArray[0] = (256*rxData[3] + rxData[2])/10;
+          //Serial1.print("rxData[2]: ");
+          //Serial1.println(rxData[2]);
+          tArray[0] = (256*rxData[3]+rxData[2])/10;
         break;
         }
+        /*
       case inverterTemp2:
         {
           rxData[2] = can.rxData.bytes[2];
@@ -361,6 +374,7 @@ void canInverter() {
         tArray[3] = (256*rxData[3] + rxData[2])/10;
         break;
       }
+      */
     }
   }
 }
@@ -388,14 +402,21 @@ void highestTemp()
 
 void fanControl()
 {
-  highestTemp();
+  float pwmtemp;
+  Serial1.print("tArray[0]: ");
+  Serial1.println(tArray[0]);
   //this line maps the temperature of the motor controller onto a value from 0-256 to be outputted to the
   //fans. The 
-  float pwmPercentage = 0.000336538*(tArray[3]^3)+27.31;
-  pwmPercentage = (pwmPercentage/100)*255;
-  int pwmSignal = (int) pwmPercentage;
+  float pwmPercentage = 0.000336538*(pow((tArray[0]),3))+27.31;
+  Serial1.print("pwmPercentage: ");
+  Serial1.print(pwmPercentage);
+  pwmtemp = (pwmPercentage/100)*255;
+  int pwmSignal = (int) pwmtemp;
+
+  Serial1.print("pwmSignal: ");
+  Serial1.println(pwmSignal);
   
-  if (tArray[0] <20) 
+  if (tArray[0] <39) 
   {
     analogWrite(fanControlPin, 120);
   }
@@ -437,7 +458,7 @@ void setup()
   //Ticker.attach(TX_actualValue1, 500);
   //Ticker.attach(TX_Debug, 500);
  
-  Ticker.attach(TX_Serial, 20); 
+  //Ticker.attach(TX_Can, 50); 
   SetData();
 }
 

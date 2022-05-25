@@ -4,7 +4,7 @@
 
 // MODIFIED FOR UCM
 
-#define CANBUS_FREQUENCY							BR250K
+#define CANBUS_FREQUENCY							BR500K
 
 #define TEST_ADDRESS                                0x600
 /*
@@ -205,7 +205,7 @@ Digital/Analogue (Low Priority)                     500
 #define INTERVAL_ERROR_WARNING_LOW_PRIORITY     500        
 
 //Motor Controller Adresses
-# define inverterTemp1 0x212
+//# define inverterTemp1 0x212
 # define inverterTemp2 0x222 
 # define inverterTemp3 0x232
 # define inverterTemp4 0x242

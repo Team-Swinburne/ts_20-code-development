@@ -1,0 +1,17 @@
+// This function uses a timer to sound the RTDS for 1.5 seconds. Runs regularly
+// and sets a flag once the RTDS has been run as per throttle code for TS19.
+
+if (CAN1 Receive.Precharge Data.Precharge Current State eq 4) {
+	if (RTDS Has Sounded eq 0) {
+		RTDS Has Sounded = 1;
+		RTDS Timer.Start(1.5);
+	}
+} else {
+	RTDS Has Sounded = 0;
+}
+
+if (RTDS Timer.Remaining() > 0) {
+	CAN1 Transmit.Throttle Output.RTDS = 1;
+} else {
+	CAN1 Transmit.Throttle Output.RTDS = 0;
+}

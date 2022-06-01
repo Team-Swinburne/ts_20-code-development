@@ -1,0 +1,52 @@
+/*******************************************
+ * Get sensor 1 as percentage of full range
+ ******************************************/
+
+// Convert sensor 1 input to percentage of full range and invert
+local tempPercentage1 = 100 - ((Read APPS 1 Output - APPS 1 Minimum Voltage)/(APPS 1 Maximum Voltage - APPS 1 Minimum Voltage))*100;
+
+// Neglect pedal input if less than deadzone, otherwise compensate
+if (Convert.ToInteger(tempPercentage1) < Global.Constants.DEADZONE) {
+	APPS 1 Percentage = 0;
+} else {
+	APPS 1 Percentage = Convert.ToInteger(((tempPercentage1 - Global.Constants.Deadzone)/(100 - Global.Constants.Deadzone))*100);
+}
+
+
+/*******************************************
+ * Get sensor 2 as percentage of full range
+ ******************************************/
+
+// Convert sensor 2 input to percentage of full range and invert
+local Temp Percentage 2 = 100 - ((Read APPS 2 Output - APPS 1 Minimum Voltage)/(APPS 2 Maximum Voltage - APPS 2 Minimum Voltage))*100;
+
+// Neglect pedal input if less than deadzone, otherwise compensate
+if (Convert.ToInteger(Temp Percentage 2) < Global.Constants.DEADZONE) {
+	APPS 2 Percentage = 0;
+} else {
+	APPS 2 Percentage = Convert.ToInteger(((Temp Percentage 2 - Global.Constants.Deadzone)/(100 - Global.Constants.Deadzone))*100);
+}
+
+
+/*******************************************
+ * Return Average
+ ******************************************/
+ APPS Average Percentage = (APPS 1 Percentage + APPS 2 Percentage)/2;
+ 
+// Implement 10% Rule, Compares Throttle Pedals for 10% difference
+//T.6.2.2 At least two entirely separate sensors have to be used as APPSs. The sensors must have different transfer functions which meet either:
+//? Each sensor has a positive slope sense with either different gradients and/or offsets to the other(s).
+//? An OEM pedal sensor with opposite slopes. Non OEM opposite slope sensor configurations require prior approval.
+//The intent is that in a short circuit the APPSs will only agree at 0% pedal position.
+//T.6.2.3 Implausibility is defined as a deviation of more than 10% pedal travel between the sensors or
+//other failure as defined in this Section T.6.2.
+if ((Calculate.Absolute(APPS 1 Percentage - APPS 2 Percentage) > 10) or (Read APPS 1 Output < (APPS 1 Minimum Voltage - 0.3)) or (Read APPS 2 Output < (APPS 2 Minimum Voltage - 0.3)) or (Read APPS 1 Output > (APPS 1 Maximum Voltage + 0.3)) or (Read APPS 2 Output > (APPS 2 Maximum Voltage + 0.3)) or (Read APPS 1 Output < 0.05) or (Read APPS 2 Output < 0.05)) {
+	CAN1 Transmit.Error States.Error APPS Disagree = 1;
+} else {
+	CAN1 Transmit.Error States.Error APPS Disagree = 0;
+}
+ 
+ /*******************************************
+ * Assign Motor Torque
+ ******************************************/
+ Global.Motor Torque = Convert.ToInteger((APPS Average Percentage * 0.01) * Global.Constants.MAX TORQUE LIMIT);

@@ -1,0 +1,25 @@
+local h = CanComms.TxOpen(true); 	//false for little endian, true for big endian
+
+CanComms.TxInitialise(h, 4); 		//Initialise the message, specify the length of the message in bytes
+CanComms.SetUnsignedInteger(h, 0, 8, Convert.ToUnsignedInteger(Precharge Button Pressed)); //Need to convert to an unsignedinteger before transmitting
+CanComms.SetUnsignedInteger(h, 8, 8, Convert.ToUnsignedInteger(Drive Button Pressed));
+CanComms.SetUnsignedInteger(h, 16, 8, Convert.ToUnsignedInteger(Drive State Request));
+CanComms.SetUnsignedInteger(h, 24, 8, Convert.ToUnsignedInteger(RTDS));
+
+if (Read Sensors.Braking Active eq 1 and Drive Button Pressed eq 1) 
+{
+Drive State Request =1;
+}
+else 
+{
+Drive State Request = 0;
+}
+
+if (CanComms.TxStandard(h,0,0x302))
+{
+	Digital Sensors TX Status = Digital Sensors TX Status.OK;
+}
+else
+{
+	Digital Sensors TX Status = Digital Sensors TX Status.Transmit Warning;
+}

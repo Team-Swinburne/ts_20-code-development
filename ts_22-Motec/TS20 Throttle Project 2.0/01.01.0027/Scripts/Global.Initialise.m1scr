@@ -1,0 +1,13 @@
+// This scheduled function runs only once - on startup.
+//
+// Used to initialising some channels to starting values.
+Read Sensors.Buttons.Precharge Button.Precharge LED Frequency = 50;
+Read Sensors.Buttons.Drive Button.Drive LED Frequency = 50;
+Read Sensors.Buttons.Precharge Button.Precharge LED Channel = -1;
+Read Sensors.Buttons.Drive Button.Drive LED Channel = -1;
+Transmit CAN.CAN 1.Heartbeat ID.Heartbeat State = 0;
+Transmit CAN.CAN 1.Heartbeat ID.Heartbeat Counter = 0;
+Recieve CAN.CAN 1.Precharge.Heartbeat ID.Precharge State = 0;
+Transmit CAN.CAN 1.Digital Sensors ID.Precharge Button Pressed = 0;
+Transmit CAN.CAN 1.Digital Sensors ID.Drive Button Pressed = 0;
+RTDS.RTDS Has Sounded = 0;

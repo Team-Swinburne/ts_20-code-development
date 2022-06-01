@@ -1,0 +1,31 @@
+/*****************************************************
+ A bit redundant But its here for Diagniostics.....
+*****************************************************/
+
+Transmit CAN.CAN 2.AMK Motor Command 1.Set Torque Positive = Global.TV Motor Torques.TV Motor Torque 1;
+Transmit CAN.CAN 2.AMK Motor Command 3.Set Torque Positive = Global.TV Motor Torques.TV Motor Torque 3;
+Transmit CAN.CAN 3.AMK Motor Command 2.Set Torque Positive = Global.TV Motor Torques.TV Motor Torque 2;
+Transmit CAN.CAN 3.AMK Motor Command 4.Set Torque Positive = Global.TV Motor Torques.TV Motor Torque 4;
+
+/*****************************************************************
+Technically E-Diff, As long as we ain't using Closed Loop Control.
+******************************************************************/
+
+Global.TV Motor Torques.TV Motor Torque 1 = Global.Motor Torque;
+Global.TV Motor Torques.TV Motor Torque 2 = Global.Motor Torque;
+Global.TV Motor Torques.TV Motor Torque 3 = Global.Motor Torque;
+Global.TV Motor Torques.TV Motor Torque 4 = Global.Motor Torque;
+
+/****************************************************
+E Diff, But Only for Closed Loop Control!!!!!!!!!!
+*****************************************************/
+
+
+
+
+
+/*****************************************************
+Torque Vectoring Compensator, Maybe
+*****************************************************/
+
+

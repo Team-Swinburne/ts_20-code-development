@@ -1,0 +1,22 @@
+Brake Max 1 = Raw Brake 1 Maximum;
+Brake Min 1 = Raw Brake 1 Minimum;
+Brake Max 2 = Raw Brake 2 Maximum;
+Brake Min 2 = Raw Brake 2 Minimum;
+
+
+local h = CanComms.TxOpen(true); 	//false for little endian, true for big endian
+
+CanComms.TxInitialise(h, 4); 		//Initialise the message, specify the length of the message in bytes
+CanComms.SetUnsignedInteger(h, 0, 8, Convert.ToUnsignedInteger(Brake Min 1)); //Need to convert to an unsignedinteger before transmitting
+CanComms.SetUnsignedInteger(h, 8, 8, Convert.ToUnsignedInteger(Brake Max 1));
+CanComms.SetUnsignedInteger(h, 16, 8, Convert.ToUnsignedInteger(Brake Min 2));
+CanComms.SetUnsignedInteger(h, 24, 8, Convert.ToUnsignedInteger(Brake Max 2));
+
+if (CanComms.TxStandard(h,0,0x155))
+{
+	Brake Module Calibration TX Status = Brake Module Calibration TX Status.OK;
+}
+else
+{
+	Brake Module Calibration TX Status = Brake Module Calibration TX Status.Transmit Warning;
+}

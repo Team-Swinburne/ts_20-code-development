@@ -1,0 +1,38 @@
+// Checks for key error states and assigns Critical Error channel if necessary
+
+
+if ((CAN1 Transmit.Error States.Error APPS Disagree eq 1) or (CAN1 Transmit.Error States.Error Trailbraking Active eq 1)) {
+	Throttle Error = 1;
+} else {
+	Throttle Error = 0;
+}
+
+if ((CAN1 Receive.Precharge Data.Precharge Error Critical eq 1) or (CAN1 Receive.Brake Sensors. neq 1)) {
+	Critical Error = 1;
+} else {
+	Critical Error = 0;
+}
+
+if (CAN1 Receive.Precharge Data.Precharge Error Critical eq 1) {
+	AMS LED Channel = -1;
+} else {
+	AMS LED Channel = 1;
+}
+
+if (Recieve CAN.CAN 1.Precharge.Error ID.PDOC OK eq 1) {
+	PDOC LED Channel = -1;
+} else {
+	PDOC LED Channel = 1;
+}
+
+if (Recieve CAN.CAN 1.Precharge.Error ID.IMD OK eq 1) {
+	IMD LED Channel = -1;
+} else {
+	IMD LED Channel = 1;
+}
+
+if (Recieve CAN.CAN 1.Brake Module.Error ID.BSPD OK eq 1) {
+	BSPD LED Channel  = -1;
+} else {
+	BSPD LED Channel  = 1;
+}

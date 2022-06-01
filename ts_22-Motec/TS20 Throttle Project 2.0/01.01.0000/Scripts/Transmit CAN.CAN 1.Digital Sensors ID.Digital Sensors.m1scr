@@ -1,0 +1,15 @@
+local h = CanComms.TxOpen(true); 	//false for little endian, true for big endian
+
+CanComms.TxInitialise(h, 3); 		//Initialise the message, specify the length of the message in bytes
+CanComms.SetUnsignedInteger(h, 0, 8, Convert.ToUnsignedInteger(RTDS)); //Need to convert to an unsignedinteger before transmitting
+CanComms.SetUnsignedInteger(h, 8, 8, Convert.ToUnsignedInteger(Precharge Button Pressed));
+CanComms.SetUnsignedInteger(h, 16, 8, Convert.ToUnsignedInteger(Drive Button Pressed));
+
+if (CanComms.TxStandard(h,0,0x306))
+{
+	Digital Sensors TX Status = Digital Sensors TX Status.OK;
+}
+else
+{
+	Digital Sensors TX Status = Digital Sensors TX Status.Transmit Warning;
+}

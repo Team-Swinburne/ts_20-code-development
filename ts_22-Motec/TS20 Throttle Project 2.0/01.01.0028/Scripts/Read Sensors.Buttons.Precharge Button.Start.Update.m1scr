@@ -1,0 +1,59 @@
+// Function provided in MoTeC switch example - unchanged
+// Controls the universal digital switch input and provides
+// functionality in Tune.
+local switchValue = false;
+static local switchMom = false;
+
+if (Invert eq Invert.On)
+{
+	switchValue = Sensor eq Sensor.On ? false : true;
+}
+else
+{
+	switchValue = Sensor eq Sensor.On ? true : false;
+}
+
+if (switchValue eq true)
+{
+	switchMom = ~switchMom;
+}
+
+if (Sensor.Pin.Diagnostic.AsInteger() < 1)
+{
+	// Faulty or not connected sensor
+	if (Sensor.Pin.Diagnostic.AsInteger() < 0)
+	{
+		State = State.High Fault;
+	}
+	else
+	{
+		State = State.Not In Use;
+	}
+	Value = Value.Off;
+}
+else if (Sensor.Pin.Diagnostic.AsInteger() > 1)
+{
+	// Warning registered by sensor	
+	State = State.Low Warning;
+	if (Override.Enable eq Override.Enable.Disabled)
+	{
+		Value = switchMom ? Value.On : Value.Off;
+	}
+	else
+	{
+		Value = Override.Value;
+	}
+}
+else
+{
+	// Must be OK
+	State = State.OK;
+	if (Override.Enable eq Override.Enable.Disabled)
+	{
+		Value = switchMom ? Value.On : Value.Off;
+	}
+	else
+	{
+		Value = Override.Value;
+	}
+}

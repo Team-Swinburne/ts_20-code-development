@@ -1,0 +1,56 @@
+/*******************************************
+ * Get sensor 1 as percentage of full range
+ ******************************************/
+
+// Convert sensor 1 input to percentage of full range and invert
+Bpps 1 Voltage = Read BPPS 1 Output;
+Bpps 2 Voltage = Read BPPS 2 Output;
+local tempPercentage1 = 100 - ((Read BPPS 1 Output - BPPS 1 Minimum Voltage)/(BPPS 1 Maximum Voltage - BPPS 1 Minimum Voltage))*100;
+
+// Neglect pedal input if less than deadzone, otherwise compensate
+if (Convert.ToInteger(tempPercentage1) < Global.Constants.DEADZONE) {
+	BPPS 1 Percentage = 0;
+} else {
+	BPPS 1 Percentage = Convert.ToInteger(((tempPercentage1 - Global.Constants.Deadzone)/(100 - Global.Constants.Deadzone))*100);
+}
+
+
+/*******************************************
+ * Get sensor 2 as percentage of full range
+ ******************************************/
+
+// Convert sensor 2 input to percentage of full range and invert
+local Temp Percentage 2 = 100 - ((Read BPPS 2 Output - BPPS 2 Minimum Voltage)/(BPPS 2 Maximum Voltage - BPPS 2 Minimum Voltage))*100;
+
+// Neglect pedal input if less than deadzone, otherwise compensate
+if (Convert.ToInteger(Temp Percentage 2) < Global.Constants.DEADZONE) {
+	BPPS 2 Percentage = 0;
+} else {
+	BPPS 2 Percentage = Convert.ToInteger(((Temp Percentage 2 - Global.Constants.Deadzone)/(100 - Global.Constants.Deadzone))*100);
+}
+
+
+/*******************************************
+ * Return Average
+ ******************************************/
+ BPPS Average Percentage = (BPPS 1 Percentage + BPPS 2 Percentage)/2;
+ 
+ //Coppied APPS, Not necessary But allows for Better Understanding
+ 
+// Implement 10% Rule, Compares Throttle Pedals for 10% difference
+//T.6.2.2 At least two entirely separate sensors have to be used as APPSs. The sensors must have different transfer functions which meet either:
+//? Each sensor has a positive slope sense with either different gradients and/or offsets to the other(s).
+//? An OEM pedal sensor with opposite slopes. Non OEM opposite slope sensor configurations require prior approval.
+//The intent is that in a short circuit the APPSs will only agree at 0% pedal position.
+//T.6.2.3 Implausibility is defined as a deviation of more than 10% pedal travel between the sensors or
+//other failure as defined in this Section T.6.2.
+if ((Calculate.Absolute(BPPS 1 Percentage - BPPS 2 Percentage) > 10) or (Read BPPS 1 Output < (BPPS 1 Minimum Voltage - 0.3)) or (Read BPPS 2 Output < (BPPS 2 Minimum Voltage - 0.3)) or (Read BPPS 1 Output > (BPPS 1 Maximum Voltage + 0.3)) or (Read BPPS 2 Output > (BPPS 2 Maximum Voltage + 0.3)) or (Read BPPS 1 Output < 0.05) or (Read BPPS 2 Output < 0.05)) {
+	Transmit CAN.CAN 1.Error ID.Error BPPS Disagree = 1;
+} else {
+	Transmit CAN.CAN 1.Error ID.Error BPPS Disagree = 0;
+}
+ 
+ /*******************************************
+ * Assign Motor Torque
+ ******************************************/
+ Global.Regeneration Torque = Convert.ToInteger((BPPS Average Percentage * 0.01) * Global.Constants.MAX TORQUE LIMIT);

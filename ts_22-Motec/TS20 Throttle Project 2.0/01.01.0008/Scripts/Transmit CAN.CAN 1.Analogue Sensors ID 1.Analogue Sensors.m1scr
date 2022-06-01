@@ -1,0 +1,20 @@
+local h = CanComms.TxOpen(true); 	//false for little endian, true for big endian
+
+CanComms.TxInitialise(h, 8); 		//Initialise the message, specify the length of the message in bytes
+CanComms.SetUnsignedInteger(h, 0, 8, Convert.ToUnsignedInteger(Global.Motor Torque)); //Need to convert to an unsignedinteger before transmitting
+CanComms.SetUnsignedInteger(h, 8, 8, Convert.ToUnsignedInteger(Read Sensors.APPS Sensors.APPS 2 Percentage));
+CanComms.SetUnsignedInteger(h, 16, 8, Convert.ToUnsignedInteger(Read Sensors.APPS Sensors.APPS Average Percentage));
+CanComms.SetUnsignedInteger(h, 24, 8, Convert.ToUnsignedInteger(Read Sensors.BPPS Sensors.BPPS 1 Percentage));
+CanComms.SetUnsignedInteger(h, 32, 8, Convert.ToUnsignedInteger(Read Sensors.BPPS Sensors.BPPS 2 Percentage));
+CanComms.SetUnsignedInteger(h, 40, 8, Convert.ToUnsignedInteger(Read Sensors.BPPS Sensors.BPPS Average Percentage));
+CanComms.SetUnsignedInteger(h, 48, 8, Convert.ToUnsignedInteger(Read Sensors.Steering Sensor.Steering Sensor Percentage));
+CanComms.SetUnsignedInteger(h, 56, 8, Convert.ToUnsignedInteger(Global.Motor Torque));
+
+if (CanComms.TxStandard(h,0,0x203))
+{
+	Analogue Sensors TX Status = Analogue Sensors TX Status.OK;
+}
+else
+{
+	Analogue Sensors TX Status = Analogue Sensors TX Status.Transmit Warning;
+}

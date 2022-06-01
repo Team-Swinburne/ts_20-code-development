@@ -1,0 +1,2089 @@
+<?xml version="1.0"?>
+<MoTeCM1BuildSession Locale="English_Australia.1252" DefaultLocale="C" ProductName="M1Build" ProductVersion="1.4.0.239">
+ <Project FileFormat="10103" Name="TS19-20 Throttle Project" VersionMajor="1" VersionMinor="1" BuildNumber="2" Author="Jaycob Williams" Company="Team Swinburne" ContactNo="0439715296" Address="1 John St, Hawthorn VIC 3122" Email="TeamSwinburne_E17@swin.edu.au" SupportURL="https://teamswinburne.org" Copyright="2020" TargetHardware="ecu120" SecurityLevel="Off" DiagnosticLoggingCondition="">
+  <System VersionMajor="1" VersionMinor="4" VersionRelease="0" VersionBuild="0091" SelectedRelease="0"/>
+  <SelectedModuleSets>
+   <File Name="MoTeC Types" VersionMajor="1" VersionMinor="6" VersionBuild="0"/>
+   <File Name="MoTeC Comms" VersionMajor="1" VersionMinor="10" VersionBuild="2"/>
+   <File Name="MoTeC Input" VersionMajor="1" VersionMinor="10" VersionBuild="23"/>
+  </SelectedModuleSets>
+  <DataTypes>
+   <Type Name="CANTest" Storage="enum" Default="Off">
+    <Enum Name="Off" ContainerOrder="0">
+     <Help>
+<![CDATA[]]>
+     </Help>
+    </Enum>
+    <Enum Name="On" ContainerOrder="1">
+     <Help>
+<![CDATA[]]>
+     </Help>
+    </Enum>
+   </Type>
+   <Type Name="Car State" Storage="enum" Default="IDLE">
+    <Enum Name="IDLE" ContainerOrder="0">
+     <Help>
+<![CDATA[]]>
+     </Help>
+    </Enum>
+    <Enum Name="READY" ContainerOrder="1">
+     <Help>
+<![CDATA[]]>
+     </Help>
+    </Enum>
+    <Enum Name="PRECHARGE" ContainerOrder="2">
+     <Help>
+<![CDATA[]]>
+     </Help>
+    </Enum>
+    <Enum Name="DRIVE" ContainerOrder="3">
+     <Help>
+<![CDATA[]]>
+     </Help>
+    </Enum>
+   </Type>
+  </DataTypes>
+  <PkgUpgrades>
+   <Project Name="CANTest 1.4.0" Version="0" Major="1" Minor="0" Build="39"/>
+   <Project Name="TS20 OG Throttle" Version="1" Major="1" Minor="0" Build="57"/>
+   <Project Name="TS19 Throttle Project" Version="1" Major="1" Minor="0" Build="5"/>
+   <Project Name="TS20 Throttle Project 2.0" Version="TS_21 Standard CAN" Major="1" Minor="1" Build="20"/>
+  </PkgUpgrades>
+  <Build PackageSignKey="Swinburne University.M1.Package.Development 01.04.00"/>
+  <ComponentStream>
+   <List>
+    <Component Classname="BuiltIn.GroupLeaf" Name="Root">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Global">
+     <Props>
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Global.Constants">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Constant" Name="Root.Global.Constants.DEADZONE">
+     <Props Type="s32" Value="15"/>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Constant" Name="Root.Global.Constants.MAX TORQUE LIMIT">
+     <Props Value="3.00000000000000000e+002"/>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Constant" Name="Root.Global.Constants.TRAILBRAKING ACTIVE PERCENT">
+     <Props Type="s32" Value="25"/>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Constant" Name="Root.Global.Constants.TRAILBRAKING RESET PERCENT">
+     <Props Type="s32" Value="5"/>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.FuncUser" Filename="Global.Initialise.m1scr" Name="Root.Global.Initialise">
+     <Props SelectedTrigger="Parent.Parent.Events.On Startup"/>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Global.Motor Torque">
+     <Props Type="s32">
+      <List.UserTags>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Global.RTDS">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Global.RTDS.RTDS Has Sounded">
+     <Props Type="u32">
+      <List.UserTags>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.FuncUser" Filename="Global.RTDS.Handle RTDS.m1scr" Name="Root.Global.RTDS.Handle RTDS">
+     <Props SelectedTrigger="Parent.Parent.Parent.Events.On 10Hz"/>
+    </Component>
+    <Component Classname="BuiltIn.Timer" Name="Root.Global.RTDS.RTDS Timer"/>
+    <Component Classname="BuiltIn.FuncGenerated.Timer.Set" Caps="AutoCreated" Name="Root.Global.RTDS.RTDS Timer.Start">
+     <Signature Name="" ReturnType="">
+      <Params>
+       <Param Name="Timeout" Type="f32" Attrs="0">
+        <Description>
+<![CDATA[]]>
+        </Description>
+       </Param>
+      </Params>
+      <Description>
+<![CDATA[]]>
+      </Description>
+      <DescriptionFull>
+<![CDATA[]]>
+      </DescriptionFull>
+      <ReturnDescription>
+<![CDATA[]]>
+      </ReturnDescription>
+     </Signature>
+    </Component>
+    <Component Classname="BuiltIn.FuncGenerated.Timer.Remaining" Caps="AutoCreated" Name="Root.Global.RTDS.RTDS Timer.Remaining">
+     <Signature Name="" ReturnType="f32">
+      <Params/>
+      <Description>
+<![CDATA[]]>
+      </Description>
+      <DescriptionFull>
+<![CDATA[]]>
+      </DescriptionFull>
+      <ReturnDescription>
+<![CDATA[]]>
+      </ReturnDescription>
+     </Signature>
+    </Component>
+    <Component Classname="_IOMethod.pwm" Name="Root.Global.RTDS.RTDS">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Global.RTDS.RTDS.Frequency">
+     <Props TargetCreation="AutoConst" Target="This.Value"/>
+    </Component>
+    <Component Classname="BuiltIn.Constant" Name="Root.Global.RTDS.RTDS.Frequency.Value">
+     <Props Value="1.00000000000000000e+002"/>
+    </Component>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Global.RTDS.RTDS.Duty Cycle">
+     <Props Target="Parent.Parent.Parent.Parent.Transmit CAN.CAN 1.Digital Sensors ID.RTDS">
+      <List.UserTags>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+     </Props>
+    </Component>
+    <Component Classname="BuiltIn.IOResourceValueInput" Caps="AutoCreated" Name="Root.Global.RTDS.RTDS.Resource">
+     <Props NameCreation="AutoParam" NameTarget="This.Value">
+      <List.UserTags>
+       <Entry Value="Tune"/>
+      </List.UserTags>
+     </Props>
+    </Component>
+    <Component Classname="BuiltIn.IOResourceParameter" Name="Root.Global.RTDS.RTDS.Resource.Value"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Global.RTDS.RTDS.Reserve"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Global.RTDS.RTDS.Release"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Global.RTDS.RTDS.Update">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Events.On 10Hz"/>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Global.Errors">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.FuncUser" Filename="Global.Errors.Handle Errors.m1scr" Name="Root.Global.Errors.Handle Errors">
+     <Props SelectedTrigger="Parent.Parent.Parent.Events.On 200Hz"/>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Global.Errors.Throttle Error">
+     <Props Type="u32">
+      <List.UserTags>
+       <Entry Value="Diagnostic"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Global.Errors.Critical Error">
+     <Props Type="u32"/>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="_IOMethod.pwm" Name="Root.Global.Errors.AMS LED">
+     <Props>
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Global.Errors.AMS LED.Frequency">
+     <Props TargetCreation="AutoConst" Target="This.Value"/>
+    </Component>
+    <Component Classname="BuiltIn.Constant" Name="Root.Global.Errors.AMS LED.Frequency.Value">
+     <Props Value="5.00000000000000000e+001"/>
+    </Component>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Global.Errors.AMS LED.Duty Cycle">
+     <Props Target="Parent.Parent.AMS LED Channel"/>
+    </Component>
+    <Component Classname="BuiltIn.IOResourceValueInput" Caps="AutoCreated" Name="Root.Global.Errors.AMS LED.Resource">
+     <Props NameCreation="AutoParam" NameTarget="This.Value"/>
+    </Component>
+    <Component Classname="BuiltIn.IOResourceParameter" Name="Root.Global.Errors.AMS LED.Resource.Value"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Global.Errors.AMS LED.Reserve"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Global.Errors.AMS LED.Release"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Global.Errors.AMS LED.Update">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Events.On 50Hz"/>
+    </Component>
+    <Component Classname="_IOMethod.pwm" Name="Root.Global.Errors.BSPD LED">
+     <Props>
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Global.Errors.BSPD LED.Frequency">
+     <Props TargetCreation="AutoConst" Target="This.Value"/>
+    </Component>
+    <Component Classname="BuiltIn.Constant" Name="Root.Global.Errors.BSPD LED.Frequency.Value">
+     <Props Value="5.00000000000000000e+001"/>
+    </Component>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Global.Errors.BSPD LED.Duty Cycle">
+     <Props Target="Parent.Parent.BSPD LED Channel"/>
+    </Component>
+    <Component Classname="BuiltIn.IOResourceValueInput" Caps="AutoCreated" Name="Root.Global.Errors.BSPD LED.Resource">
+     <Props NameCreation="AutoParam" NameTarget="This.Value"/>
+    </Component>
+    <Component Classname="BuiltIn.IOResourceParameter" Name="Root.Global.Errors.BSPD LED.Resource.Value"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Global.Errors.BSPD LED.Reserve"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Global.Errors.BSPD LED.Release"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Global.Errors.BSPD LED.Update">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Events.On 50Hz"/>
+    </Component>
+    <Component Classname="_IOMethod.pwm" Name="Root.Global.Errors.IMD LED">
+     <Props>
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Global.Errors.IMD LED.Frequency">
+     <Props TargetCreation="AutoConst" Target="This.Value"/>
+    </Component>
+    <Component Classname="BuiltIn.Constant" Name="Root.Global.Errors.IMD LED.Frequency.Value">
+     <Props Value="5.00000000000000000e+001"/>
+    </Component>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Global.Errors.IMD LED.Duty Cycle">
+     <Props Target="Parent.Parent.IMD LED Channel"/>
+    </Component>
+    <Component Classname="BuiltIn.IOResourceValueInput" Caps="AutoCreated" Name="Root.Global.Errors.IMD LED.Resource">
+     <Props NameCreation="AutoParam" NameTarget="This.Value"/>
+    </Component>
+    <Component Classname="BuiltIn.IOResourceParameter" Name="Root.Global.Errors.IMD LED.Resource.Value"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Global.Errors.IMD LED.Reserve"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Global.Errors.IMD LED.Release"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Global.Errors.IMD LED.Update">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Events.On 50Hz"/>
+    </Component>
+    <Component Classname="_IOMethod.pwm" Name="Root.Global.Errors.PDOC LED">
+     <Props>
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Global.Errors.PDOC LED.Frequency">
+     <Props TargetCreation="AutoConst" Target="This.Value"/>
+    </Component>
+    <Component Classname="BuiltIn.Constant" Name="Root.Global.Errors.PDOC LED.Frequency.Value">
+     <Props Value="5.00000000000000000e+001"/>
+    </Component>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Global.Errors.PDOC LED.Duty Cycle">
+     <Props Target="Parent.Parent.PDOC LED Channel"/>
+    </Component>
+    <Component Classname="BuiltIn.IOResourceValueInput" Caps="AutoCreated" Name="Root.Global.Errors.PDOC LED.Resource">
+     <Props NameCreation="AutoParam" NameTarget="This.Value"/>
+    </Component>
+    <Component Classname="BuiltIn.IOResourceParameter" Name="Root.Global.Errors.PDOC LED.Resource.Value"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Global.Errors.PDOC LED.Reserve"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Global.Errors.PDOC LED.Release"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Global.Errors.PDOC LED.Update">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Events.On 50Hz"/>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Global.Errors.AMS LED Channel">
+     <Props Qty="ratio" Validation="MinMax" ValMin="-1.00000000000000000e+000" ValMax="1.00000000000000000e+000">
+      <Locale>
+       <Default Min="-1.00000000000000000e+000" Max="1.00000000000000000e+000"/>
+      </Locale>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Global.Errors.BSPD LED Channel">
+     <Props Qty="ratio" Validation="MinMax" ValMin="-1.00000000000000000e+000" ValMax="1.00000000000000000e+000">
+      <Locale>
+       <Default Min="-1.00000000000000000e+000" Max="1.00000000000000000e+000"/>
+      </Locale>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Global.Errors.IMD LED Channel">
+     <Props Qty="ratio" Validation="MinMax" ValMin="-1.00000000000000000e+000" ValMax="1.00000000000000000e+000">
+      <Locale>
+       <Default Min="-1.00000000000000000e+000" Max="1.00000000000000000e+000"/>
+      </Locale>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Global.Errors.PDOC LED Channel">
+     <Props Qty="ratio" Validation="MinMax" ValMin="-1.00000000000000000e+000" ValMax="1.00000000000000000e+000">
+      <Locale>
+       <Default Min="-1.00000000000000000e+000" Max="1.00000000000000000e+000"/>
+      </Locale>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Read Sensors">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.FuncUser" Filename="Read Sensors.Check Braking.m1scr" Name="Root.Read Sensors.Check Braking">
+     <Props SelectedTrigger="Parent.Parent.Events.On 200Hz">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+      </List.UserTags>
+     </Props>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Read Sensors.Braking Active">
+     <Props Type="u32" Validation="MinMax" ValMin="0" ValMax="1">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+      <Locale>
+       <Default Min="0" Max="1"/>
+      </Locale>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Read Sensors.APPS Sensors">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="_IOMethod.ratio" Name="Root.Read Sensors.APPS Sensors.Read APPS 1 Output">
+     <Props>
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 1 Output.Normalised Filtered">
+     <Props>
+      <List.UserTags>
+       <Entry Value="Advanced"/>
+      </List.UserTags>
+      <Locale>
+       <Default Min="0.00000000000000000e+000" Max="5.00000000000000000e+000"/>
+      </Locale>
+     </Props>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 1 Output.Absolute">
+     <Props>
+      <List.UserTags>
+       <Entry Value="Pin"/>
+      </List.UserTags>
+      <Locale>
+       <Default Min="0.00000000000000000e+000" Max="5.00000000000000000e+000"/>
+      </Locale>
+     </Props>
+    </Component>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 1 Output.Filter">
+     <Props TargetCreation="AutoParam" Target="This.Value">
+      <List.UserTags>
+       <Entry Value="Setup"/>
+      </List.UserTags>
+     </Props>
+    </Component>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.APPS Sensors.Read APPS 1 Output.Filter.Value"/>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 1 Output.Reference">
+     <Props TargetCreation="AutoConst" Target="This.Value">
+      <List.UserTags>
+       <Entry Value="Setup"/>
+      </List.UserTags>
+     </Props>
+    </Component>
+    <Component Classname="BuiltIn.Constant" Name="Root.Read Sensors.APPS Sensors.Read APPS 1 Output.Reference.Value">
+     <Props Value="ABSOLUTE"/>
+    </Component>
+    <Component Classname="BuiltIn.IOResourceValueInput" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 1 Output.Resource">
+     <Props NameCreation="AutoConst" NameTarget="This.Value"/>
+    </Component>
+    <Component Classname="BuiltIn.IOResourceConstant" Name="Root.Read Sensors.APPS Sensors.Read APPS 1 Output.Resource.Value">
+     <Props NameValue="AV9"/>
+    </Component>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 1 Output.Reserve"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 1 Output.Release"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 1 Output.Initialise"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 1 Output.Update">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Events.On 200Hz"/>
+    </Component>
+    <Component Classname="BuiltIn.IOCharacteristic" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 1 Output.Input Impedance">
+     <Props Qty="ohm"/>
+    </Component>
+    <Component Classname="BuiltIn.IOCharacteristic" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 1 Output.Input Source">
+     <Props Qty="V"/>
+    </Component>
+    <Component Classname="BuiltIn.IOCharacteristic" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 1 Output.Input Bandwidth">
+     <Props Qty="Hz"/>
+    </Component>
+    <Component Classname="BuiltIn.IOCharacteristic" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 1 Output.Input Minimum">
+     <Props Qty="V"/>
+    </Component>
+    <Component Classname="BuiltIn.IOCharacteristic" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 1 Output.Input Maximum">
+     <Props Qty="V"/>
+    </Component>
+    <Component Classname="BuiltIn.IOCharacteristic" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 1 Output.Input Resolution">
+     <Props Qty="V"/>
+    </Component>
+    <Component Classname="_IOMethod.ratio" Name="Root.Read Sensors.APPS Sensors.Read APPS 2 Output">
+     <Props>
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 2 Output.Normalised Filtered">
+     <Props>
+      <List.UserTags>
+       <Entry Value="Advanced"/>
+      </List.UserTags>
+      <Locale>
+       <Default Min="0.00000000000000000e+000" Max="5.00000000000000000e+000"/>
+      </Locale>
+     </Props>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 2 Output.Absolute">
+     <Props>
+      <List.UserTags>
+       <Entry Value="Pin"/>
+      </List.UserTags>
+      <Locale>
+       <Default Min="0.00000000000000000e+000" Max="5.00000000000000000e+000"/>
+      </Locale>
+     </Props>
+    </Component>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 2 Output.Filter">
+     <Props TargetCreation="AutoParam" Target="This.Value">
+      <List.UserTags>
+       <Entry Value="Setup"/>
+      </List.UserTags>
+     </Props>
+    </Component>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.APPS Sensors.Read APPS 2 Output.Filter.Value"/>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 2 Output.Reference">
+     <Props TargetCreation="AutoConst" Target="This.Value">
+      <List.UserTags>
+       <Entry Value="Setup"/>
+      </List.UserTags>
+     </Props>
+    </Component>
+    <Component Classname="BuiltIn.Constant" Name="Root.Read Sensors.APPS Sensors.Read APPS 2 Output.Reference.Value">
+     <Props Value="ABSOLUTE"/>
+    </Component>
+    <Component Classname="BuiltIn.IOResourceValueInput" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 2 Output.Resource">
+     <Props NameCreation="AutoConst" NameTarget="This.Value"/>
+    </Component>
+    <Component Classname="BuiltIn.IOResourceConstant" Name="Root.Read Sensors.APPS Sensors.Read APPS 2 Output.Resource.Value">
+     <Props NameValue="AV10"/>
+    </Component>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 2 Output.Reserve"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 2 Output.Release"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 2 Output.Initialise"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 2 Output.Update">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Events.On 200Hz"/>
+    </Component>
+    <Component Classname="BuiltIn.IOCharacteristic" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 2 Output.Input Impedance">
+     <Props Qty="ohm"/>
+    </Component>
+    <Component Classname="BuiltIn.IOCharacteristic" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 2 Output.Input Source">
+     <Props Qty="V"/>
+    </Component>
+    <Component Classname="BuiltIn.IOCharacteristic" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 2 Output.Input Bandwidth">
+     <Props Qty="Hz"/>
+    </Component>
+    <Component Classname="BuiltIn.IOCharacteristic" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 2 Output.Input Minimum">
+     <Props Qty="V"/>
+    </Component>
+    <Component Classname="BuiltIn.IOCharacteristic" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 2 Output.Input Maximum">
+     <Props Qty="V"/>
+    </Component>
+    <Component Classname="BuiltIn.IOCharacteristic" Caps="AutoCreated" Name="Root.Read Sensors.APPS Sensors.Read APPS 2 Output.Input Resolution">
+     <Props Qty="V"/>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Read Sensors.APPS Sensors.APPS 1 Percentage">
+     <Props Type="s32" Validation="MinMax" ValMin="0" ValMax="100">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+      <Locale>
+       <Default Min="0" Max="100"/>
+      </Locale>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Read Sensors.APPS Sensors.APPS 2 Percentage">
+     <Props Type="s32" Validation="MinMax" ValMin="0" ValMax="100">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+      <Locale>
+       <Default Min="0" Max="100"/>
+      </Locale>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Read Sensors.APPS Sensors.APPS Average Percentage">
+     <Props Validation="MinMax" ValMin="0.00000000000000000e+000" ValMax="1.00000000000000000e+002">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+      <Locale>
+       <Default Min="0.00000000000000000e+000" Max="1.00000000000000000e+002"/>
+      </Locale>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.APPS Sensors.APPS 1 Minimum Voltage">
+     <Props>
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Tune"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.APPS Sensors.APPS 1 Maximum Voltage">
+     <Props>
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Tune"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.APPS Sensors.APPS 2 Minimum Voltage">
+     <Props>
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Tune"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.APPS Sensors.APPS 2 Maximum Voltage">
+     <Props>
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Tune"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.FuncUser" Filename="Read Sensors.APPS Sensors.Assign APPS Output.m1scr" Name="Root.Read Sensors.APPS Sensors.Assign APPS Output">
+     <Props SelectedTrigger="Parent.Parent.Parent.Events.On 200Hz"/>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Read Sensors.APPS Sensors.Apps 1 Voltage">
+     <Props Qty="V" Validation="MinMax" ValMin="0.00000000000000000e+000" ValMax="5.00000000000000000e+000">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+      <Locale>
+       <Default Min="0.00000000000000000e+000" Max="5.00000000000000000e+000"/>
+      </Locale>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Read Sensors.APPS Sensors.Apps 2 Voltage">
+     <Props Qty="V" Validation="MinMax" ValMin="0.00000000000000000e+000" ValMax="5.00000000000000000e+000">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+      <Locale>
+       <Default Min="0.00000000000000000e+000" Max="5.00000000000000000e+000"/>
+      </Locale>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Read Sensors.Buttons">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Read Sensors.Buttons.Precharge Button">
+     <Props>
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Read Sensors.Buttons.Precharge Button.Start">
+     <Props UseDefValue="true" DefValue="This.Value"/>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Read Sensors.Buttons.Precharge Button.Start.State">
+     <Props Type="MoTeC Input.Sensor Diagnostic Enumeration"/>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Value">
+     <Props Type="::Hardware.av_switch.sw_state"/>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Invert">
+     <Props Type="::Hardware.av_switch.sw_state"/>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Override">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Override.Value">
+     <Props Type="::Hardware.av_switch.sw_state"/>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Override.Enable">
+     <Props Type="MoTeC Types.Mode Enumeration"/>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="MoTeC Input.Latchable Switch" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.State"/>
+    <Component Classname="BuiltIn.Reference" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Type"/>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Type.Value"/>
+    <Component Classname="BuiltIn.Constant" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Value Storage"/>
+    <Component Classname="BuiltIn.IOResourceValueInput" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Resource"/>
+    <Component Classname="BuiltIn.IOResourceParameter" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Resource.Value"/>
+    <Component Classname="BuiltIn.Reference" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Pullup Control"/>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Pullup Control.Value"/>
+    <Component Classname="BuiltIn.Reference" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Active Edge"/>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Active Edge.Value"/>
+    <Component Classname="BuiltIn.Reference" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Threshold"/>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Threshold.Value"/>
+    <Component Classname="BuiltIn.Reference" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Hysteresis"/>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Hysteresis.Value"/>
+    <Component Classname="BuiltIn.Reference" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Debounce"/>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Debounce.Value"/>
+    <Component Classname="_IOMethod.av_switch" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Pin"/>
+    <Component Classname="BuiltIn.Channel" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Pin.State"/>
+    <Component Classname="BuiltIn.Channel" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Pin.Voltage"/>
+    <Component Classname="BuiltIn.Channel" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Pin.Diagnostic"/>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Pin.Pullup Control"/>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Pin.Active Edge"/>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Pin.Threshold"/>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Pin.Hysteresis"/>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Pin.Debounce"/>
+    <Component Classname="BuiltIn.IOResourceValueInput" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Pin.Resource"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Pin.Reserve"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Pin.Release"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Pin.Initialise"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Pin.UpdateDiagnostic"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Pin.Update"/>
+    <Component Classname="BuiltIn.MethodUser" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Sensor.Update">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Parent.Parent.Events.On 50Hz"/>
+    </Component>
+    <Component Classname="BuiltIn.FuncUser" Filename="Read Sensors.Buttons.Precharge Button.Start.Update Precharge.m1scr" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Update Precharge">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Parent.Events.On 50Hz"/>
+    </Component>
+    <Component Classname="BuiltIn.FuncUser" Filename="Read Sensors.Buttons.Precharge Button.Start.Update.m1scr" Name="Root.Read Sensors.Buttons.Precharge Button.Start.Update">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Parent.Events.On 50Hz"/>
+    </Component>
+    <Component Classname="_IOMethod.pwm" Name="Root.Read Sensors.Buttons.Precharge Button.Precharge LED">
+     <Props>
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Precharge Button.Precharge LED.Frequency">
+     <Props Target="Parent.Parent.Precharge LED Frequency"/>
+    </Component>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Precharge Button.Precharge LED.Duty Cycle">
+     <Props Target="Parent.Parent.Precharge LED Channel"/>
+    </Component>
+    <Component Classname="BuiltIn.IOResourceValueInput" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Precharge Button.Precharge LED.Resource">
+     <Props NameCreation="AutoParam" NameTarget="This.Value"/>
+    </Component>
+    <Component Classname="BuiltIn.IOResourceParameter" Name="Root.Read Sensors.Buttons.Precharge Button.Precharge LED.Resource.Value"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Precharge Button.Precharge LED.Reserve"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Precharge Button.Precharge LED.Release"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Precharge Button.Precharge LED.Update">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Parent.Events.On 50Hz"/>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Read Sensors.Buttons.Precharge Button.Precharge LED Frequency">
+     <Props Qty="Hz" Validation="MinMax" ValMin="1.00000000000000000e+000" ValMax="5.00000000000000000e+001">
+      <Locale>
+       <Default Min="1.00000000000000000e+000" Max="5.00000000000000000e+001"/>
+      </Locale>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Read Sensors.Buttons.Precharge Button.Precharge LED Channel">
+     <Props Qty="ratio" Validation="MinMax" ValMin="-1.00000000000000000e+000" ValMax="1.00000000000000000e+000">
+      <List.UserTags>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+      <Locale>
+       <Default Min="-1.00000000000000000e+000" Max="1.00000000000000000e+000"/>
+      </Locale>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Read Sensors.Buttons.Drive Button">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Read Sensors.Buttons.Drive Button.Start">
+     <Props UseDefValue="true" DefValue="This.Value"/>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Read Sensors.Buttons.Drive Button.Start.State">
+     <Props Type="MoTeC Input.Sensor Diagnostic Enumeration"/>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Read Sensors.Buttons.Drive Button.Start.Value">
+     <Props Type="::Hardware.av_switch.sw_state"/>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.Buttons.Drive Button.Start.Invert">
+     <Props Type="::Hardware.av_switch.sw_state"/>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Read Sensors.Buttons.Drive Button.Start.Override">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.Buttons.Drive Button.Start.Override.Value">
+     <Props Type="::Hardware.av_switch.sw_state"/>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.Buttons.Drive Button.Start.Override.Enable">
+     <Props Type="MoTeC Types.Mode Enumeration"/>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="MoTeC Input.Latchable Switch" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.State"/>
+    <Component Classname="BuiltIn.Reference" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Type"/>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Type.Value"/>
+    <Component Classname="BuiltIn.Constant" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Value Storage"/>
+    <Component Classname="BuiltIn.IOResourceValueInput" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Resource"/>
+    <Component Classname="BuiltIn.IOResourceParameter" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Resource.Value"/>
+    <Component Classname="BuiltIn.Reference" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Pullup Control"/>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Pullup Control.Value"/>
+    <Component Classname="BuiltIn.Reference" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Active Edge"/>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Active Edge.Value"/>
+    <Component Classname="BuiltIn.Reference" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Threshold"/>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Threshold.Value"/>
+    <Component Classname="BuiltIn.Reference" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Hysteresis"/>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Hysteresis.Value"/>
+    <Component Classname="BuiltIn.Reference" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Debounce"/>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Debounce.Value"/>
+    <Component Classname="_IOMethod.av_switch" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Pin"/>
+    <Component Classname="BuiltIn.Channel" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Pin.State"/>
+    <Component Classname="BuiltIn.Channel" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Pin.Voltage"/>
+    <Component Classname="BuiltIn.Channel" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Pin.Diagnostic"/>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Pin.Pullup Control"/>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Pin.Active Edge"/>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Pin.Threshold"/>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Pin.Hysteresis"/>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Pin.Debounce"/>
+    <Component Classname="BuiltIn.IOResourceValueInput" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Pin.Resource"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Pin.Reserve"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Pin.Release"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Pin.Initialise"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Pin.UpdateDiagnostic"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Pin.Update"/>
+    <Component Classname="BuiltIn.MethodUser" Name="Root.Read Sensors.Buttons.Drive Button.Start.Sensor.Update">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Parent.Parent.Events.On 50Hz"/>
+    </Component>
+    <Component Classname="BuiltIn.FuncUser" Filename="Read Sensors.Buttons.Drive Button.Start.Update Drive.m1scr" Name="Root.Read Sensors.Buttons.Drive Button.Start.Update Drive">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Parent.Events.On 50Hz"/>
+    </Component>
+    <Component Classname="BuiltIn.FuncUser" Filename="Read Sensors.Buttons.Drive Button.Start.Update.m1scr" Name="Root.Read Sensors.Buttons.Drive Button.Start.Update">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Parent.Events.On 50Hz"/>
+    </Component>
+    <Component Classname="_IOMethod.pwm" Name="Root.Read Sensors.Buttons.Drive Button.Drive LED">
+     <Props>
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Drive Button.Drive LED.Frequency">
+     <Props Target="Parent.Parent.Drive LED Frequency"/>
+    </Component>
+    <Component Classname="BuiltIn.Reference" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Drive Button.Drive LED.Duty Cycle">
+     <Props Target="Parent.Parent.Drive LED Channel"/>
+    </Component>
+    <Component Classname="BuiltIn.IOResourceValueInput" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Drive Button.Drive LED.Resource">
+     <Props NameCreation="AutoParam" NameTarget="This.Value"/>
+    </Component>
+    <Component Classname="BuiltIn.IOResourceParameter" Name="Root.Read Sensors.Buttons.Drive Button.Drive LED.Resource.Value"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Drive Button.Drive LED.Reserve"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Drive Button.Drive LED.Release"/>
+    <Component Classname="BuiltIn.FuncGenerated.IOMethod" Caps="AutoCreated" Name="Root.Read Sensors.Buttons.Drive Button.Drive LED.Update">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Parent.Events.On 50Hz"/>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Read Sensors.Buttons.Drive Button.Drive LED Channel">
+     <Props Qty="ratio" Validation="MinMax" ValMin="-1.00000000000000000e+000" ValMax="1.00000000000000000e+000">
+      <Locale>
+       <Default Min="-1.00000000000000000e+000" Max="1.00000000000000000e+000"/>
+      </Locale>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Read Sensors.Buttons.Drive Button.Drive LED Frequency">
+     <Props Qty="Hz" Validation="MinMax" ValMin="1.00000000000000000e+000" ValMax="5.00000000000000000e+001">
+      <Locale>
+       <Default Min="1.00000000000000000e+000" Max="5.00000000000000000e+001"/>
+      </Locale>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.FuncUser" Filename="Read Sensors.Buttons.Handle LED.m1scr" Name="Root.Read Sensors.Buttons.Handle LED">
+     <Props SelectedTrigger="Parent.Parent.Parent.Events.On 50Hz"/>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Events">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.EventKernel" Name="Root.Events.On 50Hz">
+     <Props EventResource="res.knl.20MS"/>
+    </Component>
+    <Component Classname="BuiltIn.EventKernel" Name="Root.Events.On 10Hz">
+     <Props EventResource="res.knl.100MS"/>
+    </Component>
+    <Component Classname="BuiltIn.EventKernel" Name="Root.Events.On 1Hz">
+     <Props EventResource="res.knl.1S"/>
+    </Component>
+    <Component Classname="BuiltIn.EventKernel" Name="Root.Events.On Startup">
+     <Props EventResource="res.knl.init"/>
+    </Component>
+    <Component Classname="BuiltIn.EventKernel" Name="Root.Events.On 200Hz">
+     <Props EventResource="res.knl.5MS"/>
+    </Component>
+    <Component Classname="BuiltIn.EventKernel" Name="Root.Events.On 100Hz">
+     <Props EventResource="res.knl.10MS"/>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.CAN">
+     <Props>
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="MoTeC Comms.CAN Bus" Name="Root.CAN.Bus 1">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.CAN.Bus 1.Diagnostic"/>
+    <Component Classname="BuiltIn.Constant" Name="Root.CAN.Bus 1.Bus">
+     <Props Value="CAN Bus 1"/>
+    </Component>
+    <Component Classname="BuiltIn.Reference" Name="Root.CAN.Bus 1.Mode"/>
+    <Component Classname="BuiltIn.Parameter" Name="Root.CAN.Bus 1.Mode.Value"/>
+    <Component Classname="BuiltIn.MethodUser" Name="Root.CAN.Bus 1.Startup"/>
+    <Component Classname="BuiltIn.MethodUser" Name="Root.CAN.Bus 1.Update"/>
+    <Component Classname="MoTeC Comms.CAN Bus" Name="Root.CAN.Bus 2">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.CAN.Bus 2.Diagnostic"/>
+    <Component Classname="BuiltIn.Constant" Name="Root.CAN.Bus 2.Bus">
+     <Props Value="CAN Bus 2"/>
+    </Component>
+    <Component Classname="BuiltIn.Reference" Name="Root.CAN.Bus 2.Mode"/>
+    <Component Classname="BuiltIn.Parameter" Name="Root.CAN.Bus 2.Mode.Value"/>
+    <Component Classname="BuiltIn.MethodUser" Name="Root.CAN.Bus 2.Startup"/>
+    <Component Classname="BuiltIn.MethodUser" Name="Root.CAN.Bus 2.Update"/>
+    <Component Classname="MoTeC Comms.CAN Bus" Name="Root.CAN.Bus 3">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.CAN.Bus 3.Diagnostic"/>
+    <Component Classname="BuiltIn.Constant" Name="Root.CAN.Bus 3.Bus">
+     <Props Value="CAN Bus 3"/>
+    </Component>
+    <Component Classname="BuiltIn.Reference" Name="Root.CAN.Bus 3.Mode"/>
+    <Component Classname="BuiltIn.Parameter" Name="Root.CAN.Bus 3.Mode.Value"/>
+    <Component Classname="BuiltIn.MethodUser" Name="Root.CAN.Bus 3.Startup"/>
+    <Component Classname="BuiltIn.MethodUser" Name="Root.CAN.Bus 3.Update"/>
+    <Component Classname="BuiltIn.Parameter" Name="Root.CAN.CAN Timeout Delay">
+     <Props Qty="s">
+      <List.UserTags>
+       <Entry Value="Setup"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Recieve CAN">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Recieve CAN.CAN 1">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Recieve CAN.CAN 1.Precharge">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Recieve CAN.CAN 1.Precharge.Heartbeat ID">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.FuncUser" Filename="Recieve CAN.CAN 1.Precharge.Heartbeat ID.Receive Heartbeat ID.m1scr" Name="Root.Recieve CAN.CAN 1.Precharge.Heartbeat ID.Receive Heartbeat ID">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Parent.Events.On 50Hz"/>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Recieve CAN.CAN 1.Precharge.Heartbeat ID.Precharge State">
+     <Props Type="s32">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Recieve CAN.CAN 1.Precharge.Error ID">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.FuncUser" Filename="Recieve CAN.CAN 1.Precharge.Error ID.Recieve Error ID.m1scr" Name="Root.Recieve CAN.CAN 1.Precharge.Error ID.Recieve Error ID">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Parent.Events.On 50Hz"/>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Recieve CAN.CAN 1.Precharge.Error ID.Error Present">
+     <Props Type="u32">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Recieve CAN.CAN 1.Precharge.Error ID.Error Code">
+     <Props Type="u32">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Recieve CAN.CAN 1.Precharge.Error ID.Warning Present">
+     <Props Type="u32">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Recieve CAN.CAN 1.Precharge.Error ID.Warning Code">
+     <Props Type="u32">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Recieve CAN.CAN 1.Precharge.Error ID.AMS OK">
+     <Props Type="u32">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Recieve CAN.CAN 1.Precharge.Error ID.PDOC OK">
+     <Props Type="u32">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Recieve CAN.CAN 1.Precharge.Error ID.IMD OK">
+     <Props Type="u32">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Recieve CAN.CAN 1.Brake Module">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Recieve CAN.CAN 1.Brake Module.Heartbeat ID">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.FuncUser" Filename="Recieve CAN.CAN 1.Brake Module.Heartbeat ID.Receive Heartbeat ID.m1scr" Name="Root.Recieve CAN.CAN 1.Brake Module.Heartbeat ID.Receive Heartbeat ID">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Parent.Events.On 50Hz"/>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Recieve CAN.CAN 1.Brake Module.Heartbeat ID.Brake Module State">
+     <Props Type="s32">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Recieve CAN.CAN 1.Brake Module.Error ID">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.FuncUser" Filename="Recieve CAN.CAN 1.Brake Module.Error ID.Receive Brake Errors.m1scr" Name="Root.Recieve CAN.CAN 1.Brake Module.Error ID.Receive Brake Errors">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Parent.Events.On 50Hz"/>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Recieve CAN.CAN 1.Brake Module.Error ID.BSPD OK">
+     <Props Type="u32"/>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Recieve CAN.CAN 1.Brake Module.Error ID.BOTS OK">
+     <Props Type="u32"/>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Recieve CAN.CAN 1.Brake Module.Error ID.Inertia OK">
+     <Props Type="u32"/>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Recieve CAN.CAN 1.Brake Module.Error ID.ShutDown OK">
+     <Props Type="u32"/>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Recieve CAN.CAN 1.Brake Module.Error ID.Cockpit OK">
+     <Props Type="u32"/>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Recieve CAN.CAN 1.Brake Module.Analogue ID">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.FuncUser" Filename="Recieve CAN.CAN 1.Brake Module.Analogue ID.Recieve Analogue Sensors ID.m1scr" Name="Root.Recieve CAN.CAN 1.Brake Module.Analogue ID.Recieve Analogue Sensors ID">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Parent.Events.On 50Hz"/>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Recieve CAN.CAN 1.Brake Module.Analogue ID.Brake Output 1">
+     <Props Type="u32">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Recieve CAN.CAN 1.Brake Module.Analogue ID.Brake Output 2">
+     <Props Type="u32">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Recieve CAN.CAN 1.Brake Module.Analogue ID.Brake Output Average">
+     <Props Type="u32">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Recieve CAN.CAN 1.Brake Module.Analogue ID.Raw ADC Brake 1">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Recieve CAN.CAN 1.Brake Module.Analogue ID.Raw ADC Brake 2">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Recieve CAN.CAN 1.Brake Module.Analogue ID.Raw Voltage Brake 1">
+     <Props>
+      <Locale>
+       <Default DPS="4"/>
+      </Locale>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Recieve CAN.CAN 1.Brake Module.Analogue ID.Raw Voltage Brake 2">
+     <Props>
+      <Locale>
+       <Default DPS="4"/>
+      </Locale>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Recieve CAN.CAN 1.Ticks">
+     <Props Type="u32">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Diagnostic"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Recieve CAN.CAN 1.Diagnostic">
+     <Props Type="MoTeC Comms.CAN Receive Diagnostic Enumeration">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Diagnostic"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Transmit CAN">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Transmit CAN.CAN 1">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Transmit CAN.CAN 1.Heartbeat ID">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.FuncUser" Filename="Transmit CAN.CAN 1.Heartbeat ID.Heartbeat.m1scr" Name="Root.Transmit CAN.CAN 1.Heartbeat ID.Heartbeat">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Events.On 1Hz">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+      </List.UserTags>
+     </Props>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Transmit CAN.CAN 1.Heartbeat ID.Heartbeat State">
+     <Props Type="s32">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Diagnostic"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Transmit CAN.CAN 1.Heartbeat ID.Heartbeat Counter">
+     <Props Type="s32">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Diagnostic"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Transmit CAN.CAN 1.Heartbeat ID.Heartbeat TX Status">
+     <Props Type="MoTeC Comms.CAN Bus Diagnostic Enumeration">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Diagnostic"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Transmit CAN.CAN 1.Error ID">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.FuncUser" Filename="Transmit CAN.CAN 1.Error ID.Error States.m1scr" Name="Root.Transmit CAN.CAN 1.Error ID.Error States">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Events.On 100Hz">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+      </List.UserTags>
+     </Props>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Transmit CAN.CAN 1.Error ID.Error APPS Disagree">
+     <Props Type="s32">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Transmit CAN.CAN 1.Error ID.Error Trailbraking Active">
+     <Props Type="s32">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Transmit CAN.CAN 1.Error ID.Error States TX Status">
+     <Props Type="MoTeC Comms.CAN Bus Diagnostic Enumeration">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Diagnostic"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Transmit CAN.CAN 1.Digital Sensors ID">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.FuncUser" Filename="Transmit CAN.CAN 1.Digital Sensors ID.Digital Sensors.m1scr" Name="Root.Transmit CAN.CAN 1.Digital Sensors ID.Digital Sensors">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Events.On 50Hz">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+      </List.UserTags>
+     </Props>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Transmit CAN.CAN 1.Digital Sensors ID.Precharge Button Pressed">
+     <Props Type="s32">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Transmit CAN.CAN 1.Digital Sensors ID.Drive Button Pressed">
+     <Props Type="s32">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Transmit CAN.CAN 1.Digital Sensors ID.Drive State Request">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Transmit CAN.CAN 1.Digital Sensors ID.RTDS">
+     <Props Qty="ratio" Validation="MinMax" ValMin="0.00000000000000000e+000" ValMax="1.00000000000000000e+000">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Normal"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Transmit CAN.CAN 1.Digital Sensors ID.Digital Sensors TX Status">
+     <Props Type="MoTeC Comms.CAN Bus Diagnostic Enumeration">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Diagnostic"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Transmit CAN.CAN 1.Analogue Sensors ID">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.FuncUser" Filename="Transmit CAN.CAN 1.Analogue Sensors ID.Analogue Sensors.m1scr" Name="Root.Transmit CAN.CAN 1.Analogue Sensors ID.Analogue Sensors">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Events.On 50Hz">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+      </List.UserTags>
+     </Props>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Transmit CAN.CAN 1.Analogue Sensors ID.Analogue Sensors TX Status">
+     <Props Type="MoTeC Comms.CAN Bus Diagnostic Enumeration">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Diagnostic"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Transmit CAN.CAN 1.Brake Module Calibration ID">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.FuncUser" Filename="Transmit CAN.CAN 1.Brake Module Calibration ID.Brake Module Calibration.m1scr" Name="Root.Transmit CAN.CAN 1.Brake Module Calibration ID.Brake Module Calibration">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Events.On Startup">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+      </List.UserTags>
+     </Props>
+    </Component>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Transmit CAN.CAN 1.Brake Module Calibration ID.Raw Brake 1 Minimum">
+     <Props>
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Tune"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Transmit CAN.CAN 1.Brake Module Calibration ID.Raw Brake 1 Maximum">
+     <Props>
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Tune"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Transmit CAN.CAN 1.Brake Module Calibration ID.Raw Brake 2 Minimum">
+     <Props>
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Tune"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Parameter" Name="Root.Transmit CAN.CAN 1.Brake Module Calibration ID.Raw Brake 2 Maximum">
+     <Props>
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Tune"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Transmit CAN.CAN 1.Brake Module Calibration ID.Brake Min 1">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Transmit CAN.CAN 1.Brake Module Calibration ID.Brake Min 2">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Transmit CAN.CAN 1.Brake Module Calibration ID.Brake Max 1">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Transmit CAN.CAN 1.Brake Module Calibration ID.Brake Max 2">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Transmit CAN.CAN 1.Brake Module Calibration ID.Brake Module Calibration TX Status">
+     <Props Type="MoTeC Comms.CAN Bus Diagnostic Enumeration">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Diagnostic"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.GroupCompound" Name="Root.Transmit CAN.CAN 1.RMS Command Message">
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+    <Component Classname="BuiltIn.FuncUser" Filename="Transmit CAN.CAN 1.RMS Command Message.RMS Command Message.m1scr" Name="Root.Transmit CAN.CAN 1.RMS Command Message.RMS Command Message">
+     <Props SelectedTrigger="Parent.Parent.Parent.Parent.Events.On 200Hz">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+      </List.UserTags>
+     </Props>
+    </Component>
+    <Component Classname="BuiltIn.Channel" Name="Root.Transmit CAN.CAN 1.RMS Command Message.RMS Command Message TX Status">
+     <Props Type="MoTeC Comms.CAN Bus Diagnostic Enumeration">
+      <List.UserTags>
+       <Entry Value="Vehicle"/>
+       <Entry Value="Diagnostic"/>
+      </List.UserTags>
+     </Props>
+     <Comment>
+<![CDATA[]]>
+     </Comment>
+    </Component>
+   </List>
+   <Organisation>
+    <Component Name="Root">
+     <Component Name="Global">
+      <Component Name="Constants">
+       <Component Name="DEADZONE"/>
+       <Component Name="MAX TORQUE LIMIT"/>
+       <Component Name="TRAILBRAKING ACTIVE PERCENT"/>
+       <Component Name="TRAILBRAKING RESET PERCENT"/>
+      </Component>
+      <Component Name="Initialise"/>
+      <Component Name="Motor Torque"/>
+      <Component Name="RTDS">
+       <Component Name="RTDS Has Sounded"/>
+       <Component Name="Handle RTDS"/>
+       <Component Name="RTDS Timer">
+        <Component Name="Start"/>
+        <Component Name="Remaining"/>
+       </Component>
+       <Component Name="RTDS">
+        <Component Name="Frequency">
+         <Component Name="Value"/>
+        </Component>
+        <Component Name="Duty Cycle"/>
+        <Component Name="Resource">
+         <Component Name="Value"/>
+        </Component>
+        <Component Name="Reserve"/>
+        <Component Name="Release"/>
+        <Component Name="Update"/>
+       </Component>
+      </Component>
+      <Component Name="Errors">
+       <Component Name="Handle Errors"/>
+       <Component Name="Throttle Error"/>
+       <Component Name="Critical Error"/>
+       <Component Name="AMS LED">
+        <Component Name="Frequency">
+         <Component Name="Value"/>
+        </Component>
+        <Component Name="Duty Cycle"/>
+        <Component Name="Resource">
+         <Component Name="Value"/>
+        </Component>
+        <Component Name="Reserve"/>
+        <Component Name="Release"/>
+        <Component Name="Update"/>
+       </Component>
+       <Component Name="BSPD LED">
+        <Component Name="Frequency">
+         <Component Name="Value"/>
+        </Component>
+        <Component Name="Duty Cycle"/>
+        <Component Name="Resource">
+         <Component Name="Value"/>
+        </Component>
+        <Component Name="Reserve"/>
+        <Component Name="Release"/>
+        <Component Name="Update"/>
+       </Component>
+       <Component Name="IMD LED">
+        <Component Name="Frequency">
+         <Component Name="Value"/>
+        </Component>
+        <Component Name="Duty Cycle"/>
+        <Component Name="Resource">
+         <Component Name="Value"/>
+        </Component>
+        <Component Name="Reserve"/>
+        <Component Name="Release"/>
+        <Component Name="Update"/>
+       </Component>
+       <Component Name="PDOC LED">
+        <Component Name="Frequency">
+         <Component Name="Value"/>
+        </Component>
+        <Component Name="Duty Cycle"/>
+        <Component Name="Resource">
+         <Component Name="Value"/>
+        </Component>
+        <Component Name="Reserve"/>
+        <Component Name="Release"/>
+        <Component Name="Update"/>
+       </Component>
+       <Component Name="AMS LED Channel"/>
+       <Component Name="BSPD LED Channel"/>
+       <Component Name="IMD LED Channel"/>
+       <Component Name="PDOC LED Channel"/>
+      </Component>
+     </Component>
+     <Component Name="Read Sensors">
+      <Component Name="Check Braking"/>
+      <Component Name="Braking Active"/>
+      <Component Name="APPS Sensors">
+       <Component Name="Read APPS 1 Output">
+        <Component Name="Normalised Filtered"/>
+        <Component Name="Absolute"/>
+        <Component Name="Filter">
+         <Component Name="Value"/>
+        </Component>
+        <Component Name="Reference">
+         <Component Name="Value"/>
+        </Component>
+        <Component Name="Resource">
+         <Component Name="Value"/>
+        </Component>
+        <Component Name="Reserve"/>
+        <Component Name="Release"/>
+        <Component Name="Initialise"/>
+        <Component Name="Update"/>
+        <Component Name="Input Impedance"/>
+        <Component Name="Input Source"/>
+        <Component Name="Input Bandwidth"/>
+        <Component Name="Input Minimum"/>
+        <Component Name="Input Maximum"/>
+        <Component Name="Input Resolution"/>
+       </Component>
+       <Component Name="Read APPS 2 Output">
+        <Component Name="Normalised Filtered"/>
+        <Component Name="Absolute"/>
+        <Component Name="Filter">
+         <Component Name="Value"/>
+        </Component>
+        <Component Name="Reference">
+         <Component Name="Value"/>
+        </Component>
+        <Component Name="Resource">
+         <Component Name="Value"/>
+        </Component>
+        <Component Name="Reserve"/>
+        <Component Name="Release"/>
+        <Component Name="Initialise"/>
+        <Component Name="Update"/>
+        <Component Name="Input Impedance"/>
+        <Component Name="Input Source"/>
+        <Component Name="Input Bandwidth"/>
+        <Component Name="Input Minimum"/>
+        <Component Name="Input Maximum"/>
+        <Component Name="Input Resolution"/>
+       </Component>
+       <Component Name="APPS 1 Percentage"/>
+       <Component Name="APPS 2 Percentage"/>
+       <Component Name="APPS Average Percentage"/>
+       <Component Name="APPS 1 Minimum Voltage"/>
+       <Component Name="APPS 1 Maximum Voltage"/>
+       <Component Name="APPS 2 Minimum Voltage"/>
+       <Component Name="APPS 2 Maximum Voltage"/>
+       <Component Name="Assign APPS Output"/>
+       <Component Name="Apps 1 Voltage"/>
+       <Component Name="Apps 2 Voltage"/>
+      </Component>
+      <Component Name="Buttons">
+       <Component Name="Precharge Button">
+        <Component Name="Start">
+         <Component Name="State"/>
+         <Component Name="Value"/>
+         <Component Name="Invert"/>
+         <Component Name="Override">
+          <Component Name="Value"/>
+          <Component Name="Enable"/>
+         </Component>
+         <Component Name="Sensor">
+          <Component Name="State"/>
+          <Component Name="Type">
+           <Component Name="Value"/>
+          </Component>
+          <Component Name="Value Storage"/>
+          <Component Name="Resource">
+           <Component Name="Value"/>
+          </Component>
+          <Component Name="Pullup Control">
+           <Component Name="Value"/>
+          </Component>
+          <Component Name="Active Edge">
+           <Component Name="Value"/>
+          </Component>
+          <Component Name="Threshold">
+           <Component Name="Value"/>
+          </Component>
+          <Component Name="Hysteresis">
+           <Component Name="Value"/>
+          </Component>
+          <Component Name="Debounce">
+           <Component Name="Value"/>
+          </Component>
+          <Component Name="Pin">
+           <Component Name="State"/>
+           <Component Name="Voltage"/>
+           <Component Name="Diagnostic"/>
+           <Component Name="Pullup Control"/>
+           <Component Name="Active Edge"/>
+           <Component Name="Threshold"/>
+           <Component Name="Hysteresis"/>
+           <Component Name="Debounce"/>
+           <Component Name="Resource"/>
+           <Component Name="Reserve"/>
+           <Component Name="Release"/>
+           <Component Name="Initialise"/>
+           <Component Name="UpdateDiagnostic"/>
+           <Component Name="Update"/>
+          </Component>
+          <Component Name="Update"/>
+         </Component>
+         <Component Name="Update Precharge"/>
+         <Component Name="Update"/>
+        </Component>
+        <Component Name="Precharge LED">
+         <Component Name="Frequency"/>
+         <Component Name="Duty Cycle"/>
+         <Component Name="Resource">
+          <Component Name="Value"/>
+         </Component>
+         <Component Name="Reserve"/>
+         <Component Name="Release"/>
+         <Component Name="Update"/>
+        </Component>
+        <Component Name="Precharge LED Frequency"/>
+        <Component Name="Precharge LED Channel"/>
+       </Component>
+       <Component Name="Drive Button">
+        <Component Name="Start">
+         <Component Name="State"/>
+         <Component Name="Value"/>
+         <Component Name="Invert"/>
+         <Component Name="Override">
+          <Component Name="Value"/>
+          <Component Name="Enable"/>
+         </Component>
+         <Component Name="Sensor">
+          <Component Name="State"/>
+          <Component Name="Type">
+           <Component Name="Value"/>
+          </Component>
+          <Component Name="Value Storage"/>
+          <Component Name="Resource">
+           <Component Name="Value"/>
+          </Component>
+          <Component Name="Pullup Control">
+           <Component Name="Value"/>
+          </Component>
+          <Component Name="Active Edge">
+           <Component Name="Value"/>
+          </Component>
+          <Component Name="Threshold">
+           <Component Name="Value"/>
+          </Component>
+          <Component Name="Hysteresis">
+           <Component Name="Value"/>
+          </Component>
+          <Component Name="Debounce">
+           <Component Name="Value"/>
+          </Component>
+          <Component Name="Pin">
+           <Component Name="State"/>
+           <Component Name="Voltage"/>
+           <Component Name="Diagnostic"/>
+           <Component Name="Pullup Control"/>
+           <Component Name="Active Edge"/>
+           <Component Name="Threshold"/>
+           <Component Name="Hysteresis"/>
+           <Component Name="Debounce"/>
+           <Component Name="Resource"/>
+           <Component Name="Reserve"/>
+           <Component Name="Release"/>
+           <Component Name="Initialise"/>
+           <Component Name="UpdateDiagnostic"/>
+           <Component Name="Update"/>
+          </Component>
+          <Component Name="Update"/>
+         </Component>
+         <Component Name="Update Drive"/>
+         <Component Name="Update"/>
+        </Component>
+        <Component Name="Drive LED">
+         <Component Name="Frequency"/>
+         <Component Name="Duty Cycle"/>
+         <Component Name="Resource">
+          <Component Name="Value"/>
+         </Component>
+         <Component Name="Reserve"/>
+         <Component Name="Release"/>
+         <Component Name="Update"/>
+        </Component>
+        <Component Name="Drive LED Channel"/>
+        <Component Name="Drive LED Frequency"/>
+       </Component>
+       <Component Name="Handle LED"/>
+      </Component>
+     </Component>
+     <Component Name="Events">
+      <Component Name="On 50Hz"/>
+      <Component Name="On 10Hz"/>
+      <Component Name="On 1Hz"/>
+      <Component Name="On Startup"/>
+      <Component Name="On 200Hz"/>
+      <Component Name="On 100Hz"/>
+     </Component>
+     <Component Name="CAN">
+      <Component Name="Bus 1">
+       <Component Name="Diagnostic"/>
+       <Component Name="Bus"/>
+       <Component Name="Mode">
+        <Component Name="Value"/>
+       </Component>
+       <Component Name="Startup"/>
+       <Component Name="Update"/>
+      </Component>
+      <Component Name="Bus 2">
+       <Component Name="Diagnostic"/>
+       <Component Name="Bus"/>
+       <Component Name="Mode">
+        <Component Name="Value"/>
+       </Component>
+       <Component Name="Startup"/>
+       <Component Name="Update"/>
+      </Component>
+      <Component Name="Bus 3">
+       <Component Name="Diagnostic"/>
+       <Component Name="Bus"/>
+       <Component Name="Mode">
+        <Component Name="Value"/>
+       </Component>
+       <Component Name="Startup"/>
+       <Component Name="Update"/>
+      </Component>
+      <Component Name="CAN Timeout Delay"/>
+     </Component>
+     <Component Name="Recieve CAN">
+      <Component Name="CAN 1">
+       <Component Name="Precharge">
+        <Component Name="Heartbeat ID">
+         <Component Name="Receive Heartbeat ID"/>
+         <Component Name="Precharge State"/>
+        </Component>
+        <Component Name="Error ID">
+         <Component Name="Recieve Error ID"/>
+         <Component Name="Error Present"/>
+         <Component Name="Error Code"/>
+         <Component Name="Warning Present"/>
+         <Component Name="Warning Code"/>
+         <Component Name="AMS OK"/>
+         <Component Name="PDOC OK"/>
+         <Component Name="IMD OK"/>
+        </Component>
+       </Component>
+       <Component Name="Brake Module">
+        <Component Name="Heartbeat ID">
+         <Component Name="Receive Heartbeat ID"/>
+         <Component Name="Brake Module State"/>
+        </Component>
+        <Component Name="Error ID">
+         <Component Name="Receive Brake Errors"/>
+         <Component Name="BSPD OK"/>
+         <Component Name="BOTS OK"/>
+         <Component Name="Inertia OK"/>
+         <Component Name="ShutDown OK"/>
+         <Component Name="Cockpit OK"/>
+        </Component>
+        <Component Name="Analogue ID">
+         <Component Name="Recieve Analogue Sensors ID"/>
+         <Component Name="Brake Output 1"/>
+         <Component Name="Brake Output 2"/>
+         <Component Name="Brake Output Average"/>
+         <Component Name="Raw ADC Brake 1"/>
+         <Component Name="Raw ADC Brake 2"/>
+         <Component Name="Raw Voltage Brake 1"/>
+         <Component Name="Raw Voltage Brake 2"/>
+        </Component>
+       </Component>
+       <Component Name="Ticks"/>
+       <Component Name="Diagnostic"/>
+      </Component>
+     </Component>
+     <Component Name="Transmit CAN">
+      <Component Name="CAN 1">
+       <Component Name="Heartbeat ID">
+        <Component Name="Heartbeat"/>
+        <Component Name="Heartbeat State"/>
+        <Component Name="Heartbeat Counter"/>
+        <Component Name="Heartbeat TX Status"/>
+       </Component>
+       <Component Name="Error ID">
+        <Component Name="Error States"/>
+        <Component Name="Error APPS Disagree"/>
+        <Component Name="Error Trailbraking Active"/>
+        <Component Name="Error States TX Status"/>
+       </Component>
+       <Component Name="Digital Sensors ID">
+        <Component Name="Digital Sensors"/>
+        <Component Name="Precharge Button Pressed"/>
+        <Component Name="Drive Button Pressed"/>
+        <Component Name="Drive State Request"/>
+        <Component Name="RTDS"/>
+        <Component Name="Digital Sensors TX Status"/>
+       </Component>
+       <Component Name="Analogue Sensors ID">
+        <Component Name="Analogue Sensors"/>
+        <Component Name="Analogue Sensors TX Status"/>
+       </Component>
+       <Component Name="Brake Module Calibration ID">
+        <Component Name="Brake Module Calibration"/>
+        <Component Name="Raw Brake 1 Minimum"/>
+        <Component Name="Raw Brake 1 Maximum"/>
+        <Component Name="Raw Brake 2 Minimum"/>
+        <Component Name="Raw Brake 2 Maximum"/>
+        <Component Name="Brake Min 1"/>
+        <Component Name="Brake Min 2"/>
+        <Component Name="Brake Max 1"/>
+        <Component Name="Brake Max 2"/>
+        <Component Name="Brake Module Calibration TX Status"/>
+       </Component>
+       <Component Name="RMS Command Message">
+        <Component Name="RMS Command Message"/>
+        <Component Name="RMS Command Message TX Status"/>
+       </Component>
+      </Component>
+     </Component>
+    </Component>
+   </Organisation>
+  </ComponentStream>
+  <SecurityMgr>
+   <SecurityRoles>
+    <SecurityRole Name="Default Security Group"/>
+   </SecurityRoles>
+  </SecurityMgr>
+  <Users>
+   <User Id="MoTeC.M1.Firmware.Default">
+    <Permissions>
+     <LogData>
+      <Permission Flags="17" Index="0"/>
+      <Permission Flags="17" Index="1"/>
+      <Permission Flags="17" Index="2"/>
+      <Permission Flags="17" Index="3"/>
+      <Permission Flags="17" Index="4"/>
+      <Permission Flags="17" Index="5"/>
+      <Permission Flags="17" Index="6"/>
+      <Permission Flags="17" Index="7"/>
+     </LogData>
+     <ManageUsers Flags="4"/>
+     <Kernel Flags="4"/>
+     <Firmware Flags="68"/>
+     <Enables Flags="4"/>
+     <Login Flags="8"/>
+     <Clone Flags="8"/>
+     <EditPassword Flags="12"/>
+     <EditWorkbooks Flags="2"/>
+     <EditECUName Flags="6"/>
+     <LogErase>
+      <Permission Flags="12" Index="0"/>
+      <Permission Flags="12" Index="1"/>
+      <Permission Flags="12" Index="2"/>
+      <Permission Flags="12" Index="3"/>
+      <Permission Flags="12" Index="4"/>
+      <Permission Flags="12" Index="5"/>
+      <Permission Flags="12" Index="6"/>
+      <Permission Flags="12" Index="7"/>
+     </LogErase>
+     <LogSetup>
+      <Permission Flags="15" Index="0"/>
+      <Permission Flags="15" Index="1"/>
+      <Permission Flags="15" Index="2"/>
+      <Permission Flags="15" Index="3"/>
+      <Permission Flags="15" Index="4"/>
+      <Permission Flags="15" Index="5"/>
+      <Permission Flags="15" Index="6"/>
+      <Permission Flags="15" Index="7"/>
+     </LogSetup>
+    </Permissions>
+    <UserRoles>
+     <UserRole Name="Default Security Group" AccessType="2"/>
+    </UserRoles>
+    <AuthAnonymous Id="MoTeC.M1.Firmware.Default"/>
+   </User>
+  </Users>
+ </Project>
+</MoTeCM1BuildSession>

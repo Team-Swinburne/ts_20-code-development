@@ -1,0 +1,17 @@
+// Function assigns Braking Active channel (flag) and checks for trailbraking
+
+if ((Recieve CAN.Recieve CAN 1.Brake Sensors.Brake Output 1 > 5) or (Recieve CAN.Recieve CAN 1.Brake Sensors.Brake Output 1 > 5)) {
+	Braking Active = 1;
+} else {
+	Braking Active = 0;
+}
+
+//EV.2.4 APPS / Brake Pedal Plausibility Check
+//EV.2.4.1 The power to the motors must be immediately shut down completely, if the mechanical
+//brakes are actuated and the APPS signals more than 25% pedal travel at the same time.
+//Cannot turn back on unless throttle below 5%
+if ((Convert.ToInteger(APPS Sensors.APPS Average Percentage) >= Global.Constants.TRAILBRAKING ACTIVE PERCENT) and (Braking Active eq 1)){
+	Transmit CAN.Transmit CAN 1.Error States.Error Trailbraking Active = 1;
+}else if ((Transmit CAN.Transmit CAN 1.Error States.Error Trailbraking Active eq 1) and (Convert.ToInteger(APPS Sensors.APPS Average Percentage) < Global.Constants.TRAILBRAKING RESET PERCENT) and Braking Active eq 0){
+	Transmit CAN.Transmit CAN 1.Error States.Error Trailbraking Active = 0;
+}

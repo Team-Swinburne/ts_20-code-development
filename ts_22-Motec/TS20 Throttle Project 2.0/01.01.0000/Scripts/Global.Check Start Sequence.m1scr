@@ -1,0 +1,11 @@
+	if (Recieve CAN.CAN 1.Precharge.Heartbeat ID.Precharge State >= 3 and Recieve CAN.CAN 1.Precharge.Heartbeat ID.Precharge State < 7) {
+		Transmit CAN.CAN 2.AMK Motor Command 1.Set DC On = 1;
+		Transmit CAN.CAN 2.AMK Motor Command 3.Set DC On = 1;
+		Transmit CAN.CAN 3.AMK Motor Command 2.Set DC On = 1;
+		Transmit CAN.CAN 3.AMK Motor Command 4.Set DC On = 1;
+		} else {
+		Transmit CAN.CAN 2.AMK Motor Command 1.Set DC On = 0;
+		Transmit CAN.CAN 2.AMK Motor Command 3.Set DC On = 0;
+		Transmit CAN.CAN 3.AMK Motor Command 2.Set DC On = 0;
+		Transmit CAN.CAN 3.AMK Motor Command 4.Set DC On = 0;
+		}

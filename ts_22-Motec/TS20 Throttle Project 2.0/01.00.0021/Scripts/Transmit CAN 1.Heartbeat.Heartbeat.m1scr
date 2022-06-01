@@ -1,0 +1,18 @@
+// Function to transmit throttle hearbeat over CAN1
+
+local h = CanComms.TxOpen(true); 	//false for little endian, true for big endian
+
+CanComms.TxInitialise(h, 2); 		//Initialise the message, specify the length of the message in bytes
+CanComms.SetUnsignedInteger(h, 0, 8, Convert.ToUnsignedInteger(Heartbeat State)); //Need to convert to an unsignedinteger before transmitting
+CanComms.SetUnsignedInteger(h, 8, 8, Convert.ToUnsignedInteger(Heartbeat Counter));
+
+Heartbeat Counter = Heartbeat Counter + 1;
+
+if (CanComms.TxStandard(h,0,0x304))
+{
+	Heartbeat TX Status = Heartbeat TX Status.OK;
+}
+else
+{
+	Heartbeat TX Status = Heartbeat TX Status.Transmit Warning;
+}

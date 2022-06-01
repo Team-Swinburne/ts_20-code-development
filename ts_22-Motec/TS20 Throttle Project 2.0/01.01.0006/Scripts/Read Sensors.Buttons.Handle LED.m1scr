@@ -1,0 +1,25 @@
+if(Recieve CAN.CAN 1.Precharge.Heartbeat ID.Precharge State eq 1){
+Precharge Button.Precharge LED Channel = 0.9;
+Precharge Button.Precharge LED Frequency = 1;
+Drive Button.Drive LED Channel = -1;
+Drive Button.Drive LED Frequency = 50;
+}
+else if (Recieve CAN.CAN 1.Precharge.Heartbeat ID.Precharge State eq 4){
+Precharge Button.Precharge LED Channel = 0.9;
+Precharge Button.Precharge LED Frequency = 50;
+Drive Button.Drive LED Channel = 0.9;
+Drive Button.Drive LED Frequency = 1;
+}
+else if (Recieve CAN.CAN 1.Precharge.Heartbeat ID.Precharge State eq 5){
+Precharge Button.Precharge LED Channel = 0.9;
+Precharge Button.Precharge LED Frequency = 50;
+Drive Button.Drive LED Channel = 0.9;
+Drive Button.Drive LED Frequency = 50;
+}
+else 
+{
+Precharge Button.Precharge LED Channel = -1;
+Precharge Button.Precharge LED Frequency = 50;
+Drive Button.Drive LED Channel = -1;
+Drive Button.Drive LED Frequency = 50;
+}

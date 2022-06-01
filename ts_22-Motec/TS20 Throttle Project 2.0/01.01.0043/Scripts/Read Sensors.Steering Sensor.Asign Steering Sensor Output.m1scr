@@ -1,0 +1,8 @@
+/*******************************************
+ * Get sensor as percentage of full range
+ ******************************************/
+
+// Convert sensor 1 input to percentage of full range
+Steering Sensor Voltage = Read Steering Sensor Output;
+
+Steering Sensor Percentage = ((Read Steering Sensor Output - Steering Sensor Minimum Voltage)/(Steering Sensor Maximum Voltage - Steering Sensor Minimum Voltage))*100;

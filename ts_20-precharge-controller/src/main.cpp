@@ -558,7 +558,7 @@ uint8_t check_warnings(){
 	bool warning_code[8];
 
 	warning_code[WARNING_PCB_OVERTEMPERATURE] 			= !heart.pcb_temperature.pcb_temperature_ok();
-	warning_code[WARNING_DISCHARGE_PRECHARGE_MISMATCH] 	= !discharge_module.precharge_discharge_match();
+	warning_code[WARNING_DISCHARGE_PRECHARGE_MISMATCH] 	= discharge_module.precharge_discharge_mismatch();
 	warning_code[WARNING_AIR_NEG_FEEDBACK_MISMATCH] 	= !AIR_neg_relay.relay_ok();
 	warning_code[WARNING_AIR_POS_FEEDBACK_MISMATCH] 	= !AIR_pos_relay.relay_ok();
 

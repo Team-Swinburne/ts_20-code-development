@@ -442,16 +442,16 @@ void can1_recv_cb(){
 	if (can1.read(can1_msg)){
 		switch(can1_msg.id){
 			// Set discharge state for checking mismatch.
-			//case (CAN_DISCHARGE_MODULE_BASE_ADDRESS):
-			//	discharge_module.set_precharge_discharge_state(heart.get_heartbeat_state(), (int)can1_msg.data[0]);
-			//	break;
+			case (CAN_DISCHARGE_MODULE_BASE_ADDRESS):
+				discharge_module.set_precharge_discharge_state(heart.get_heartbeat_state(), (int)can1_msg.data[0]);
+				break;
 			
 			// Use precharge button to begin precharge sequence.
 			case (CAN_MOTEC_THROTTLE_CONTROLLER_BASE_ADDRESS+TS_DIGITAL_1_ID):
 				// check if precharge button is pressed
 				if (can1_msg.data[0] == 1)
 					if (heart.get_heartbeat_state() == PRECHARGE_STATE_IDLE) {
-						//start_precharge_sequence_cb();
+						start_precharge_sequence_cb();
 						heart.set_heartbeat_state(PRECHARGE_STATE_PRECHARGING_TIMER);
                 }
 
@@ -537,7 +537,7 @@ uint8_t check_warnings(){
 	bool warning_code[8];
 
 	warning_code[WARNING_PCB_OVERTEMPERATURE] 			= !heart.pcb_temperature.pcb_temperature_ok();
-	warning_code[WARNING_DISCHARGE_PRECHARGE_MISMATCH] 	= !discharge_module.precharge_discharge_match();
+	warning_code[WARNING_DISCHARGE_PRECHARGE_MISMATCH] 	= discharge_module.precharge_discharge_mismatch();
 	warning_code[WARNING_AIR_NEG_FEEDBACK_MISMATCH] 	= !AIR_neg_relay.relay_ok();
 	warning_code[WARNING_AIR_POS_FEEDBACK_MISMATCH] 	= !AIR_pos_relay.relay_ok();
 

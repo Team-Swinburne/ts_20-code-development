@@ -27,16 +27,16 @@ public:
 		discharge_state = 2;
 	}
 
-	/** precharge_discharge_match()
+	/** precharge_discharge_mismatch()
 	 * 
-	 * Check if the internal state of the discharge is valid. 
+	 * Check if the internal state of the discharge is invalid.  
 	 * 
 	 *	@param precharge_state Current state of the precharge.
      *
      *  @returns true if precharge matches discharge.
      */
-	bool precharge_discharge_match(){
-		if (precharge_state > 1 && discharge_state == 0){
+	bool precharge_discharge_mismatch(){
+		if (precharge_state > 1 && discharge_state == 1){
 			return true;
 		} else {
 			return false;

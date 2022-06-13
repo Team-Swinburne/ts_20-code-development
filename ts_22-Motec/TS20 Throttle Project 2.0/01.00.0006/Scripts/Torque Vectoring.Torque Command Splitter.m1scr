@@ -1,0 +1,22 @@
+/*****************************************************
+Go Kart Steering, Same Torque To all Wheels Good Luck.
+*****************************************************/
+
+Global.TV Motor Torques.TV Motor Torque 1 = Global.Motor Torque;
+Global.TV Motor Torques.TV Motor Torque 2 = Global.Motor Torque;
+Global.TV Motor Torques.TV Motor Torque 3 = Global.Motor Torque;
+Global.TV Motor Torques.TV Motor Torque 4 = Global.Motor Torque;
+
+/*****************************************************
+E Diff, Hopefully Turns a bit better, Good Luck.
+*****************************************************/
+
+
+
+
+
+/*****************************************************
+Torque Vectoring Compensator, Maybe
+*****************************************************/
+
+

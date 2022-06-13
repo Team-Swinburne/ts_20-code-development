@@ -1,0 +1,14 @@
+local h = CanComms.TxOpen(true); 	//false for little endian, true for big endian
+
+CanComms.TxInitialise(h, 3); 		//Initialise the message, specify the length of the message in bytes
+CanComms.SetUnsignedInteger(h, 0, 8, Convert.ToUnsignedInteger(Error APPS Disagree)); //Need to convert to an unsignedinteger before transmitting
+CanComms.SetUnsignedInteger(h, 8, 8, Convert.ToUnsignedInteger(Error Trailbraking Active)); 
+CanComms.SetUnsignedInteger(h, 16, 8, Convert.ToUnsignedInteger(Error BPPS Disagree));
+
+if (CanComms.TxStandard(h,0,0x251)) {
+	Error States TX Status = Error States TX Status.OK;
+}
+else
+{
+	Error States TX Status = Error States TX Status.Transmit Warning;
+}

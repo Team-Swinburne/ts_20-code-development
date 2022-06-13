@@ -1,0 +1,162 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_:
+
+
+BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
+ SG_ Bank_8_High : 0|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bank_8_Min : 16|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bank_8_Avg : 35|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bank_7_High : 0|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bank_7_Min : 16|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bank_7_Avg : 32|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bank_6_High : 0|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bank_6_Min : 16|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bank_6_Avg : 32|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bank_5_High : 0|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bank_5_Min : 16|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bank_5_Avg : 32|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bank_4_High : 0|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bank_4_Min : 16|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bank_4_Avg : 32|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bank_3_High : 0|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bank_3_Min : 16|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bank_3_Avg : 32|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bank_2_High : 0|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bank_2_Min : 16|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bank_2_Avg : 32|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bank_1_High : 0|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bank_1_Min : 16|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bank_1_Avg : 32|16@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 784 TEMP_HEARTBEAT_ID: 8 Vector__XXX
+ SG_ temp_heartbeat_state : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_heartbeat_counter : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_write_error : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_read_error : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 785 TEMP_SUMMARY_ID: 6 Vector__XXX
+ SG_ temp_summary_lowest : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_summary_highest : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_summary_average : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 794 TEMP_ERRORS_ID: 8 Vector__XXX
+ SG_ temp_over_max_temp : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bad_temp_value : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 786 TEMP_BANK_1: 8 Vector__XXX
+ SG_ temp_bank_1_1 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_1_2 : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_1_3 : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_1_4 : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_1_5 : 32|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_1_6 : 40|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_1_7 : 48|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_1_8 : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 787 TEMP_BANK_2: 8 Vector__XXX
+ SG_ temp_bank_2_1 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_2_2 : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_2_3 : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_2_4 : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_2_5 : 32|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_2_6 : 40|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_2_7 : 48|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_2_8 : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 788 TEMP_BANK_3: 8 Vector__XXX
+ SG_ temp_bank_3_1 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_3_2 : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_3_3 : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_3_4 : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_3_5 : 32|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_3_6 : 40|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_3_7 : 48|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_3_8 : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 789 TEMP_BANK_4: 8 Vector__XXX
+ SG_ temp_bank_4_1 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_4_2 : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_4_3 : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_4_4 : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_4_5 : 32|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_4_6 : 40|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_4_7 : 48|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_4_8 : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 790 TEMP_BANK_5: 8 Vector__XXX
+ SG_ temp_bank_5_1 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_5_2 : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_5_3 : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_5_4 : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_5_5 : 32|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_5_6 : 40|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_5_7 : 48|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_5_8 : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 791 TEMP_BANK_6: 8 Vector__XXX
+ SG_ temp_bank_6_1 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_6_2 : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_6_3 : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_6_4 : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_6_5 : 32|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_6_6 : 40|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_6_7 : 48|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_6_8 : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 792 TEMP_BANK_7: 8 Vector__XXX
+ SG_ temp_bank_7_1 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_7_2 : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_7_3 : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_7_4 : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_7_5 : 32|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_7_6 : 40|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_7_7 : 48|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_7_8 : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 793 TEMP_BANK_8: 8 Vector__XXX
+ SG_ temp_bank_8_1 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_8_2 : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_8_3 : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_8_4 : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_8_5 : 32|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_8_6 : 40|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_8_7 : 48|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ temp_bank_8_8 : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+
+
+
+

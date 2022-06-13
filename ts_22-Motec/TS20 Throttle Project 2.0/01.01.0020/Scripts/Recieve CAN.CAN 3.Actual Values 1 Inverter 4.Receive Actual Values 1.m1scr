@@ -1,0 +1,32 @@
+//Your Scheduled Function Events should execute faster than the transmission speed of the CAN message
+//or you may miss messages
+
+/*
+RxOpenStandard Argument
+bus CAN bus 
+match CAN id bits to match 
+mask CAN id bits to ignore 
+littleendian true for big endian, false for little endian 
+*/
+local h = CanComms.RxOpenStandard(2, 0x241, 0x0, false);
+
+//If message has been received on CAN id 0x283
+if (CanComms.RxMessage(h)) {
+	
+	System Ready 			= CanComms.GetUnsignedInteger(h, 8, 1); //Assign the received bytes to a channel
+	Error 					= CanComms.GetUnsignedInteger(h, 9, 1);
+	Warn 					= CanComms.GetUnsignedInteger(h, 10, 1);
+	Quit DC On 				= CanComms.GetUnsignedInteger(h, 11, 1);
+	DC On 					= CanComms.GetUnsignedInteger(h, 12, 1);
+	Quit Inverter On 		= CanComms.GetUnsignedInteger(h, 13, 1);
+	Inverter On 			= CanComms.GetUnsignedInteger(h, 14, 1);
+	Derating 				= CanComms.GetUnsignedInteger(h, 15, 1);
+	Actual Velocity 		= CanComms.GetUnsignedInteger(h, 16, 16);
+	Torque Current Raw 		= CanComms.GetUnsignedInteger(h, 32, 16);
+	Magnetizing Current Raw = CanComms.GetUnsignedInteger(h, 48, 16);
+	
+	Recieve CAN.CAN 3.Diagnostic 	= Recieve CAN.CAN 3.Diagnostic.OK;
+	Recieve CAN.CAN 3.Ticks 		= CanComms.GetTicks(h);
+}
+else if ((System.TicksSince(Recieve CAN.CAN 3.Ticks) * System.TickPeriod()) >= CAN.CAN Timeout Delay) {
+}

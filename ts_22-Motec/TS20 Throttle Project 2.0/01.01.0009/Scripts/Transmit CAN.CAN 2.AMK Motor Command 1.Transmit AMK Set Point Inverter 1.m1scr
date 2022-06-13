@@ -1,0 +1,40 @@
+local h = CanComms.TxOpen(false); 	//false for little endian, true for big endian
+
+CanComms.TxInitialise(h, 8); 		//Initialise the message, specify the length of the message in bytes
+
+if ((Global.Critical Error neq 0) or (Recieve CAN.CAN 1.Precharge.Heartbeat ID.Precharge State neq 5)){
+	CanComms.SetUnsignedInteger(h, 8, 1, Convert.ToUnsignedInteger(0));  //Need to convert to an unsignedinteger before transmitting
+	CanComms.SetUnsignedInteger(h, 9, 1, Convert.ToUnsignedInteger(Set DC On));
+	CanComms.SetUnsignedInteger(h, 10, 1, Convert.ToUnsignedInteger(0));
+	CanComms.SetUnsignedInteger(h, 11, 1, Convert.ToUnsignedInteger(Set Remove Error));
+//	CanComms.SetUnsignedInteger(h, 16, 16, Convert.ToUnsignedInteger(0));
+	CanComms.SetUnsignedInteger(h, 32, 16, Convert.ToUnsignedInteger(0));
+	CanComms.SetUnsignedInteger(h, 48, 16, Convert.ToUnsignedInteger(0));
+	}
+else if (Global.Critical Error eq 0 and Recieve CAN.CAN 1.Precharge.Heartbeat ID.Precharge State eq 5 and Recieve CAN.CAN 2.Actual Values 1 Inverter 1.Quit Inverter On eq 1 and Recieve CAN.CAN 2.Actual Values 1 Inverter 3.Quit Inverter On eq 1 and Recieve CAN.CAN 3.Actual Values 1 Inverter 2.Quit Inverter On eq 1 and Recieve CAN.CAN 3.Actual Values 1 Inverter 4.Quit Inverter On eq 1){
+	CanComms.SetUnsignedInteger(h, 8, 1, Convert.ToUnsignedInteger(1));  //Need to convert to an unsignedinteger before transmitting
+	CanComms.SetUnsignedInteger(h, 9, 1, Convert.ToUnsignedInteger(Set DC On));
+	CanComms.SetUnsignedInteger(h, 10, 1, Convert.ToUnsignedInteger(1));
+	CanComms.SetUnsignedInteger(h, 11, 1, Convert.ToUnsignedInteger(Set Remove Error));
+//	CanComms.SetUnsignedInteger(h, 16, 16, Convert.ToUnsignedInteger(Set Target Velocity));
+	CanComms.SetUnsignedInteger(h, 32, 16, Convert.ToUnsignedInteger(Set Torque Positive));
+	CanComms.SetUnsignedInteger(h, 48, 16, Convert.ToUnsignedInteger(Set Torque Negative));
+	}
+else {
+	CanComms.SetUnsignedInteger(h, 8, 1, Convert.ToUnsignedInteger(1));
+	CanComms.SetUnsignedInteger(h, 9, 1, Convert.ToUnsignedInteger(Set DC On));
+	CanComms.SetUnsignedInteger(h, 10, 1, Convert.ToUnsignedInteger(1));
+	CanComms.SetUnsignedInteger(h, 11, 1, Convert.ToUnsignedInteger(Set Remove Error));
+//	CanComms.SetUnsignedInteger(h, 16, 16, Convert.ToUnsignedInteger(0));
+	CanComms.SetUnsignedInteger(h, 32, 16, Convert.ToUnsignedInteger(0));
+	CanComms.SetUnsignedInteger(h, 48, 16, Convert.ToUnsignedInteger(0));	
+}
+
+if (CanComms.TxStandard(h,0,0x213)) //Send message on CAN Bus and CAN ID
+{
+	AMK Motor Command Message 1 TX Status = AMK Motor Command Message 1 TX Status.OK;
+}
+else
+{
+	AMK Motor Command Message 1 TX Status = AMK Motor Command Message 1 TX Status.Transmit Warning;
+}

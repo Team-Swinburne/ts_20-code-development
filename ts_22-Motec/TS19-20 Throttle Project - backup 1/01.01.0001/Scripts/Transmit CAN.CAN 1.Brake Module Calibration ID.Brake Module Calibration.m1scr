@@ -1,0 +1,16 @@
+local h = CanComms.TxOpen(true); 	//false for little endian, true for big endian
+
+CanComms.TxInitialise(h, 8); 		//Initialise the message, specify the length of the message in bytes
+CanComms.SetUnsignedInteger(h, 0, 16, Convert.ToUnsignedInteger(Brake Min 1)); //Need to convert to an unsignedinteger before transmitting
+CanComms.SetUnsignedInteger(h, 16, 16, Convert.ToUnsignedInteger(Brake Max 1));
+CanComms.SetUnsignedInteger(h, 32, 16, Convert.ToUnsignedInteger(Brake Min 2));
+CanComms.SetUnsignedInteger(h, 48, 16, Convert.ToUnsignedInteger(Brake Max 2));
+
+if (CanComms.TxStandard(h,0,0x15F))
+{
+	Brake Module Calibration TX Status = Brake Module Calibration TX Status.OK;
+}
+else
+{
+	Brake Module Calibration TX Status = Brake Module Calibration TX Status.Transmit Warning;
+}

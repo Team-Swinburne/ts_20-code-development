@@ -1,0 +1,7 @@
+// Checks for key error states and assigns Critical Error channel if necessary
+
+if ((Transmit CAN.CAN 1.Error ID.Error APPS Disagree eq 1) or (Transmit CAN.CAN 1.Error ID.Error Trailbraking Active eq 1)) {
+	Critical Error = 1;
+} else {
+	Critical Error = 0;
+}

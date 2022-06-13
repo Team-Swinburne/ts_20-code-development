@@ -475,24 +475,23 @@ void can1_recv_cb(){
 			// Use precharge button to begin precharge sequence.
 			case (CAN_MOTEC_THROTTLE_CONTROLLER_BASE_ADDRESS + TS_DIGITAL_1_ID):
 				// check if precharge button is pressed
-				if (can1_msg.data[0] == 1)
-					if (heart.get_heartbeat_state() == PRECHARGE_STATE_IDLE){
-                    // pc.printf("Precharge button pressed, starting precharge routine\r\n");
+				if (can1_msg.data[0] == 1 && heart.get_heartbeat_state() == PRECHARGE_STATE_IDLE) {
+          // pc.printf("Precharge button pressed, starting precharge routine\r\n");
 					start_precharge_sequence_cb();
-                }
+				}
 
-				if (can1_msg.data[1] == 1)
-					if (heart.get_heartbeat_state() == PRECHARGE_STATE_PRECHARGED){
-                    // pc.printf("Precharge button pressed, starting precharge routine\r\n");
+				if (can1_msg.data[1] == 1 && heart.get_heartbeat_state() == PRECHARGE_STATE_PRECHARGED) {
+        	// pc.printf("Precharge button pressed, starting precharge routine\r\n");
 					heart.set_heartbeat_state(PRECHARGE_STATE_DRIVE);
-                } 	
-
+        } 	
 				break;
-      case (CAN_UCM4_BASE_ADDRESS+TS_ERROR_WARNING_ID):
-				UCM4_Inverter.connect(can1_msg.data[1]);
 
-			case (CAN_UCM5_BASE_ADDRESS+TS_ERROR_WARNING_ID):
-				UCM5_Accumulator.connect(can1_msg.data[1]);
+			// Break relay flow is not detected.	
+      //case (CAN_UCM4_BASE_ADDRESS+TS_ERROR_WARNING_ID):
+			//	UCM4_Inverter.connect(can1_msg.data[1]);
+
+			//case (CAN_UCM5_BASE_ADDRESS+TS_ERROR_WARNING_ID):
+			//	UCM5_Accumulator.connect(can1_msg.data[1]);
 
 			// Use charger presense to begin precharge sequence.
             case (CAN_TC_CHARGER_STATUS_ID):
@@ -559,7 +558,7 @@ uint8_t check_warnings(){
 	bool warning_code[8];
 
 	warning_code[WARNING_PCB_OVERTEMPERATURE] 			= !heart.pcb_temperature.pcb_temperature_ok();
-	warning_code[WARNING_DISCHARGE_PRECHARGE_MISMATCH] 	= !discharge_module.precharge_discharge_match();
+	warning_code[WARNING_DISCHARGE_PRECHARGE_MISMATCH] 	= discharge_module.precharge_discharge_mismatch();
 	warning_code[WARNING_AIR_NEG_FEEDBACK_MISMATCH] 	= !AIR_neg_relay.relay_ok();
 	warning_code[WARNING_AIR_POS_FEEDBACK_MISMATCH] 	= !AIR_pos_relay.relay_ok();
 

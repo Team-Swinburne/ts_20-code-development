@@ -316,7 +316,7 @@ uint8_t check_warnings(){
 	bool warning_code[8];
 
 	warning_code[WARNING_PCB_OVERTEMPERATURE] 			= !heart.pcb_temperature.pcb_temperature_ok();
-	warning_code[WARNING_DISCHARGE_PRECHARGE_MISMATCH] 	= !precharge_controller.precharge_discharge_match();
+	warning_code[WARNING_DISCHARGE_PRECHARGE_MISMATCH] 	= precharge_controller.precharge_discharge_mismatch();
 	warning_code[WARNING_SPARE_2] 	= 0;
 	warning_code[WARNING_SPARE_3] 	= 0;
 
@@ -354,14 +354,14 @@ void state_d(){
 		case DISCHARGE_STATE_ACTIVE:
 			// The idle state is advanced by callbacks from either the throttle's precharge button
 			// or the charger becoming visible.
-			heart.set_heartbeat_state(discharge_relay);
+			heart.set_heartbeat_state(discharge_relay+1);
 
 			break;
 
 		case DISCHARGE_STATE_DISABLED:
 			// After the precharge is advanced, the device has 5 seconds before timing out. 
 			// A timeout event will cause the device to reset to the failed state.
-			heart.set_heartbeat_state(discharge_relay);
+			heart.set_heartbeat_state(discharge_relay+1);
 
 			break;
 	}

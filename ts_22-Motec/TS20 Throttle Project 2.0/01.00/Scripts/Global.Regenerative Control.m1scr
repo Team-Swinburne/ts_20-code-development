@@ -1,0 +1,16 @@
+/*****************************************************
+ Prevents Any Regen if Torque is Requested.
+*****************************************************/
+
+if (Motor Torque eq 0){
+Transmit CAN.Transmit CAN 2.AMK Motor Command 1.Set Torque Negative = Regeneration Torque;
+Transmit CAN.Transmit CAN 2.AMK Motor Command 3.Set Torque Negative = Regeneration Torque;
+Transmit CAN.Transmit CAN 3.AMK Motor Command 2.Set Torque Negative = Regeneration Torque;
+Transmit CAN.Transmit CAN 3.AMK Motor Command 4.Set Torque Negative = Regeneration Torque;
+}
+else {
+Transmit CAN.Transmit CAN 2.AMK Motor Command 1.Set Torque Negative = 0;
+Transmit CAN.Transmit CAN 2.AMK Motor Command 3.Set Torque Negative = 0;
+Transmit CAN.Transmit CAN 3.AMK Motor Command 2.Set Torque Negative = 0;
+Transmit CAN.Transmit CAN 3.AMK Motor Command 4.Set Torque Negative = 0;
+}

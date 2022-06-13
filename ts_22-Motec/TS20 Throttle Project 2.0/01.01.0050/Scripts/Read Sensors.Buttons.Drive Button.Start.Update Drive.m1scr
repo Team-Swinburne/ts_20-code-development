@@ -1,0 +1,13 @@
+// Function assigns the state of the drive button (if no critical errors),
+// and turns on the button LED.
+
+if (Global.Errors.Throttle Error eq 0) {
+	if (Sensor eq Sensor.On) {
+		Transmit CAN.CAN 1.Digital Sensors ID.Drive Button Pressed = 1;
+	} else {
+		Transmit CAN.CAN 1.Digital Sensors ID.Drive Button Pressed = 0;
+	}
+}
+else {
+		Transmit CAN.CAN 1.Digital Sensors ID.Drive Button Pressed = 0;
+	}

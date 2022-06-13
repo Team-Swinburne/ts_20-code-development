@@ -1,0 +1,293 @@
+VERSION "HIPBNYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY/4/%%%/4/'%**4YYY///"
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+
+BS_:
+
+BU_: ORION
+
+
+BO_ 4 ORN_RELAY_STATUS: 2 ORION
+ SG_ Relay_Status : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
+
+BO_ 6 ORN_MAX_CELLS_SUPPORTED_COUNTED: 1 ORION
+ SG_ Max_Cells_Supprted_Counted : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 7 ORN_POPULATED_CELL_COUNT: 1 ORION
+ SG_ Populated_Cell_count : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 10 ORN_PACK_CHARGE_CURRENT_LIMIT: 2 ORION
+ SG_ Pack_Charge_Current_Limit : 0|16@1+ (1,0) [0|65535] "Amps" Vector__XXX
+
+BO_ 11 ORN_PACK_DISCHARGE_CURRENT_LIMIT: 2 ORION
+ SG_ Pack_Discharge_Current_Limit : 0|16@1+ (1,0) [0|65535] "Amps" Vector__XXX
+
+BO_ 21 ORN_SIGNED_PACK_CURRENT: 2 ORION
+ SG_ Orn_Signed_Pack_Current : 0|8@1- (0.1,0) [-32767|32767] "AMPS" Vector__XXX
+
+BO_ 4 ORN_UNSIGNED_PACK_CURRENT: 2 ORION
+ SG_ Orn_Unsigned_Pack_Current : 0|16@1+ (0.1,0) [0|65535] "AMPS" Vector__XXX
+
+BO_ 13 ORN_PACK_VOLTAGE: 2 ORION
+ SG_ Orn_Pack_Voltage : 0|16@1+ (0.1,0) [0|65535] "AMPS" Vector__XXX
+
+BO_ 14 ORN_PACK_OPEN_VOLTAGE: 2 ORION
+ SG_ Orn_Pack_Open_Voltage : 0|16@1+ (0.1,0) [0|65535] "VOLTS" Vector__XXX
+
+BO_ 15 ORN_PACK_STATE_OF_CHARGE: 1 ORION
+ SG_ Orn_Pack_State_of_Charge : 0|8@1+ (0.5,0) [0|100] "%" Vector__XXX
+
+BO_ 16 ORN_PACK_AMPHOURS: 2 ORION
+ SG_ Orn_Pack_Amphours : 0|16@1+ (0.1,0) [0|65535] "Amphours" Vector__XXX
+
+BO_ 17 ORN_PACK_RESISTANCE: 2 ORION
+ SG_ Orn_Pack_Resistance : 0|16@1+ (0.01,0) [0|65535] "mOhm" Vector__XXX
+
+BO_ 18 ORN_PACK_DEPTH_OF_DISCHARGE: 1 ORION
+ SG_ Orn_Pack_Depth_of_Discharge : 0|8@1+ (0.5,0) [0|100] "%" Vector__XXX
+
+BO_ 19 ORN_PACK_HEALTH: 1 ORION
+ SG_ Orn_Pack_Health : 0|8@1+ (1,0) [0|100] "" Vector__XXX
+
+BO_ 20 ORN_PACK_SUMMED_VOLTAGE: 2 ORION
+ SG_ Orn_Pack_Summed_Voltage : 0|16@1+ (0.01,0) [0|65535] "Volts" Vector__XXX
+
+BO_ 24 ORN_TOTAL_PACK_CYCLES: 2 ORION
+ SG_ Orn_Total_Pack_Cycles : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
+
+BO_ 40 ORN_HIGHEST_PACK_TEMPERATURE: 1 ORION
+ SG_ Orn_Highest_Pack_Temperature : 0|8@1+ (1,0) [0|80] "Celsius" Vector__XXX
+
+BO_ 41 ORN_LOWEST_PACK_TEMPERATURE: 1 ORION
+ SG_ Orn_Lowest_Pack_Temperature : 0|8@1+ (1,0) [0|80] "Celsius" Vector__XXX
+
+BO_ 42 ORN_AVG_PACK_TEMPERATURE: 1 ORION
+ SG_ Orn_Avg_Pack_Temperature : 0|8@1+ (1,0) [0|80] "Celsius" Vector__XXX
+
+BO_ 45 ORN_HEATSINK_TEMPERATRE_SENSOR: 1 ORION
+ SG_ Orn_Heatsink_Temperature_Sensor : 0|8@1+ (1,0) [0|80] "Celsius" Vector__XXX
+
+BO_ 43 ORN_FAN_SPEED: 1 ORION
+ SG_ Orn_Fan_Speed : 0|8@1+ (1,0) [0|6] "#" Vector__XXX
+
+BO_ 44 ORN_REQUESTED_FAN_SPEED: 1 ORION
+ SG_ Orn_Requested_Fan_Speed : 0|8@1+ (1,0) [0|6] "#" Vector__XXX
+
+BO_ 62 ORN_LOW_CELL_VOLTAGE: 2 ORION
+ SG_ Orn_Low_Cell_Voltage : 0|16@1+ (0.0001,0) [0|5] "Voltage" Vector__XXX
+
+BO_ 50 ORN_LOW_CELL_VOLTAGE_ID_CELLNUM: 2 ORION
+ SG_ Orn_Low_Cell_Voltage_ID_Cellnum : 0|16@1+ (1,0) [0|180] "" Vector__XXX
+
+BO_ 61 ORN_HIGH_CELL_VOLTAGE: 2 ORION
+ SG_ Orn_High_Cell_Voltage : 0|16@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 51 ORN_HIGH_CELL_VOLTAGE_ID_CELLNUM: 2 ORION
+ SG_ Orn_High_Cell_Voltage_ID_Cellnum : 0|16@1+ (1,0) [0|180] "#" Vector__XXX
+
+BO_ 52 ORN_AVG_CELL_VOLTAGE: 2 ORION
+ SG_ Orn_Avg_Cell_Voltage : 0|16@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 53 ORN_LOW_OPENCELL_VOLTAGE: 2 ORION
+ SG_ Orn_Low_Opencell_Voltage : 0|16@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 64 ORN_LOW_OPENCELL_VOLTAGE_ID_CELLNUM: 2 ORION
+ SG_ Orn_Low_Opencell_Voltage_ID_Cellnum : 0|16@1+ (1,0) [0|180] "#" Vector__XXX
+
+BO_ 54 ORN_HIGH_OPENCELL_VOLTAGE: 2 ORION
+ SG_ Orn_High_Opencell_Voltage : 0|16@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 63 ORN_HIGH_OPENCELL_VOLTAGE_ID_CELLNUM: 2 ORION
+ SG_ Orn_High_Opencell_Voltage_ID_Cellnum : 0|16@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 55 ORN_AVG_OPENCELL_VOLTAGE: 2 ORION
+ SG_ Orn_Avg_Opencell_Voltage : 0|16@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 56 ORN_LOW_CELL_RESISTANCE: 2 ORION
+ SG_ Orn_Low_Cell_Resistance : 0|16@1+ (1,0) [0|655.35] "mOhm" Vector__XXX
+
+BO_ 66 ORN_LOW_RESISTANCE_ID_CELLNUM: 2 ORION
+ SG_ Orn_Low_Resistance_ID_Cellnum : 0|16@1+ (1,0) [0|180] "#" Vector__XXX
+
+BO_ 57 ORN_HIGH_CELL_RESISTANCE: 2 ORION
+ SG_ Orn_High_Cell_Resistance : 0|16@1+ (0.01,0) [0|655.35] "mOhm" Vector__XXX
+
+BO_ 66 ORN_HIGH_CELL_RESISTANCE_ID_CELLNUM: 2 ORION
+ SG_ Orn_High_Cell_Resistance_ID_Cellnum : 0|16@1+ (1,0) [0|180] "#" Vector__XXX
+
+BO_ 58 ORN_AVG_CELL_RESISTANCE: 2 ORION
+ SG_ Orn_Avg_Cell_Resistance : 0|16@1+ (0.01,0) [0|655.35] "mOhm" Vector__XXX
+
+BO_ 70 ORN_INPUT_POWER_SUPPLY_VOLTAGE: 2 ORION
+ SG_ Orn_Input_Power_Supply_Voltage : 0|16@1+ (0.1,0) [0|35] "Volts" Vector__XXX
+
+BO_ 73 ORN_FAN_VOLTAGE: 2 ORION
+ SG_ Orn_Fan_Voltage : 0|16@1+ (0.01,0) [0|15] "Volts" Vector__XXX
+
+BO_ 256 ORN_CELL_VOLTAGES_CELLS_1_12: 3 ORION
+ SG_ Orn_Cell_Voltages_Cells_1_12 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 257 ORN_CELL_VOLTAGES_CELLS_13_24: 3 ORION
+ SG_ Orn_Cell_Voltages_Cells_13_24 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 258 ORN_CELL_VOLTAGES_CELLS_25_36: 3 ORION
+ SG_ Orn_Cell_Voltages_Cells_ : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 259 ORN_CELL_VOLTAGES_CELLS_37_48: 3 ORION
+ SG_ Orn_Cell_Voltages_Cells_37_48 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 260 ORN_CELL_VOLTAGES_CELLS_49_60: 3 ORION
+ SG_ Orn_Cell_Voltages_Cells_49_60 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 261 ORN_CELL_VOLTAGES_CELLS_61_72: 3 ORION
+ SG_ Orn_Cell_Voltages_Cells_61_72 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 262 ORN_CELL_VOLTAGES_CELLS_73_84: 3 ORION
+ SG_ Orn_Cell_Voltages_Cells_73_84 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 263 ORN_CELL_VOLTAGES_CELLS_85_96: 3 ORION
+ SG_ Orn_Cell_Voltages_Cells_85_96 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 264 ORN_CELL_VOLTAGES_CELLS_97_108: 3 ORION
+ SG_ Orn_Cell_Voltages_Cells_97_108 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 265 ORN_CELL_VOLTAGES_CELLS_109_120: 3 ORION
+ SG_ Orn_Cell_Voltages_Cells_109_120 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 266 ORN_CELL_VOLTAGES_CELLS_121_132: 3 ORION
+ SG_ Orn_Cell_Voltages_Cells_121_132 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 267 ORN_CELL_VOLTAGES_CELLS_133_144: 3 ORION
+ SG_ Orn_Cell_Voltages_Cells_133_144 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 268 ORN_CELL_VOLTAGES_CELLS_145_156: 3 ORION
+ SG_ Orn_Cell_Voltages_Cells_145_156 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 269 ORN_CELL_VOLTAGES_CELLS_157_168: 3 ORION
+ SG_ Orn_Cell_Voltages_Cells_157_168 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 270 ORN_CELL_VOLTAGES_CELLS_169_180: 3 ORION
+ SG_ Orn_Cell_Voltages_Cells_169_180 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 768 ORN_OPENCELL_VOLTAGES_CELLS_1_12: 3 Vector__XXX
+ SG_ Orn_Opencell_Voltages_Cells_1_12 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 769 ORN_OPENCELL_VOLTAGES_CELLS_13_24: 3 Vector__XXX
+ SG_ Orn_Opencell_Voltages_Cells_13_24 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 770 ORN_OPENCELL_VOLTAGES_CELLS_25_36: 3 Vector__XXX
+ SG_ Orn_Opencell_Voltages_Cells_25_36 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 771 ORN_OPENCELL_VOLTAGES_CELLS_37_48: 3 Vector__XXX
+ SG_ Orn_Opencell_Voltages_Cells_37_48 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 772 ORN_OPENCELL_VOLTAGES_CELLS_49_60: 3 Vector__XXX
+ SG_ Orn_Opencell_Voltages_Cells_49_60 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 1797 ORN_OPENCELL_VOLTAGES_CELLS_61_72: 3 Vector__XXX
+ SG_ Orn_Opencell_Voltages_Cells_61_72 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 774 ORN_OPENCELL_VOLTAGES_CELLS_73_84: 3 Vector__XXX
+ SG_ Orn_Opencell_Voltages_Cells_73_84 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 775 ORN_OPENCELL_VOLTAGES_CELLS_85_96: 3 Vector__XXX
+ SG_ Orn_Opencell_Voltages_Cells_85_96 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 776 ORN_OPENCELL_VOLTAGES_CELLS_97_108: 3 Vector__XXX
+ SG_ Orn_Opencell_Voltages_Cells_97_108 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 777 ORN_OPENCELL_VOLTAGES_CELLS_109_120: 3 Vector__XXX
+ SG_ Orn_Opencell_Voltages_Cells_109_120 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 778 ORN_OPENCELL_VOLTAGES_CELLS_121_132: 3 Vector__XXX
+ SG_ Orn_Opencell_Voltages_Cells_121_132 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 779 ORN_OPENCELL_VOLTAGES_CELLS_133_144: 3 Vector__XXX
+ SG_ Orn_Opencell_Voltages_Cells_133_144 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 780 ORN_OPENCELL_VOLTAGES_CELLS_145_156: 3 Vector__XXX
+ SG_ Orn_Opencell_Voltages_Cells_145_156 : 0|24@1+ (0.0001,0) [0|0] "Volts" Vector__XXX
+
+BO_ 781 ORN_OPENCELL_VOLTAGES_CELLS_157_168: 3 Vector__XXX
+ SG_ Orn_Opencell_Voltages_Cells_157_168 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 574 ORN_OPENCELL_VOLTAGES_CELLS_169_180: 3 Vector__XXX
+ SG_ Orn_Opencell_Voltages_Cells_169_180 : 0|24@1+ (0.0001,0) [0|5] "Volts" Vector__XXX
+
+BO_ 512 ORN_INTERNAL_RESISTANCE_CELLS_1_12: 3 Vector__XXX
+ SG_ Orn_Internal_Restiance_Cells_1_12 : 0|24@1+ (0.01,0) [0|327.67] "mOhms" Vector__XXX
+
+BO_ 513 ORN_INTERNAL_RESISTANCE_CELLS_13_24: 3 Vector__XXX
+ SG_ Orn_Internal_Restiance_Cells_13_24 : 0|24@1+ (0.01,0) [0|327.67] "mOhms" Vector__XXX
+
+BO_ 514 ORN_INTERNAL_RESISTANCE_CELLS_25_36: 3 Vector__XXX
+ SG_ Orn_Internal_Restiance_Cells_25_36 : 0|24@1+ (0.01,0) [0|327.67] "mOhms" Vector__XXX
+
+BO_ 515 ORN_INTERNAL_RESISTANCE_CELLS_37_48: 3 Vector__XXX
+ SG_ Orn_Internal_Restiance_Cells_37_38 : 0|24@1+ (0.01,0) [0|327.67] "mOhms" Vector__XXX
+
+BO_ 516 ORN_INTERNAL_RESISTANCE_CELLS_49_60: 3 Vector__XXX
+ SG_ Orn_Internal_Restiance_Cells_49_60 : 0|24@1+ (0.01,0) [0|327.67] "mOhms" Vector__XXX
+
+BO_ 517 ORN_INTERNAL_RESISTANCE_CELLS_61_72: 3 Vector__XXX
+ SG_ Orn_Internal_Restiance_Cells_61_72 : 0|24@1+ (0.01,0) [0|327.67] "mOhms" Vector__XXX
+
+BO_ 518 ORN_INTERNAL_RESISTANCE_CELLS_73_84: 3 Vector__XXX
+ SG_ Orn_Internal_Restiance_Cells_73_84 : 0|24@1+ (0.01,0) [0|327.67] "mOhms" Vector__XXX
+
+BO_ 519 ORN_INTERNAL_RESISTANCE_CELLS_85_96: 3 Vector__XXX
+ SG_ Orn_Internal_Restiance_Cells_85_96 : 0|24@1+ (0.01,0) [0|327.67] "mOhms" Vector__XXX
+
+BO_ 520 ORN_INTERNAL_RESISTANCE_CELLS_97_108: 3 Vector__XXX
+ SG_ Orn_Internal_Restiance_Cells_97_108 : 0|24@1+ (0.01,0) [0|327.67] "mOhms" Vector__XXX
+
+BO_ 521 ORN_INTERNAL_RESISTANCE_CELLS_109_120: 3 Vector__XXX
+ SG_ Orn_Internal_Restiance_Cells_109_120 : 0|24@1+ (0.01,0) [0|327.67] "mOhms" Vector__XXX
+
+BO_ 522 ORN_INTERNAL_RESISTANCE_CELLS_121_132: 3 Vector__XXX
+ SG_ Orn_Internal_Restiance_Cells_121_132 : 0|24@1+ (0.01,0) [0|327.67] "mOhms" Vector__XXX
+
+BO_ 523 ORN_INTERNAL_RESISTANCE_CELLS_133_144: 3 Vector__XXX
+ SG_ Orn_Internal_Restiance_Cells_133_144 : 0|24@1+ (0.01,0) [0|327.67] "mOhms" Vector__XXX
+
+BO_ 523 ORN_INTERNAL_RESISTANCE_CELLS_145_156: 3 Vector__XXX
+ SG_ Orn_Internal_Restiance_Cells_145_156 : 0|24@1+ (0.01,0) [0|327.67] "mOhms" Vector__XXX
+
+BO_ 525 ORN_INTERNAL_RESISTANCE_CELLS_157_168: 3 Vector__XXX
+ SG_ Orn_Internal_Restiance_Cells_ : 0|24@1+ (0.01,0) [0|327.67] "mOhms" Vector__XXX
+
+BO_ 526 ORN_INTERNAL_RESISTANCE_CELLS_169_180: 3 Vector__XXX
+ SG_ Orn_Internal_Restiance_Cells_169_180 : 0|24@1+ (0.01,0) [0|327.67] "mOhms" Vector__XXX
+
+
+CM_ BO_ 4 "";
+CM_ SG_ 10 Pack_Charge_Current_Limit "";
+CM_ BO_ 14 "";
+CM_ BO_ 15 "";
+CM_ BO_ 41 "";
+CM_ BO_ 43 "";
+CM_ BO_ 44 "";
+CM_ BO_ 61 "";
+CM_ BO_ 52 "";
+CM_ BO_ 53 "";

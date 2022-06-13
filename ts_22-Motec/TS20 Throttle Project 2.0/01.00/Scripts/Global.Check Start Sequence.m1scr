@@ -1,0 +1,11 @@
+	if (Recieve CAN.Recieve CAN 1.Precharge Data.Precharge Current State >= 3 and Recieve CAN.Recieve CAN 1.Precharge Data.Precharge Current State < 7) {
+		Transmit CAN.Transmit CAN 2.AMK Motor Command 1.Set DC On = 1;
+		Transmit CAN.Transmit CAN 2.AMK Motor Command 3.Set DC On = 1;
+		Transmit CAN.Transmit CAN 3.AMK Motor Command 2.Set DC On = 1;
+		Transmit CAN.Transmit CAN 3.AMK Motor Command 4.Set DC On = 1;
+		} else {
+		Transmit CAN.Transmit CAN 2.AMK Motor Command 1.Set DC On = 0;
+		Transmit CAN.Transmit CAN 2.AMK Motor Command 3.Set DC On = 0;
+		Transmit CAN.Transmit CAN 3.AMK Motor Command 2.Set DC On = 0;
+		Transmit CAN.Transmit CAN 3.AMK Motor Command 4.Set DC On = 0;
+		}

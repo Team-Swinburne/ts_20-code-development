@@ -1,0 +1,28 @@
+local h = CanComms.TxOpen(true); 	//false for little endian, true for big endian
+
+CanComms.TxInitialise(h, 6); 		//Initialise the message, specify the length of the message in bytes
+
+if ((Global.Critical Error neq 0) or (CAN1 Receive.Precharge Data.Precharge Current State neq 5)){
+	CanComms.SetUnsignedInteger(h, 0, 8, Convert.ToUnsignedInteger(0)); //Need to convert to an unsignedinteger before transmitting
+	CanComms.SetUnsignedInteger(h, 8, 8, Convert.ToUnsignedInteger(0));
+	CanComms.SetUnsignedInteger(h, 16, 8, Convert.ToUnsignedInteger(0));
+	CanComms.SetUnsignedInteger(h, 24, 8, Convert.ToUnsignedInteger(0));
+	CanComms.SetUnsignedInteger(h, 32, 8, Convert.ToUnsignedInteger(0));
+	CanComms.SetUnsignedInteger(h, 40, 8, Convert.ToUnsignedInteger(0));
+} else {
+	CanComms.SetUnsignedInteger(h, 0, 8, Convert.ToUnsignedInteger(Global.Motor Torque & 0xFF));
+	CanComms.SetUnsignedInteger(h, 8, 8, Convert.ToUnsignedInteger(Global.Motor Torque >> 8));
+	CanComms.SetUnsignedInteger(h, 16, 8, Convert.ToUnsignedInteger(0));
+	CanComms.SetUnsignedInteger(h, 24, 8, Convert.ToUnsignedInteger(0));
+	CanComms.SetUnsignedInteger(h, 32, 8, Convert.ToUnsignedInteger(1));
+	CanComms.SetUnsignedInteger(h, 40, 8, Convert.ToUnsignedInteger(1));
+}
+
+if (CanComms.TxStandard(h,0,0x2C0)) //Send message on CAN Bus and CAN ID
+{
+	RMS Command Message TX Status = RMS Command Message TX Status.OK;
+}
+else
+{
+	RMS Command Message TX Status = RMS Command Message TX Status.Transmit Warning;
+}

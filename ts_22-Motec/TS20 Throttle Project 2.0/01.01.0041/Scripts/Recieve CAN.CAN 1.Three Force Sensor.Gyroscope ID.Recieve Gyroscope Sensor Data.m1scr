@@ -1,0 +1,22 @@
+//Your Scheduled Function Events should execute faster than the transmission speed of the CAN message
+//or you may miss messages
+
+/*
+RxOpenStandard Argument
+bus CAN bus 
+match CAN id bits to match 
+mask CAN id bits to ignore 
+bigendian true for big endian, false for little endian 
+*/
+local h = CanComms.RxOpenStandard(0, 0x611, 0x0, true);
+
+//If message has been received on CAN id 0x301
+if (CanComms.RxMessage(h)) {
+	
+	X Gyroscope Force = CanComms.GetInteger(h, 0, 16); //Assign the received bytes to a channel
+	Y Gyroscope Force = CanComms.GetInteger(h, 16, 16);
+	Z Gyroscope Force = CanComms.GetInteger(h, 32, 16);
+	
+}
+else if ((System.TicksSince(Recieve CAN. CAN 1.Ticks) * System.TickPeriod()) >= CAN.CAN Timeout Delay) {
+}

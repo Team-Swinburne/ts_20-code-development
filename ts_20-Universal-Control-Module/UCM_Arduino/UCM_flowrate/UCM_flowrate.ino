@@ -32,7 +32,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 //#include <Adafruit_ADS1X15.h>
-//#include <eXoCAN.h>
+#include <eXoCAN.h>
 #include "TickerInterrupt.h"
 #include "can_addresses.h"
 #include "FlowSensor.h"
@@ -48,8 +48,8 @@
 #define PIN_Serial1_TX           PA9
 //HardwareSerial Serial1(PIN_Serial1_RX, PIN_Serial1_TX);
 
-// CANBus Interface
-//eXoCAN can;
+//CANBus Interface;
+eXoCAN can;
 
 #define CAN_TEST 0x600
 /*--------------------------------------------------------------------------- 
@@ -82,7 +82,7 @@ uint8_t rxData[8];
 /*--------------------------------------------------------------------------- 
 `								CLASSES 
 ---------------------------------------------------------------------------*/
-//HeartBeat_struct HeartBeat; //Struct contains the variables used for the HeartBeat
+HeartBeat_struct HeartBeat; //Struct contains the variables used for the HeartBeat
 
 /*--------------------------------------------------------------------------- 
 `								FUNCTIONS 
@@ -104,7 +104,7 @@ void GPIO_Init() {
   pinMode(pin_Driver2, OUTPUT);
 }
 
-/*
+
 void CAN_TX_Heartbeat()
 {
   digitalToggle(PC13);
@@ -115,7 +115,7 @@ void CAN_TX_Heartbeat()
 
   TX_data[CAN_HEARTBEAT_STATE] = HeartBeat.State;
   TX_data[CAN_HEARTBEAT_COUNTER] = HeartBeat.Counter;
-  TX_data[CAN_HEARTBEAT_PCB_TEMP] = pcb_temperature.read();
+  TX_data[CAN_HEARTBEAT_PCB_TEMP] = 0;//pcb_temperature.read();
   TX_data[CAN_HEARTBEAT_HARDWARE_REVISION] = 1;
   TX_data[CAN_HEARTBEAT_UCM_ID] = 3;
 
@@ -140,6 +140,7 @@ void canTX_Digital1() {
   				digitalFrame1.bytes, 
 				digitalFrame1.len);
 }
+
 // Transmit analog message
 void canTX_Analog1() {
   	can.transmit(CAN_UCM_BASE_ADDRESS+TS_ANALOGUE_1_ID, 
@@ -162,7 +163,7 @@ void canISR() {
 /*--------------------------------------------------------------------------- 
 `								DAEMONS 
 ---------------------------------------------------------------------------*/
-/*
+
 // CAN Receive function, use map if neccessary
 void canRX() {
 	if (can.rxMsgLen > -1) {
@@ -187,6 +188,20 @@ void updateDigital() {
   digitalFrame1.bytes[0] = 1;
 }
 
+/*
+void FlowSensorProcess()
+{
+  int FS1_FlowRateInt = (int) FS1_FlowRate;
+  int FS2_FlowRateInt = (int) FS2_FlowRate;
+  
+  analogFrame1.bytes[0] = FS1_FlowRate;
+  analogFrame1.bytes[1] = FS2_FlowRate;
+
+  errorFrame.bytes[0] = (FS1_FlowRateInt < 10) ? 1 : 0;
+  errorFrame.bytes[1] = (FS2_FlowRateInt < 10) ? 1 : 0;
+}
+*/
+/*
 // analog update daemon
 void updateAnalog() {
   // use bitwise operation to split the data
@@ -213,13 +228,16 @@ void updateAnalog() {
   	analogFrame1.bytes[4] = (byte)(adc[3] & 0xFF);
   	analogFrame1.bytes[5] = (byte)(adc[3] >> 8);
 }
-
+*/
 // update the drivers value, both PWM and 24V drivers
 void updateDrivers() {
 	digitalWrite(pin_Driver1,rxData[2]);
 	digitalWrite(pin_Driver2,rxData[1]);
 }
-*/
+
+
+//FlowSensor * FlowSensor::instances[4] = {NULL, NULL, NULL, NULL};
+//FlowSensor FlowSensor1(pin_DigIn1, FLOW_SENSOR_1_CALIBRATION);
 
 // print values on to serial
 void SerialPrint () 
@@ -229,19 +247,23 @@ void SerialPrint ()
   //Serial.print("Digital Input 2: ");  Serial.println(digitalRead(pin_DigIn2)); 
   //Serial.print("Digital Input 3: ");  Serial.println(digitalRead(pin_DigIn3)); 
   //Serial.print("Digital Input 4: ");  Serial.println(digitalRead(pin_DigIn4)); 
-  Serial.print("Amount of liquid = ");
-  Serial.print(Flowsensor_1_LiquidTotal);
-	Serial.print("   |   Liquid flow rate = ");
-  Serial.println(Flowsensor_1_FlowRate);
+  //Serial.print("Amount of liquid = ");
+  //Serial.print(Flowsensor_1_LiquidTotal);
+	//Serial.print("   |   Liquid flow rate = ");
+  //Serial.println(Flowsensor_1_FlowRate);
+  Serial.print("Liquid flow rate (1) = ");
+  //Serial.println(FS1_FlowRate);
+  Serial.print("Liquid flow rate (2) = ");
+  //Serial.println(FS2_FlowRate);
 }
-/*
+
 void updateHeartdata() {
   heartFrame.bytes[HEART_HARDWARE_REV] = 1;
-  heartFrame.bytes[HEART_PCB_TEMP] = pcb_temperature.read();
+  heartFrame.bytes[HEART_PCB_TEMP] = 0;//pcb_temperature.read();
   heartFrame.bytes[4] = rxData[0];
   heartFrame.bytes[5] = rxData[1];
 }
-*/
+
 
 /*--------------------------------------------------------------------------- 
 `								SETUP 
@@ -254,21 +276,22 @@ void setup()
 
   GPIO_Init();
 
-  FlowSensor FlowSensor1(pin_DigIn1, FlowSensor1_Increment);
+  //FlowSensor_init(1, pin_DigIn1);
+  //FlowSensor_init(2, pin_DigIn2);
 
   // Initiallising CAN
-  //can.begin(STD_ID_LEN, CANBUS_FREQUENCY, PORTB_8_9_XCVR);   //11 Bit Id, 500Kbps
-  //can.filterMask16Init(0, CAN_TEST, 0x7ff);
-  //can.attachInterrupt(canISR);
+  can.begin(STD_ID_LEN, CANBUS_FREQUENCY, PORTB_8_9_XCVR);   //11 Bit Id, 500Kbps
+  can.filterMask16Init(0, CAN_TEST, 0x7ff);
+  can.attachInterrupt(canISR);
 
 	// Start ticker and attach callback to it
 	TickerInterrupt Ticker(TIM2,1);
   Ticker.start();
-  //Ticker.attach(heartbeat, INTERVAL_HEARTBEAT);
-  //Ticker.attach(canTX_criticalError,INTERVAL_ERROR_WARNING_CRITICAL);
-  //Ticker.attach(canTX_Digital1,INTERVAL_ERROR_WARNING_LOW_PRIORITY);
-	//Ticker.attach(canTX_Analog1,INTERVAL_ERROR_WARNING_LOW_PRIORITY);
-	Ticker.attach(FlowSensor1.measure, 1000); //Ticker to measure the flow rate per second
+  Ticker.attach(heartbeat, INTERVAL_HEARTBEAT);
+  Ticker.attach(canTX_criticalError,INTERVAL_ERROR_WARNING_CRITICAL);
+  Ticker.attach(canTX_Digital1,INTERVAL_ERROR_WARNING_LOW_PRIORITY);
+	Ticker.attach(canTX_Analog1,INTERVAL_ERROR_WARNING_LOW_PRIORITY);
+	//Ticker.attach(FlowSensor_Measure, 1000); //Ticker to measure the flow rate per second
 
 }
 
@@ -278,14 +301,15 @@ void setup()
 
 void loop()
 {
-	/*
+	
   canRX();
   updateHeartdata();
-  updateDigital();
-  updateDrivers();
-  SerialPrint();
-  */
+  //updateDigital();
+  //updateDrivers();
+  //FlowSensorProcess();
+  //SerialPrint();
+  
 
-  SerialPrint();
+  //SerialPrint();
   delay(500);
 }

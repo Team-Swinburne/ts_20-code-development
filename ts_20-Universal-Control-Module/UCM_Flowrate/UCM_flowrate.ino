@@ -43,7 +43,7 @@
 /*--------------------------------------------------------------------------- 
 `                DEFINES 
 ---------------------------------------------------------------------------*/
-#define UCM_NUMBER 2
+#define UCM_NUMBER 1
 
 //Creates the UCM CAN ID depending on the UCM number
 #if UCM_NUMBER == 1
@@ -209,6 +209,8 @@ void updateDigital()
 void FlowSensorProcess()
 {
   int FS1_FlowRateInt = (int) (FS1_FlowRate * 10);
+
+  (FS1_FlowRateInt > 255) ? (FS1_FlowRateInt = 255) : (FS1_FlowRateInt = FS1_FlowRateInt);
   
   analogFrame1.bytes[0] = FS1_FlowRate;
 

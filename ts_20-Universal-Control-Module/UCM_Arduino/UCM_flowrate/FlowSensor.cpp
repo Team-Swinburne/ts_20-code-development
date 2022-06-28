@@ -5,15 +5,15 @@ float FS2_Calibration = 1.0;
 float FS3_Calibration = 1.0;
 float FS4_Calibration = 1.0;
    
-volatile int FS1_Pulses = 0;
-volatile int FS2_Pulses = 0;
-volatile int FS3_Pulses = 0;
-volatile int FS4_Pulses = 0;
+extern volatile int FS1_Pulses;
+extern volatile int FS2_Pulses;
+extern volatile int FS3_Pulses;
+extern volatile int FS4_Pulses;
 
-float FS1_FlowRate = 0.0;
-float FS2_FlowRate = 0.0;
-float FS3_FlowRate = 0.0;
-float FS4_FlowRate = 0.0;
+extern float FS1_FlowRate;
+extern float FS2_FlowRate;
+extern float FS3_FlowRate;
+extern float FS4_FlowRate;
 
 static void FlowSensor1_INT()
 {

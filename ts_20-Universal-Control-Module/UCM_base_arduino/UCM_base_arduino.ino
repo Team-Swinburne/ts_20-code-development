@@ -181,7 +181,7 @@ void GPIO_Init() {
 // Transmit hearbeat, letting the other pals know you're alive
 void heartbeat() {
 	heartFrame.bytes[HEART_COUNTER]++;
-	can.transmit(CAN_UCM2_BASE_ADDRESS+TS_HEARTBEAT_ID, 
+	can.transmit(UCM_ADDRESS+TS_HEARTBEAT_ID, 
 				heartFrame.bytes, 
 				heartFrame.len);
 	digitalToggle(PC13);
@@ -189,20 +189,20 @@ void heartbeat() {
 
 // Transmit digital message
 void canTX_Digital1() {
-  	can.transmit(CAN_UCM2_BASE_ADDRESS+TS_DIGITAL_1_ID, 
+  	can.transmit(UCM_ADDRESS+TS_DIGITAL_1_ID, 
   				digitalFrame1.bytes, 
 				digitalFrame1.len);
 }
 // Transmit analog message
 void canTX_Analog1() {
-  	can.transmit(CAN_UCM2_BASE_ADDRESS+TS_ANALOGUE_1_ID, 
+  	can.transmit(UCM_ADDRESS+TS_ANALOGUE_1_ID, 
   				analogFrame1.bytes, 
 				analogFrame1.len);
 }
 
 // Transmit critical error/warning message
 void canTX_criticalError() {
-	can.transmit(CAN_UCM2_BASE_ADDRESS+TS_ERROR_WARNING_ID, 
+	can.transmit(UCM_ADDRESS+TS_ERROR_WARNING_ID, 
   				errorFrame.bytes, 
 				errorFrame.len);
 }
@@ -295,9 +295,9 @@ void FlowSensorProcess()
 
   (FS1_FlowRateInt > 255) ? (FS1_FlowRateInt = 255) : (FS1_FlowRateInt = FS1_FlowRateInt);
   
-  analogFrame1.bytes[0] = FS1_FlowRate;
+  analogFrame1.bytes[0] = FS1_FlowRateInt;
 
-  errorFrame.bytes[0] = (FS1_FlowRateInt < 100) ? 1 : 0;
+  (FS1_FlowRateInt < 100) ?  errorFrame.bytes[0] = 1 : errorFrame.bytes[0] = 0;
 }
 
 
@@ -409,16 +409,21 @@ void fanControlInverter()
   pwmtemp = (pwmPercentage/100)*255;
   int pwmSignal = (int) pwmtemp;
 
+  Serial1.print("the pwmsignal is: ");
+  Serial1.println(pwmSignal);
   if (inverterMaxTemp <39) 
   {
+    Serial1.println("Inverter below 39");
     analogWrite(inverterFans, 120);
   }
   else if (inverterMaxTemp > 60 && 120 >= inverterMaxTemp)
   {
+    Serial1.println("Inverter between 60-120");
     analogWrite(inverterFans, 255);
   }
   else if(inverterMaxTemp > 120)
     {
+    
     analogWrite(inverterFans, 179);
   }
   else
@@ -575,11 +580,11 @@ void setup()
 
     //Motor Inverter Fan Control Pins
     pinMode(PA1, OUTPUT);
-    pinMode(leftFanControlPin, OUTPUT);
-    pinMode(rightFanControlPin, OUTPUT);
+    //pinMode(leftFanControlPin, OUTPUT);
+    //pinMode(rightFanControlPin, OUTPUT);
     //This is necessary to control the fans on the car. See UCM Fan Control in the TS-22 manufacturing
     //page on notion.
-    analogWriteFrequency(2500);
+    analogWriteFrequency(25000);
     
   	GPIO_Init();
 

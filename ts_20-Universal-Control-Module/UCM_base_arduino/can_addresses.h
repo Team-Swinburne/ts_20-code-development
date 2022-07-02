@@ -50,11 +50,11 @@ to the device.
 #define CAN_AMK_MOTOR_CONTROLLER_BASE_ADDRESS       0x200
 #define CAN_MOTEC_THROTTLE_CONTROLLER_BASE_ADDRESS  0x250
 #define CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS       0x300
-#define CAN_UCM1_BASE_ADDRESS                       0x350 
-#define CAN_UCM2_BASE_ADDRESS                       0x360 
-#define CAN_UCM3_BASE_ADDRESS                       0x370 
-#define CAN_UCM4_BASE_ADDRESS                       0x380 
-#define CAN_UCM5_BASE_ADDRESS                       0x390 
+#define CAN_UCM1_BASE_ADDRESS                       0x360 
+#define CAN_UCM2_BASE_ADDRESS                       0x370 
+#define CAN_UCM3_BASE_ADDRESS                       0x380 
+#define CAN_UCM4_BASE_ADDRESS                       0x390 
+#define CAN_UCM5_BASE_ADDRESS                       0x400 
 #define CAN_ORION_TEMP_MODULE_BASE_ADDRESS          0x450
 #define CAN_DISCHARGE_MODULE_BASE_ADDRESS           0x500
 #define CAN_DASH_BASE_ADDRESS                       0x550

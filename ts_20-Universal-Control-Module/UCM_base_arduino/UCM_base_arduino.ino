@@ -57,7 +57,7 @@ Adafruit_ADS1115 ads;
 eXoCAN can;
 
 //Used to determine which functions need to be uploaded to this particular board
-#define UCM_NUMBER 1
+#define UCM_NUMBER 3
 
 #if UCM_NUMBER == 1
   #define UCM_ADDRESS CAN_UCM1_BASE_ADDRESS
@@ -143,7 +143,6 @@ void i2C() {
   
 }
 
-
 //Functions for modifying the fan curve
 float gradientValue()
 {
@@ -208,7 +207,8 @@ void canTX_criticalError() {
 }
 
 // Can receive interupt service routine
-void canISR() {
+void canISR() 
+{
 	can.rxMsgLen = can.receive(can.id, can.fltIdx, can.rxData.bytes);
 }
 
@@ -306,23 +306,23 @@ void FlowSensorProcess()
 //UCM 3 Functions
 //Motor Temps (L+R) off CAN
 
-void canMotorTemp() {
-  if (can.rxMsgLen > -1) {
-  switch (can.id)
+//Gets the temperature of the Left and Right motors off the CAN bus.
+void canMotorTemp() 
+{
+  if (can.rxMsgLen > -1) 
+  {
+    if(can.id == CAN_INVERTER_PASSTHROUGH)
     {
-      case CAN_INVERTER_PASSTHROUGH:
-        {
-          //Motor Inverter Temperature:
+      //Motor Inverter Temperature:
           rxData[0] = can.rxData.bytes[2];
           rxData[1] = can.rxData.bytes[3];
           can.rxMsgLen = -1;
           motorLHSTemp = rxData[0];
           motorRHSTemp = rxData[1];
-        break;
-        }
     }
   }
 }
+
 
 void sidepodFanControl()
 {
@@ -364,7 +364,7 @@ void sidepodFanControl()
   }
 
   //RHS PWM output 
-    if (motorRHSTemp <39) 
+  if (motorRHSTemp <39) 
   {
     analogWrite(rightFanControlPin, 120);
   }
@@ -548,6 +548,24 @@ void setup()
   Serial1.begin(57600);
   //Serial1.print("Start");
 
+  // Initiallising CAN
+  can.begin(STD_ID_LEN, CANBUS_FREQUENCY, PORTB_8_9_XCVR);   //11 Bit Id, 500Kbps
+  //can.filterMask16Init(0, CAN_TEST, 0x7ff);
+  can.attachInterrupt(canISR);
+
+  //Motor Inverter Fan Control Pins
+  pinMode(PA1, OUTPUT);
+  //pinMode(leftFanControlPin, OUTPUT);
+  //pinMode(rightFanControlPin, OUTPUT);
+  //This is necessary to control the fans on the car. See UCM Fan Control in the TS-22 manufacturing
+  //page on notion.
+  analogWriteFrequency(25000);
+    
+  GPIO_Init();
+
+  // Start I2C communication with the ADC
+  ads.begin(0x49);
+
   // Start ticker and attach callback to it
   TickerInterrupt Ticker(TIM2,1);
   Ticker.start();
@@ -577,26 +595,6 @@ void setup()
         // 
         break;
    }
-
-    //Motor Inverter Fan Control Pins
-    pinMode(PA1, OUTPUT);
-    //pinMode(leftFanControlPin, OUTPUT);
-    //pinMode(rightFanControlPin, OUTPUT);
-    //This is necessary to control the fans on the car. See UCM Fan Control in the TS-22 manufacturing
-    //page on notion.
-    analogWriteFrequency(25000);
-    
-  	GPIO_Init();
-
-  	// Start I2C communication with the ADC
-  	ads.begin(0x49);
-
-  	// Initiallising CAN
-  	can.begin(STD_ID_LEN, CANBUS_FREQUENCY, PORTB_8_9_XCVR);   //11 Bit Id, 500Kbps
-  	can.filterMask16Init(0, CAN_TEST, 0x7ff);
-  	can.attachInterrupt(canISR);
-
-
 }
 
 /*--------------------------------------------------------------------------- 
@@ -611,7 +609,7 @@ void loop()
       FlowSensorProcess();
       break;
     case 2:
-      //
+      FlowSensorProcess();
       break;
     case 3:
       canMotorTemp();

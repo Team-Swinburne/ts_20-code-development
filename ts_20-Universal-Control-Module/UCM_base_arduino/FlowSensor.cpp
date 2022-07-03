@@ -1,6 +1,6 @@
 #include "FlowSensor.h"
 
-float FS1_Calibration = 0.222; //2.2
+float FS1_Calibration = 0.222;
 float FS2_Calibration = 1.0;
 float FS3_Calibration = 1.0;
 float FS4_Calibration = 1.0;

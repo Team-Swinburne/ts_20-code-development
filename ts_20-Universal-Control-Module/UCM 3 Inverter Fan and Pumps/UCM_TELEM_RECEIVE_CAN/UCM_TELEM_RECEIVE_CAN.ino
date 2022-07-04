@@ -100,159 +100,7 @@ void canISR() {
   `               DAEMONS
   ---------------------------------------------------------------------------*/
 
-// CAN Receive function, use map if neccessary
-void canRX() {
-  //digitalToggle(PC13);
-  //Serial1.println("CAN RX Function");
-  if (can.rxMsgLen > -1) {
-    //Serial1.println("Should be receiving");
-    /*if (can.id == CAN_INV_ACTUAL_VALUE1) {
-        rxData[0] = can.rxData.bytes[0];
-        rxData[1] = can.rxData.bytes[1];
-        rxData[2] = can.rxData.bytes[2];
-        rxData[3] = can.rxData.bytes[3];
-        rxData[4] = can.rxData.bytes[4];
-        rxData[5] = can.rxData.bytes[5];
-        rxData[6] = can.rxData.bytes[6];
-        rxData[7] = can.rxData.bytes[7];
-        can.rxMsgLen = -1;
-        digitalToggle(PC13);
 
-        Serial1.println("Frame Start");
-        for (int i = 0; i < 8; i++){
-          Serial1.print(rxData[i]);
-        }
-        Serial1.println("Frame End");
-
-        //bDcOn = 1
-        if (rxData[6] == 0x40) {
-          // bQuitDcOn
-          actualValue1.bytes[STATUS2] = 0b10011000 ; //bit 12 (offset 11) to 1
-          bDcOn = true;
-        }
-        else {
-          bDcOn = false;
-        }
-
-        if (rxData[6] == 0xE0) {
-            bInverterOn = true;
-            actualValue1.bytes[STATUS2] = 0b10011110;
-          }
-          else {
-            bInverterOn = false;
-         }
-      }*/
-
-    switch (can.id)
-    {
-      case RMS_TEMPERATURE_SET_2:
-        {
-          //Motor Controller Temperature:
-          rxData[0] = can.rxData.bytes[0];
-          rxData[1] = can.rxData.bytes[1]; 
-          rxData[2] = can.rxData.bytes[2];
-          rxData[3] = can.rxData.bytes[3];
-          rxData[4] = can.rxData.bytes[4];
-          rxData[5] = can.rxData.bytes[5];
-          rxData[6] = can.rxData.bytes[6];
-          rxData[7] = can.rxData.bytes[7];
-          can.rxMsgLen = -1;
-          
-          rineheart_highest_temp = (rxData[0] | (rxData[1] << 8))/10;
-          txBuffer.fields.payload.motorControllerTemperature = rineheart_highest_temp;
-          //Serial1.print("Motor Controller Temperature: ");
-          //Serial1.println(rineheart_highest_temp);
-          
-        break;
-        }
-      case RMS_TEMPERATURE_SET_3:
-        {
-          //Motor Temperature:
-          rxData[0] = can.rxData.bytes[0];
-          rxData[1] = can.rxData.bytes[1]; 
-          rxData[2] = can.rxData.bytes[2];
-          rxData[3] = can.rxData.bytes[3];
-          rxData[4] = can.rxData.bytes[4];
-          rxData[5] = can.rxData.bytes[5];
-          rxData[6] = can.rxData.bytes[6];
-          rxData[7] = can.rxData.bytes[7];
-          can.rxMsgLen = -1;
-
-          motor_highest_temp = (rxData[4] | (rxData[5] << 8 )/10);
-          txBuffer.fields.payload.motorTemperature = motor_highest_temp;
-          //Serial1.print("Motor Temperature: ");
-          //Serial1.println(motor_highest_temp);
-        break;
-        }
-        //accumulator VOLTAGE
-      case ACCUMULATOR_VOLTAGE:
-        {
-          rxData[0] = can.rxData.bytes[0];
-          rxData[1] = can.rxData.bytes[1]; 
-          rxData[2] = can.rxData.bytes[2];
-          rxData[3] = can.rxData.bytes[3];
-          rxData[4] = can.rxData.bytes[4];
-          rxData[5] = can.rxData.bytes[5];
-          rxData[6] = can.rxData.bytes[6];
-          rxData[7] = can.rxData.bytes[7];
-          can.rxMsgLen = -1;
-          
-          //rineheart_voltage = (rxData[0] | (rxData[1] << 8))/10;
-          txBuffer.fields.payload.accumulatorVoltage[0] = rxData[0];
-          txBuffer.fields.payload.accumulatorVoltage[1] = rxData[1];
-          //
-          //Serial1.print("Motor Controller Voltage: ");
-          //Serial1.println(rineheart_voltage);
-        break;
-        }
-      case ACCUMULATOR_TEMP:
-        {
-          rxData[0] = can.rxData.bytes[0];
-          rxData[1] = can.rxData.bytes[1]; 
-          rxData[2] = can.rxData.bytes[2];
-          rxData[3] = can.rxData.bytes[3];
-          rxData[4] = can.rxData.bytes[4];
-          rxData[5] = can.rxData.bytes[5];
-          rxData[6] = can.rxData.bytes[6];
-          rxData[7] = can.rxData.bytes[7];
-          can.rxMsgLen = -1;
-          txBuffer.fields.payload.accumulatorTemperature = rxData[2];
-          //max_accum_temp = (float)rxData[1];
-          //Serial1.print("Accumulator Temperature: ");
-          //Serial1.println(max_accum_temp);
-      break;
-      }
-      case BRAKE_POSITION:
-        {
-          rxData[0] = can.rxData.bytes[0];
-          rxData[1] = can.rxData.bytes[1]; 
-          rxData[2] = can.rxData.bytes[2];
-          rxData[3] = can.rxData.bytes[3];
-          rxData[4] = can.rxData.bytes[4];
-          rxData[5] = can.rxData.bytes[5];
-          rxData[6] = can.rxData.bytes[6];
-          rxData[7] = can.rxData.bytes[7];
-          can.rxMsgLen = -1;
-          txBuffer.fields.payload.brakePosition = rxData[2];
-      break;
-      }
-      case THROTTLE_POSITION:
-      {
-          rxData[0] = can.rxData.bytes[0];
-          rxData[1] = can.rxData.bytes[1]; 
-          rxData[2] = can.rxData.bytes[2];
-          rxData[3] = can.rxData.bytes[3];
-          rxData[4] = can.rxData.bytes[4];
-          rxData[5] = can.rxData.bytes[5];
-          rxData[6] = can.rxData.bytes[6];
-          rxData[7] = can.rxData.bytes[7];
-          can.rxMsgLen = -1;
-          txBuffer.fields.payload.throttlePosition = rxData[2];
-          break;
-      }
-    }
-  }
-}
 
 void SetData()
 {
@@ -260,21 +108,7 @@ void SetData()
   txBuffer.fields.startFlag[1] = 0x94;
   txBuffer.fields.packetLength = 7;
 }
-/*
-void SendData()
-{
-  Serial.write(txBuffer.fields.startFlag[0]);
-  Serial.write(txBuffer.fields.startFlag[1]);
-  Serial.write(txBuffer.fields.packetLength);
-  Serial.write(txBuffer.fields.payload.brakePosition);
-  Serial.write(txBuffer.fields.payload.throttlePosition);
-  Serial.write(txBuffer.fields.payload.motorControllerTemperature);
-  Serial.write(txBuffer.fields.payload.motorTemperature);
-  Serial.write(txBuffer.fields.payload.accumulatorTemperature);
-  Serial.write(txBuffer.fields.payload.accumulatorVoltage[0]);
-  Serial.write(txBuffer.fields.payload.accumulatorVoltage[1]);
-}
-*/
+
 
 void telemTransmitHeartbeat() {
   Serial1.println("Hello World ");
@@ -289,43 +123,7 @@ void TX_Can(){
         debug.bytes, 
         8);
   }
-//  Serial1.print(txBuffer.fields.startFlag[0]);
-//  Serial1.print(txBuffer.fields.startFlag[1]);
-//  Serial1.print(txBuffer.fields.packetLength);
-//  Serial1.print(txBuffer.fields.payload.brakePosition);
-//  Serial1.print(txBuffer.fields.payload.throttlePosition);
-//  Serial1.print(txBuffer.fields.payload.motorControllerTemperature);
-//  Serial1.print(txBuffer.fields.payload.motorTemperature);
-//  Serial1.print(txBuffer.fields.payload.accumulatorTemperature);
-//  Serial1.print(txBuffer.fields.payload.accumulatorVoltage[0]);
-//  Serial1.print(txBuffer.fields.payload.accumulatorVoltage[1]);
-  /*
-  //Heartbeat
-  Serial1.print("HB: ");
-  if (telemHeartbeat > 255){
-    telemHeartbeat = 0;
-  }
-  Serial1.print(telemHeartbeat);
-  telemHeartbeat++;
-  Serial1.print("        ");
-  
-  //Motor Controller Temp
-  Serial1.print("RH Temp: ");
-  Serial1.print(rineheart_highest_temp);
-  Serial1.print("        "); 
-  //Motor Temp
-  Serial1.print("Emrax Temp: ");
-  Serial1.print(motor_highest_temp);
-  Serial1.print("        ");
-  //Motor Controller Voltage
-  Serial1.print("RH Volts: ");
-  Serial1.print(rineheart_voltage);
-  Serial1.print("        "); //Motor Temp
-  //Accumulator Temperature
-  Serial1.print("Eddie Temp: ");
-  Serial1.println(max_accum_temp);
-  */
-  //Serial1.println(brake);
+
 
 //Motor Inverter Messages off CAN
 void canInverter() {
@@ -379,43 +177,17 @@ void canInverter() {
   }
 }
 
-void highestTemp()
-{
-  int minTempId;
-  int one, two;
-  for(int i =0; i<3;i++)
-  {
-    minTempId = i;
-    for(int j = i+1; j<4;j++)
-    {
-      if(tArray[j] < tArray[minTempId])
-      {
-        minTempId = j;
-      }
-      one = tArray[minTempId];
-      two = tArray[i];
-      tArray[minTempId] = two;
-      tArray[i] = one;
-    }
-  }
-}
 
 void fanControl()
 {
   float pwmtemp;
-  Serial1.print("tArray[0]: ");
-  Serial1.println(tArray[0]);
   //this line maps the temperature of the motor controller onto a value from 0-256 to be outputted to the
-  //fans. The 
+  //fans. 
   float pwmPercentage = 0.000336538*(pow((tArray[0]),3))+27.31;
-  Serial1.print("pwmPercentage: ");
-  Serial1.print(pwmPercentage);
   pwmtemp = (pwmPercentage/100)*255;
   int pwmSignal = (int) pwmtemp;
 
-  Serial1.print("pwmSignal: ");
-  Serial1.println(pwmSignal);
-  
+  //tArray[0] can be changed to just a vairable once the sorting logic has been programmed into the motec.
   if (tArray[0] <39) 
   {
     analogWrite(fanControlPin, 120);
@@ -468,10 +240,6 @@ void setup()
 
 void loop()
 {
-  Serial1.println(tArray[3]);
   canInverter();
   fanControl();
-  //canRX();
-  //Serial1.println("Hello");
-  //telemTransmitHeartbeat();
 }

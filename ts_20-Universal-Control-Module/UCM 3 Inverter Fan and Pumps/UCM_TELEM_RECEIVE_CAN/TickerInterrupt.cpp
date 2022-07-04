@@ -20,7 +20,7 @@
     0.0        24/06/2021     Initial coding
 
 ****************************************************************************/
-#include "Arduino.h"
+#include <Arduino.h>
 #include "TickerInterrupt.h"
 
 volatile int TickerInterrupt::tickerNumber = -1;

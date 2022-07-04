@@ -42,18 +42,19 @@ required. Should more address space be required for additional devices, this can
 be subdivided.
 The thrid byte is the message code, an address space that is directly related 
 to the device.
-
 */
+
+//CAN ADDRESSES
 #define CAN_ORION_BMS_BASE_ADDRESS                  0x100
 #define CAN_BRAKE_MODULE_BASE_ADDRESS               0x150
 #define CAN_AMK_MOTOR_CONTROLLER_BASE_ADDRESS       0x200
 #define CAN_MOTEC_THROTTLE_CONTROLLER_BASE_ADDRESS  0x250
 #define CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS       0x300
-#define CAN_UCM1_BASE_ADDRESS                       0x350 
-#define CAN_UCM2_BASE_ADDRESS                       0x360 
-#define CAN_UCM3_BASE_ADDRESS                       0x370 
-#define CAN_UCM4_BASE_ADDRESS                       0x380 
-#define CAN_UCM5_BASE_ADDRESS                       0x390 
+#define CAN_UCM1_BASE_ADDRESS                       0x360 
+#define CAN_UCM2_BASE_ADDRESS                       0x370 
+#define CAN_UCM3_BASE_ADDRESS                       0x380 
+#define CAN_UCM4_BASE_ADDRESS                       0x390 
+#define CAN_UCM5_BASE_ADDRESS                       0x400 
 #define CAN_ORION_TEMP_MODULE_BASE_ADDRESS          0x450
 #define CAN_DISCHARGE_MODULE_BASE_ADDRESS           0x500
 #define CAN_DASH_BASE_ADDRESS                       0x550
@@ -62,6 +63,12 @@ to the device.
 #define CAN_ORION_BMS_RINEHART_LIMITS				0x202
 #define CAN_TC_CHARGER_STATUS_ID					0x18FF50E5
 
+//Max Inverter Temp, max motor temp (left and right side)
+#define CAN_INVERTER_PASSTHROUGH   0x256
+
+
+
+ 
 /*
 
 MESSAGE CODE STRUCTURE

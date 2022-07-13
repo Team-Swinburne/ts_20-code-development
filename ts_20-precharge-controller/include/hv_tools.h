@@ -23,6 +23,8 @@
 #define HV_OVER_VOLTAGE 600 
 #define HV_UNDER_VOLTAGE -5
 
+// Serial pc(PIN_SERIAL_TX, PIN_SERIAL_RX); 
+
 	/*
 PDOC
 	Precharge Discharge Over-Current device. Checks if precharge/discharge relays
@@ -58,9 +60,9 @@ public:
      */
 	bool update_adc(){
 		pdoc_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(PDOC_ADC_SENSOR_CHANNEL), ADC_RESOLUTION, ADC_REF_VOLTAGE), PDOC_THERMISTOR_BETA);
-		// pc.printf("PDOC_TEMPERAUTRE: %d \r\n", pdoc_temperature);
+		// pc.printf("PDOC_TEMPERATURE: %d \r\n", pdoc_temperature);
 		pdoc_ref_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(PDOC_ADC_REF_CHANNEL), ADC_RESOLUTION, ADC_REF_VOLTAGE), PDOC_THERMISTOR_BETA);
-		// pc.printf("PDOC_REF_TEMPERAUTRE: %d \r\n", pdoc_ref_temperature);
+		// pc.printf("PDOC_REF_TEMPERATURE: %d \r\n", pdoc_ref_temperature);
 		return sensor_ok();
 	}
 

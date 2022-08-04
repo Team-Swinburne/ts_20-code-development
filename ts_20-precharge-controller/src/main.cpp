@@ -477,7 +477,8 @@ void can1_recv_cb(){
 				// check if precharge button is pressed
 				if (can1_msg.data[0] == 1 && heart.get_heartbeat_state() == PRECHARGE_STATE_IDLE) {
           // pc.printf("Precharge button pressed, starting precharge routine\r\n");
-					start_precharge_sequence_cb();
+					//start_precharge_sequence_cb();
+					heart.set_heartbeat_state(PRECHARGE_STATE_PRECHARGING_TIMER);
 				}
 
 				if (can1_msg.data[1] == 1 && heart.get_heartbeat_state() == PRECHARGE_STATE_PRECHARGED) {
@@ -647,6 +648,7 @@ void state_d(){
 				relay_state_precharging();
 				wait(3);
 				heart.set_heartbeat_state(PRECHARGE_STATE_PRECHARGED);
+				ticker_can_transmit1.detach();
 			}
 			break;
 			

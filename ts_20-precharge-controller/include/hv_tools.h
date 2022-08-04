@@ -110,7 +110,7 @@ public:
 	int get_pdoc_temperature(){return pdoc_temperature;}
 	int get_pdoc_ref_temperature(){return pdoc_ref_temperature;}
 	bool get_sensor_ok(){return sensor_ok_flag;}
-	float test_setpoint(){return NTC_voltageToTemperature(0.5, PDOC_THERMISTOR_BETA);}
+	//float test_setpoint(){return NTC_voltageToTemperature(0.5, PDOC_THERMISTOR_BETA);}
 	
 
 private:

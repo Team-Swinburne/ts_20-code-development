@@ -373,9 +373,9 @@ int main(){
         // pc.printf("PDOC Temp is: %d  ", pdoc.get_pdoc_temperature());
         // pc.printf("PDOC Ref voltage is: %f  ", pdoc.get_pdoc_channel_voltage(PDOC_ADC_REF_CHANNEL));
 		// pc.printf("PDOC Temp1 voltage is: %f  ", pdoc.get_pdoc_channel_voltage(PDOC_ADC_SENSOR1_CHANNEL));
-		// pc.printf("PDOC Ref Temp is: %d  ", pdoc.get_pdoc_ref_temperature());
+		pc.printf("PDOC Ref Temp is: %d\n", pdoc.get_pdoc_ref_temperature()); //set at 180C
 		// pc.printf("PDOC OK: %d\n", pdoc.get_pdoc_ok());
-		pc.printf("PDOC Test %f\n", pdoc.test_setpoint());
+		//pc.printf("PDOC Test %f\n", pdoc.test_setpoint());
 		wait_us(1000000);
     } 	
 

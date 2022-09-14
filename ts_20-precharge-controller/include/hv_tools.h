@@ -1,5 +1,11 @@
 #include <mbed.h>
 
+// HV Voltage Bridge Offset Resistors
+#define MC_R_CAL 						5000
+#define BATT_R_CAL 						5000
+#define MINIMUM_PRECHARGE_VOLTAGE		400
+#define MAXIMUM_PRECHARGE_VOLTAGE		600
+
 // ADS1115 ADDR PINS: GND 48 - VDD 49 - SDA 4A - SCL 4B
 #define PDOC_ADC_ADDR				0x4B
 #define MC_HV_SENSE_ADC_ADDR		0x49

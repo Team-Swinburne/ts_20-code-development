@@ -1,5 +1,11 @@
 #include <mbed.h>
 
+// HV Voltage Bridge Offset Resistors
+#define MC_R_CAL 						5000
+#define BATT_R_CAL 						5000
+#define MINIMUM_PRECHARGE_VOLTAGE		400
+#define MAXIMUM_PRECHARGE_VOLTAGE		600
+
 // ADS1115 ADDR PINS: GND 48 - VDD 49 - SDA 4A - SCL 4B
 #define PDOC_ADC_ADDR				0x4B
 #define MC_HV_SENSE_ADC_ADDR		0x49
@@ -10,8 +16,9 @@
 
 #define PDOC_THERMISTOR_BETA 3380
 
-#define PDOC_ADC_SENSOR_CHANNEL 0
+#define PDOC_ADC_SENSOR1_CHANNEL 0
 #define PDOC_ADC_REF_CHANNEL 1
+#define PDOC_ADC_SENSOR2_CHANNEL 2
 
 
 #define HV_ADC_SENSOR_CHANNEL 0
@@ -46,7 +53,6 @@ public:
 	 * 
      *  @param &i2c1 I2C bus to interface.
      *  @param _adc_addr Address of ADS1115 unit. 
-	 * 
      */
 	PDOC(I2C &i2c1, int _adc_addr, PinName PDOC_ok_pin) : pdoc_adc(&i2c1, _adc_addr), PDOC_ok(PDOC_ok_pin){};
 	
@@ -56,10 +62,9 @@ public:
 	 * update the member values.
      *
      *  @returns sensor validity as boolean. 
-	 * 
      */
 	bool update_adc(){
-		pdoc_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(PDOC_ADC_SENSOR_CHANNEL), ADC_RESOLUTION, ADC_REF_VOLTAGE), PDOC_THERMISTOR_BETA);
+		pdoc_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(PDOC_ADC_SENSOR1_CHANNEL), ADC_RESOLUTION, ADC_REF_VOLTAGE), PDOC_THERMISTOR_BETA);
 		// pc.printf("PDOC_TEMPERATURE: %d \r\n", pdoc_temperature);
 		pdoc_ref_temperature = NTC_voltageToTemperature(adc_to_voltage(pdoc_adc.readADC_SingleEnded(PDOC_ADC_REF_CHANNEL), ADC_RESOLUTION, ADC_REF_VOLTAGE), PDOC_THERMISTOR_BETA);
 		// pc.printf("PDOC_REF_TEMPERATURE: %d \r\n", pdoc_ref_temperature);
@@ -101,10 +106,17 @@ public:
 		return true;
 	}
 
+	int16_t get_pdoc_channel_raw(uint8_t channel){
+		return pdoc_adc.readADC_SingleEnded(channel);
+	}
+	float get_pdoc_channel_voltage(uint8_t channel){
+		return adc_to_voltage(pdoc_adc.readADC_SingleEnded(channel), ADC_RESOLUTION, ADC_REF_VOLTAGE);
+	}
 	int get_pdoc_ok(){return PDOC_ok.read();}
 	int get_pdoc_temperature(){return pdoc_temperature;}
 	int get_pdoc_ref_temperature(){return pdoc_ref_temperature;}
 	bool get_sensor_ok(){return sensor_ok_flag;}
+	//float test_setpoint(){return NTC_voltageToTemperature(0.5, PDOC_THERMISTOR_BETA);}
 	
 
 private:

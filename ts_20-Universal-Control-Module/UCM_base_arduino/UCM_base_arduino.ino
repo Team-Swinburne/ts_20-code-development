@@ -102,6 +102,8 @@ struct msgFrame
 };
 
 int inverterMaxTemp;
+//Used for storing AIR status, for green loop activation in pump and fan control.
+bool canHvActive;
 
 static msgFrame	heartFrame, //{.len = 6},
                	errorFrame,// {.len = 2}, 
@@ -288,6 +290,22 @@ void SerialPrint () {
   	Serial1.print("Digital Input 2: ");  Serial1.println(digitalRead(pin_DigIn2)); 
 }
 
+//Green loop activation function
+void greenLoopActive() 
+{
+  if (can.rxMsgLen > -1) 
+  {
+    if(can.id == CAN_PRECHARGE_CONTROLLER_DIGITAL_1_ID)
+    {
+      //Motor Temperature:
+          rxData[0] = can.rxData.bytes[0];
+          can.rxMsgLen = -1;
+          canHvActive = rxData[0];
+    }
+  }
+}
+
+
 //UCM 1 Functions 
 void FlowSensorProcess()
 {
@@ -313,7 +331,7 @@ void canMotorTemp()
   {
     if(can.id == CAN_INVERTER_PASSTHROUGH)
     {
-      //Motor Inverter Temperature:
+      //Motor Temperature:
           rxData[0] = can.rxData.bytes[2];
           rxData[1] = can.rxData.bytes[3];
           can.rxMsgLen = -1;
@@ -324,7 +342,8 @@ void canMotorTemp()
 }
 
 
-void sidepodFanControl()
+
+void sidepodFanControlLHS()
 {
   float gradient, c;
 
@@ -340,10 +359,13 @@ void sidepodFanControl()
   pwmTempL = (pwmPercentageL/100)*255;
   int pwmSignalL = (int) pwmTempL;
 
+
+  /*
   //RHS 
   float pwmPercentageR = gradient*(pow((motorRHSTemp),3))+c;
   pwmTempR = (pwmPercentageR/100)*255;
   int pwmSignalR = (int) pwmTempR;
+  */
 
   //LHS PWM output
   if (motorLHSTemp <39) 
@@ -362,6 +384,142 @@ void sidepodFanControl()
   {
     analogWrite(leftFanControlPin, pwmSignalL);
   }
+
+  /*
+  //RHS PWM output 
+  if (motorRHSTemp <39) 
+  {
+    analogWrite(rightFanControlPin, 120);
+  }
+  else if (motorRHSTemp > 60 && 120 >= motorRHSTemp)
+  {
+    analogWrite(rightFanControlPin, 255);
+  }
+  else if(motorRHSTemp > 120)
+    {
+    analogWrite(rightFanControlPin, 179);
+  }
+  else
+  {
+    analogWrite(rightFanControlPin, pwmSignalR);
+  }
+  */
+}
+
+
+void motorPumpControlLHS()
+{
+  float gradient, c;
+
+  gradient = gradientValue();
+  c = cValue();
+  
+  float pwmTempL, pwmTempR;
+  //this line maps the temperature of the motor controller onto a value from 0-256 to be outputted to the
+  //fans. 
+
+  //LHS
+  float pwmPercentageL = gradient*(pow((motorLHSTemp),3))+c;
+  pwmTempL = (pwmPercentageL/100)*255;
+  int pwmSignalL = (int) pwmTempL;
+
+  /*
+  //RHS 
+  float pwmPercentageR = gradient*(pow((motorRHSTemp),3))+c;
+  pwmTempR = (pwmPercentageR/100)*255;
+  int pwmSignalR = (int) pwmTempR;
+  */
+
+  //LHS PWM output
+  if (motorLHSTemp <39) 
+  {
+    analogWrite(motorCoolingPumpLeft, 120);
+  }
+  else if (motorLHSTemp > 60 && 120 >= motorLHSTemp)
+  {
+    analogWrite(motorCoolingPumpLeft, 255);
+  }
+  else if(motorLHSTemp > 120)
+    {
+    analogWrite(motorCoolingPumpLeft, 179);
+  }
+  else
+  {
+    analogWrite(motorCoolingPumpLeft, pwmSignalL);
+  }
+
+  
+  /*
+  //RHS PWM output 
+    if (motorRHSTemp <39) 
+  {
+    analogWrite(motorCoolingPumpRight, 120);
+  }
+  else if (motorRHSTemp > 60 && 120 >= motorRHSTemp)
+  {
+    analogWrite(motorCoolingPumpRight, 255);
+  }
+  else if(motorRHSTemp > 120)
+    {
+    analogWrite(motorCoolingPumpRight, 179);
+  }
+  else
+  {
+    analogWrite(motorCoolingPumpRight, pwmSignalR);
+  }
+  */
+}
+
+
+
+
+
+//UCM 4 functions
+
+
+void sidepodFanControlRHS()
+{
+  float gradient, c;
+
+  gradient = gradientValue();
+  c = cValue();
+  
+  float pwmTempL, pwmTempR;
+  //this line maps the temperature of the motor controller onto a value from 0-256 to be outputted to the
+  //fans. 
+
+  /*
+  //LHS
+  float pwmPercentageL = gradient*(pow((motorLHSTemp),3))+c;
+  pwmTempL = (pwmPercentageL/100)*255;
+  int pwmSignalL = (int) pwmTempL;
+  */
+
+  
+  //RHS 
+  float pwmPercentageR = gradient*(pow((motorRHSTemp),3))+c;
+  pwmTempR = (pwmPercentageR/100)*255;
+  int pwmSignalR = (int) pwmTempR;
+  
+  /*
+  //LHS PWM output
+  if (motorLHSTemp <39) 
+  {
+    analogWrite(leftFanControlPin, 120);
+  }
+  else if (motorLHSTemp > 60 && 120 >= motorLHSTemp)
+  {
+    analogWrite(leftFanControlPin, 255);
+  }
+  else if(motorLHSTemp > 120)
+    {
+    analogWrite(leftFanControlPin, 179);
+  }
+  else
+  {
+    analogWrite(leftFanControlPin, pwmSignalL);
+  }
+  */
 
   //RHS PWM output 
   if (motorRHSTemp <39) 
@@ -382,7 +540,116 @@ void sidepodFanControl()
   }
 }
 
-//UCM 4 functions
+
+void motorPumpControlRHS()
+{
+  float gradient, c;
+
+  gradient = gradientValue();
+  c = cValue();
+  
+  float pwmTempL, pwmTempR;
+  //this line maps the temperature of the motor controller onto a value from 0-256 to be outputted to the
+  //fans. 
+
+  /*
+  //LHS
+  float pwmPercentageL = gradient*(pow((motorLHSTemp),3))+c;
+  pwmTempL = (pwmPercentageL/100)*255;
+  int pwmSignalL = (int) pwmTempL;
+  */
+  
+  //RHS 
+  float pwmPercentageR = gradient*(pow((motorRHSTemp),3))+c;
+  pwmTempR = (pwmPercentageR/100)*255;
+  int pwmSignalR = (int) pwmTempR;
+  
+  /*
+  //LHS PWM output
+  if (motorLHSTemp <39) 
+  {
+    analogWrite(motorCoolingPumpLeft, 120);
+  }
+  else if (motorLHSTemp > 60 && 120 >= motorLHSTemp)
+  {
+    analogWrite(motorCoolingPumpLeft, 255);
+  }
+  else if(motorLHSTemp > 120)
+    {
+    analogWrite(motorCoolingPumpLeft, 179);
+  }
+  else
+  {
+    analogWrite(motorCoolingPumpLeft, pwmSignalL);
+  }
+  */
+  
+  
+  //RHS PWM output 
+    if (motorRHSTemp <39) 
+  {
+    analogWrite(motorCoolingPumpRight, 120);
+  }
+  else if (motorRHSTemp > 60 && 120 >= motorRHSTemp)
+  {
+    analogWrite(motorCoolingPumpRight, 255);
+  }
+  else if(motorRHSTemp > 120)
+  {
+    analogWrite(motorCoolingPumpRight, 179);
+  }
+  else
+  {
+    analogWrite(motorCoolingPumpRight, pwmSignalR);
+  }
+}
+
+
+//UCM 5
+//Accumulator Fan Control
+void canAccumulator() {
+  if (can.rxMsgLen > -1) {
+  switch (can.id)
+    {
+      case CAN_INVERTER_PASSTHROUGH:
+        {
+          //Motor Inverter Temperature:
+          rxData[0] = can.rxData.bytes[0];
+          can.rxMsgLen = -1;
+          inverterMaxTemp = rxData[0];
+        break;
+        }
+    }
+  }
+}
+
+void fanControlAccumulator()
+{
+  float pwmtemp;
+  //this line maps the temperature of the motor controller onto a value from 0-256 to be outputted to the
+  //fans. 
+  float pwmPercentage = 0.000336538*(pow((inverterMaxTemp),3))+27.31;
+  pwmtemp = (pwmPercentage/100)*255;
+  int pwmSignal = (int) pwmtemp;
+
+  if (inverterMaxTemp <39) 
+  {
+    analogWrite(inverterFans, 120);
+  }
+  else if (inverterMaxTemp > 60 && 120 >= inverterMaxTemp)
+  {
+    analogWrite(inverterFans, 255);
+  }
+  else if(inverterMaxTemp > 120)
+  {
+    analogWrite(inverterFans, 179);
+  }
+  else
+  {
+    analogWrite(inverterFans, pwmSignal);
+  }
+}
+
 
 void canInverter() {
   if (can.rxMsgLen > -1) {
@@ -422,7 +689,7 @@ void fanControlInverter()
     analogWrite(inverterFans, 255);
   }
   else if(inverterMaxTemp > 120)
-    {
+  {
     
     analogWrite(inverterFans, 179);
   }
@@ -432,110 +699,6 @@ void fanControlInverter()
   }
 }
 
-void canAccumulator() {
-  if (can.rxMsgLen > -1) {
-  switch (can.id)
-    {
-      case CAN_INVERTER_PASSTHROUGH:
-        {
-          //Motor Inverter Temperature:
-          rxData[0] = can.rxData.bytes[0];
-          can.rxMsgLen = -1;
-          inverterMaxTemp = rxData[0];
-        break;
-        }
-    }
-  }
-}
-
-void fanControlAccumulator()
-{
-  float pwmtemp;
-  //this line maps the temperature of the motor controller onto a value from 0-256 to be outputted to the
-  //fans. 
-  float pwmPercentage = 0.000336538*(pow((inverterMaxTemp),3))+27.31;
-  pwmtemp = (pwmPercentage/100)*255;
-  int pwmSignal = (int) pwmtemp;
-
-  if (inverterMaxTemp <39) 
-  {
-    analogWrite(inverterFans, 120);
-  }
-  else if (inverterMaxTemp > 60 && 120 >= inverterMaxTemp)
-  {
-    analogWrite(inverterFans, 255);
-  }
-  else if(inverterMaxTemp > 120)
-    {
-    analogWrite(inverterFans, 179);
-  }
-  else
-  {
-    analogWrite(inverterFans, pwmSignal);
-  }
-}
-
-//UCM 5
-//Call canMotorTemp function from UCM functions.
-
-
-void motorPumpControl()
-{
-  float gradient, c;
-
-  gradient = gradientValue();
-  c = cValue();
-  
-  float pwmTempL, pwmTempR;
-  //this line maps the temperature of the motor controller onto a value from 0-256 to be outputted to the
-  //fans. 
-
-  //LHS
-  float pwmPercentageL = gradient*(pow((motorLHSTemp),3))+c;
-  pwmTempL = (pwmPercentageL/100)*255;
-  int pwmSignalL = (int) pwmTempL;
-
-  //RHS 
-  float pwmPercentageR = gradient*(pow((motorRHSTemp),3))+c;
-  pwmTempR = (pwmPercentageR/100)*255;
-  int pwmSignalR = (int) pwmTempR;
-
-  //LHS PWM output
-  if (motorLHSTemp <39) 
-  {
-    analogWrite(motorCoolingPumpLeft, 120);
-  }
-  else if (motorLHSTemp > 60 && 120 >= motorLHSTemp)
-  {
-    analogWrite(motorCoolingPumpLeft, 255);
-  }
-  else if(motorLHSTemp > 120)
-    {
-    analogWrite(motorCoolingPumpLeft, 179);
-  }
-  else
-  {
-    analogWrite(motorCoolingPumpLeft, pwmSignalL);
-  }
-
-  //RHS PWM output 
-    if (motorRHSTemp <39) 
-  {
-    analogWrite(motorCoolingPumpRight, 120);
-  }
-  else if (motorRHSTemp > 60 && 120 >= motorRHSTemp)
-  {
-    analogWrite(motorCoolingPumpRight, 255);
-  }
-  else if(motorRHSTemp > 120)
-    {
-    analogWrite(motorCoolingPumpRight, 179);
-  }
-  else
-  {
-    analogWrite(motorCoolingPumpRight, pwmSignalR);
-  }
-}
 
 
 
@@ -603,26 +766,42 @@ void setup()
 
 void loop()
 {
+  //needs to be called before the switch case statement so that it is always checked whether or not the HV is active.
+  greenLoopActive();
   switch (UCM_NUMBER)
   {
     case 1:
-      FlowSensorProcess();
       break;
     case 2:
-      FlowSensorProcess();
       break;
     case 3:
-      canMotorTemp();
-      sidepodFanControl();
+      FlowSensorProcess();
+      if(canHvActive == 1)
+      {
+        canMotorTemp();
+        sidepodFanControlLHS();
+        canMotorTemp();
+        motorPumpControlLHS();
+      }
       break;
     case 4:
-      canInverter();
-      fanControlInverter();
-      canAccumulator();
-      fanControlAccumulator();
+      FlowSensorProcess();
+      if(canHvActive == 1)
+      {
+        canMotorTemp();
+        sidepodFanControlRHS();
+        canMotorTemp();
+        motorPumpControlRHS();
+      }
       break; 
     case 5:
-       
-       break;
+    if(canHvActive == 1)
+    {
+      canAccumulator();
+      fanControlAccumulator();
+      canInverter();
+      fanControlInverter();
+    }
+    break;
   }
 }

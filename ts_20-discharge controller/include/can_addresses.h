@@ -38,7 +38,7 @@ to the device.
 #define CAN_BRAKE_MODULE_BASE_ADDRESS               0x150
 #define CAN_AMK_MOTOR_CONTROLLER_BASE_ADDRESS       0x200
 #define CAN_MOTEC_THROTTLE_CONTROLLER_BASE_ADDRESS  0x250
-#define CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS       0x300
+#define CAN_DISCHARGE_CONTROLLER_BASE_ADDRESS       0x500
 
 #define CAN_UCM1_BASE_ADDRESS                       0x350       // Note that for each UCM, there will be multiple addresses 0x510, 0x520,... etc.   
 #define CAN_UCM2_BASE_ADDRESS                       0x360 
@@ -47,7 +47,7 @@ to the device.
 #define CAN_UCM5_BASE_ADDRESS                       0x390 
 
 #define CAN_ORION_TEMP_MODULE_BASE_ADDRESS          0x450
-#define CAN_DISCHARGE_MODULE_BASE_ADDRESS           0x500
+#define CAN_DISCHARGE_MODULE_BASE_ADDRESS           0x000  // CHANGE LATER
 #define CAN_DASH_BASE_ADDRESS                       0x550
 
 // Miscillanious

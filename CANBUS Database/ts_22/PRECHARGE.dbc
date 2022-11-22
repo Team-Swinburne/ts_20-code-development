@@ -1,0 +1,76 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_:
+
+
+BO_ 768 HEARTBEAT: 8 Vector__XXX
+ SG_ State : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Counter : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Temperature : 16|8@1+ (1,0) [0|0] "C" Vector__XXX
+
+BO_ 769 ERROR: 8 Vector__XXX
+ SG_ ERROR_1 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ ERROR_2 : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ WARNING_1 : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ WARNING_2 : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ AMS_OK : 32|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ PDOC_OK : 40|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ IMD_OK : 48|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Discharge_Mismatch : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 770 DIGITAL: 8 Vector__XXX
+ SG_ AIR_Power : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ AIR_NegRelay : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ AIR_NegFeedBack : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ AIR_PosRelay : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ AIR_PosFeedBack : 32|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Precharge_Relay : 40|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 772 ANALOGUE_1: 8 Vector__XXX
+ SG_ PDOC_Temp : 7|16@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ PDOC_TempRef : 23|16@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ MC_Voltage : 39|16@0+ (0.1,0) [0|0] "V" Vector__XXX
+ SG_ Battery_Voltage : 55|16@0+ (0.1,0) [0|0] "V" Vector__XXX
+
+BO_ 773 ANALOGUE_2: 8 Vector__XXX
+ SG_ IMD_Period : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ IMD_Frequency : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ IMD_DutyCycle : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+
+
+
+VAL_ 768 State 0 "Error" 1 "Idle" ;
+

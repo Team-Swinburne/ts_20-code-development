@@ -55,6 +55,11 @@ BO_ 578 INV4_ACT_VALUE_2: 8 Vector__XXX
  SG_ DiagnosticNumber : 32|16@1+ (1,0) [0|0] "" Vector__XXX
  SG_ IGBT_Temp : 48|16@1- (0.1,0) [0|0] "" Vector__XXX
 
+BO_ 579 INV4_SETPOINT: 8 Vector__XXX
+ SG_ TARGET_VELOCITY : 16|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ TORQUE_LIM_POS : 32|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ TORQUE_LIM_NEG : 48|16@1+ (1,0) [0|0] "" Vector__XXX
+
 
 
 

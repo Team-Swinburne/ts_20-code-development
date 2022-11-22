@@ -36,6 +36,9 @@ BS_:
 BU_:
 
 
+BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
+ SG_ NewSignal_0010 : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+
 BO_ 561 INV3_ACT_VALUE_1: 8 Vector__XXX
  SG_ Velocity : 16|16@1- (1,0) [0|0] "RPM" Vector__XXX
  SG_ Torque_Current : 32|16@1- (1,0) [0|0] "" Vector__XXX
@@ -54,6 +57,11 @@ BO_ 562 INV3_ACT_VALUE_2: 8 Vector__XXX
  SG_ INV_Temp : 16|16@1- (0.1,0) [0|0] "" Vector__XXX
  SG_ DiagnosticNumber : 32|16@1+ (1,0) [0|0] "" Vector__XXX
  SG_ IGBT_Temp : 48|16@1- (0.1,0) [0|0] "" Vector__XXX
+
+BO_ 563 INV3_SETPOINT: 8 Vector__XXX
+ SG_ TARGET_VELOCITY : 16|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ TORQUE_LIM_POS : 32|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ TORQUE_LIM_NEG : 48|16@1+ (1,0) [0|0] "" Vector__XXX
 
 
 

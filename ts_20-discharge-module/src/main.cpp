@@ -328,14 +328,7 @@ uint8_t check_warnings(){
 	return array_to_uint8(warning_code, 8);
 }
 
-	/*
-State Deamon
-	Deamon responsible for managing the state of the device.
-	NB. Many of the functions are handled by interrupt routines, 
-	care should be taken to ensure that this simply manages errors and the 
-	relays. 
-	*/
-void state_d(){
+void update_discharge() {
 	// Update analogue measurements to get latest information.
 	pdoc.update_adc();
 	hv_mc_sense.update_adc();
@@ -344,6 +337,16 @@ void state_d(){
 	heart.set_error_code(check_errors(), 0);
 	heart.set_warning_code(check_warnings(), 0);
 
+}
+	/*
+State Deamon
+	Deamon responsible for managing the state of the device.
+	NB. Many of the functions are handled by interrupt routines, 
+	care should be taken to ensure that this simply manages errors and the 
+	relays. 
+	*/
+void state_d(){
+	update_discharge();
 	switch (heart.get_heartbeat_state()){
 		case DISCHARGE_STATE_FAIL:
 			if (check_errors() == 0){
@@ -378,9 +381,10 @@ SETUP
 	*/
 void setup(){
 	// Disable interrupts for smooth startup routine.
-	wait(1);
+	wait_ms(1000);
 	
 	__disable_irq();
+
 
 	ticker_heartbeat.attach(&heartbeat_cb, HEARTRATE);
 	heart.set_heartbeat_state(DISCHARGE_STATE_FAIL);
@@ -389,10 +393,12 @@ void setup(){
 	can1.attach(&can1_recv_cb);
 	ticker_can_transmit.attach(&can1_trans_cb, CAN_BROADCAST_INTERVAL);
 
-	// Re-enable interrupts again, now that startup has competed.
 	__enable_irq();
 
-	wait(1);
+	// Allow some time to settle!
+	wait_ms(1000);
+	
+	update_discharge();
 }
 
 int main(){

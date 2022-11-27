@@ -252,7 +252,7 @@ AIR Power Lost Callback
 	Set the AMS_ok to zero just to make sure nothing strange is happening.
 	*/
 void air_power_lost_cb(){ //this should be in fail state
-    heart.set_heartbeat_state(PRECHARGE_STATE_FAIL);
+    heart.set_heartbeat_state(PRECHARGE_STATE_IDLE);
 	pc.printf("AIR Power Lost!\r\n");
 }
 	
@@ -412,7 +412,14 @@ void can1_recv_cb(){
 			// Set orion temperatures and check safe to use.
 			case (CAN_ORION_BMS_BASE_ADDRESS + TS_ANALOGUE_2_ID):
 				orion.set_high_temperature(can1_msg.data[1]);
-				break;			
+				break;
+			// Check for BSPD failure
+			case (CAN_BRAKE_MODULE_BASE_ADDRESS + TS_DIGITAL_1_ID):
+				// Latches Precharge when BSPD is triggered		
+				if (can1_msg.data[3] == 0) {
+					heart.set_heartbeat_state(PRECHARGE_STATE_FAIL);
+				}
+				break;
 		}
 	}
 }
@@ -483,6 +490,7 @@ State Deamon
 	*/
 void state_d(){
 	update_precharge();
+	
 	if (heart.get_error_code(0) > 0){
 		heart.set_heartbeat_state(PRECHARGE_STATE_FAIL);
 	}

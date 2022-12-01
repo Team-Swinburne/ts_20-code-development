@@ -1,0 +1,68 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_:
+
+
+BO_ 848 HeartBeat: 8 Vector__XXX
+ SG_ State : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Counter : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Temp : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 849 Error: 8 Vector__XXX
+ SG_ ERROR_Code1 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ ERROR_Code2 : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ WARN_Code1 : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ WARN_Code2 : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ AMS_OK : 32|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ PDOC_OK : 40|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ IMD_OK : 48|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 850 Digital: 8 Vector__XXX
+ SG_ AIR_Power : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ AIR_N_Relay : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ AIR_N_Feedback : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ AIR_P_Relay : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ AIR_P_Feedback : 32|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Precharge_Relay : 40|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 852 Analogue: 8 Vector__XXX
+ SG_ Battery_Voltage : 23|16@0+ (1,0) [0|0] "Volts" Vector__XXX
+ SG_ AIR_P_FB : 39|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ P_R : 47|8@0+ (1,0) [0|0] "" Vector__XXX
+
+
+
+

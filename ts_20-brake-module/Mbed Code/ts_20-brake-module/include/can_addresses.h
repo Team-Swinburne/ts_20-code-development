@@ -35,16 +35,22 @@ to the device.
 */
 
 #define CAN_ORION_BMS_BASE_ADDRESS                  0x100
-#define CAN_BRAKE_MODULE_BASE_ADDRESS               0x200
-#define CAN_MOTEC_THROTTLE_CONTROLLER_BASE_ADDRESS  0x300
-#define CAN_AMK_MOTOR_CONTROLLER_BASE_ADDRESS       0x400
-#define CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS       0x500
-#define CAN_UCM_BASE_ADDRESS                        0x600       // Note that for each UCM, there will be multiple addresses 0x510, 0x520,... etc.      
-#define CAN_ORION_TEMP_MODULE_BASE_ADDRESS          0x700
-#define CAN_DISCHARGE_MODULE_BASE_ADDRESS           0x800
-#define CAN_DASH_BASE_ADDRESS                       0x900
+#define CAN_BRAKE_MODULE_BASE_ADDRESS               0x150
+#define CAN_AMK_MOTOR_CONTROLLER_BASE_ADDRESS       0x200
+#define CAN_MOTEC_THROTTLE_CONTROLLER_BASE_ADDRESS  0x250
+#define CAN_PRECHARGE_CONTROLLER_BASE_ADDRESS       0x300
 
-// Miscillatious
+#define CAN_UCM1_BASE_ADDRESS                       0x350       // Note that for each UCM, there will be multiple addresses 0x510, 0x520,... etc.   
+#define CAN_UCM2_BASE_ADDRESS                       0x360 
+#define CAN_UCM3_BASE_ADDRESS                       0x370 
+#define CAN_UCM4_BASE_ADDRESS                       0x380 
+#define CAN_UCM5_BASE_ADDRESS                       0x390 
+
+#define CAN_ORION_TEMP_MODULE_BASE_ADDRESS          0x450
+#define CAN_DISCHARGE_MODULE_BASE_ADDRESS           0x500
+#define CAN_DASH_BASE_ADDRESS                       0x550
+
+// Miscillanious
 #define CAN_ORION_BMS_RINEHART_LIMITS				0x202
 #define CAN_TC_CHARGER_STATUS_ID					0x18FF50E5
 
@@ -96,6 +102,9 @@ typedef enum TS_STD_CAN_MESSAGES{
     TS_DIGITAL_2_ID,
     TS_ANALOGUE_1_ID,
     TS_ANALOGUE_2_ID,
+    TS_ANALOGUE_3_ID,
+    TS_ANALOGUE_4_ID,
+    TS_SETPOINT_1_ID
 } ts_std_can_messages_t;
 
 // Enumerations can also be used to parse each of these in a meaningful way. A basic template is included for that sake 
@@ -176,3 +185,5 @@ Digital/Analogue (Medium frequency acceptable)      200
 Digital/Analogue (Low Priority)                     500
 
 */
+
+#define	HEARTRATE 1

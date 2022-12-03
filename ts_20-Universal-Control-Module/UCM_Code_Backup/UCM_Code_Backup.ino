@@ -57,11 +57,11 @@ Adafruit_ADS1115 ads;
 eXoCAN can;
 
 //Used to determine which functions need to be uploaded to this particular board
-#define UCM_NUMBER 5
+#define UCM_NUMBER 3
 
 
 
-#if UCM_NUMBER == 1
+#if UCM_NUMBER == 5
   #define UCM_ADDRESS CAN_UCM1_BASE_ADDRESS
 #elif UCM_NUMBER == 2
   #define UCM_ADDRESS CAN_UCM2_BASE_ADDRESS
@@ -309,17 +309,18 @@ void FlowSensorProcess()
 int pumpLHS, fanLHS;
 void ucm3PwmControl()
 {
+  uint8_t Data[8];
    if (can.rxMsgLen > -1) 
    {
     switch (can.id)
     {
       case UCM3_SP_CONTROL:
       {
-        rxData[0] = can.rxData.bytes[0];
-        rxData[1] = can.rxData.bytes[1];
+        Data[0] = can.rxData.bytes[0];
+        Data[1] = can.rxData.bytes[1];
         can.rxMsgLen = -1;
-        pumpLHS = rxData[0];
-        fanLHS = rxData[1];
+        pumpLHS = Data[0];
+        fanLHS = Data[1];
         break;
       }
     }
@@ -348,19 +349,18 @@ void ucm4PwmControl()
 
 void ucm5PwmControl()
 {
+  int rearFans, brakeLight = 0;
   if (can.rxMsgLen > -1) 
   {
     if(can.id == UCM5_RR_CONTROL)
     {
-      int rearFans, brakeLight = 0;
-      rearFans      = can.rxData.bytes[0];
+      rearFans    = can.rxData.bytes[0];
       brakeLight  = can.rxData.bytes[1];
       can.rxMsgLen = -1;
-
-      analogWrite(PB0, rearFans);
-      analogWrite(PB1, brakeLight);
     }
   }
+  analogWrite(PB0, rearFans);
+  analogWrite(PB1, brakeLight);
 }
 
 

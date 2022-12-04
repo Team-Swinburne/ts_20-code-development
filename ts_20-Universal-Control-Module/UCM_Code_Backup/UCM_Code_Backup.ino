@@ -38,6 +38,7 @@
 #include <Wire.h>
 #include <Adafruit_ADS1X15.h>
 #include <eXoCAN.h>
+#include <sys/wait.h>
 #include "TickerInterrupt.h"
 #include "can_addresses.h"
 #include "FlowSensor.h"
@@ -57,11 +58,11 @@ Adafruit_ADS1115 ads;
 eXoCAN can;
 
 //Used to determine which functions need to be uploaded to this particular board
-#define UCM_NUMBER 3
+#define UCM_NUMBER 4
 
 
 
-#if UCM_NUMBER == 5
+#if UCM_NUMBER == 1
   #define UCM_ADDRESS CAN_UCM1_BASE_ADDRESS
 #elif UCM_NUMBER == 2
   #define UCM_ADDRESS CAN_UCM2_BASE_ADDRESS
@@ -349,18 +350,19 @@ void ucm4PwmControl()
 
 void ucm5PwmControl()
 {
-  int rearFans, brakeLight = 0;
+
   if (can.rxMsgLen > -1) 
   {
     if(can.id == UCM5_RR_CONTROL)
     {
+      int rearFans, brakeLight = 0;
+      can.rxMsgLen = -1;
       rearFans    = can.rxData.bytes[0];
       brakeLight  = can.rxData.bytes[1];
-      can.rxMsgLen = -1;
+      analogWrite(PB0, rearFans);
+      analogWrite(PB1, brakeLight);
     }
   }
-  analogWrite(PB0, rearFans);
-  analogWrite(PB1, brakeLight);
 }
 
 
@@ -424,7 +426,7 @@ void loop()
         ucm4PwmControl();
       break; 
     case 5:
-        ucm5PwmControl();
+      ucm5PwmControl();
       break;
     }
 }

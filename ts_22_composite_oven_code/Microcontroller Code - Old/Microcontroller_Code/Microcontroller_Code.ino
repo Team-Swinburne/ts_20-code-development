@@ -46,12 +46,6 @@ void IncrementTemp()
 {
   OvenStatus.CurrentTemp++;
 
-  //Emulate set temp button press.
-  digitalWrite(b_temp_set, HIGH);
-  delay(BUTTON_PRESS_DELAY);
-  digitalWrite(b_temp_set, LOW);
-  delay(BUTTON_PRESS_DELAY);
-
   //Emulate increment temp button press.
   delay(BUTTON_PRESS_DELAY);
   digitalWrite(b_temp_up, HIGH);
@@ -124,6 +118,12 @@ void GetCookCommand()
   OvenStatus.TimeRemaining = 3600*OvenSettings.TimeHours + 60*OvenSettings.TimeMinutes + OvenSettings.TimeSeconds;
   timer2.interval((60000)/(OvenSettings.TempRise));
   timer2.start();
+
+  //Emulate set temp button press.
+  digitalWrite(b_temp_set, HIGH);
+  delay(BUTTON_PRESS_DELAY);
+  digitalWrite(b_temp_set, LOW);
+  delay(BUTTON_PRESS_DELAY);
 }
 
 void setup() 

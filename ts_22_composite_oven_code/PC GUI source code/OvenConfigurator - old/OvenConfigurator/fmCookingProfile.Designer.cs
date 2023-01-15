@@ -207,7 +207,7 @@ namespace OvenConfigurator
             1,
             0,
             0,
-            65536});
+            0});
             this.updownHeatRate.Name = "updownHeatRate";
             this.updownHeatRate.Size = new System.Drawing.Size(51, 22);
             this.updownHeatRate.TabIndex = 1;

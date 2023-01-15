@@ -1,0 +1,13 @@
+C:\Users\Ethan Jones\source\repos\OvenConfigurator\OvenConfigurator\obj\Debug\OvenConfigurator.csprojAssemblyReference.cache
+C:\Users\Ethan Jones\source\repos\OvenConfigurator\OvenConfigurator\obj\Debug\OvenConfigurator.MainWindow.resources
+C:\Users\Ethan Jones\source\repos\OvenConfigurator\OvenConfigurator\obj\Debug\OvenConfigurator.Properties.Resources.resources
+C:\Users\Ethan Jones\source\repos\OvenConfigurator\OvenConfigurator\obj\Debug\OvenConfigurator.csproj.GenerateResource.cache
+C:\Users\Ethan Jones\source\repos\OvenConfigurator\OvenConfigurator\obj\Debug\OvenConfigurator.csproj.CoreCompileInputs.cache
+C:\Users\Ethan Jones\source\repos\OvenConfigurator\OvenConfigurator\bin\Debug\OvenConfigurator.exe.config
+C:\Users\Ethan Jones\source\repos\OvenConfigurator\OvenConfigurator\bin\Debug\OvenConfigurator.exe
+C:\Users\Ethan Jones\source\repos\OvenConfigurator\OvenConfigurator\bin\Debug\OvenConfigurator.pdb
+C:\Users\Ethan Jones\source\repos\OvenConfigurator\OvenConfigurator\obj\Debug\OvenConfigurator.exe
+C:\Users\Ethan Jones\source\repos\OvenConfigurator\OvenConfigurator\obj\Debug\OvenConfigurator.pdb
+C:\Users\Ethan Jones\source\repos\OvenConfigurator\OvenConfigurator\obj\Debug\OvenConfigurator.fmCookingProfile.resources
+C:\Users\Ethan Jones\source\repos\OvenConfigurator\OvenConfigurator\obj\Debug\OvenConfigurator.fmConnection.resources
+C:\Users\Ethan Jones\source\repos\OvenConfigurator\OvenConfigurator\obj\Debug\OvenConfigurator.fmOvenStatus.resources

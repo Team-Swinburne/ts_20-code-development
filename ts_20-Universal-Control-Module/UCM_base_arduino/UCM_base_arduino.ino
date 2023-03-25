@@ -57,7 +57,7 @@ Adafruit_ADS1115 ads;
 eXoCAN can;
 
 //Used to determine which functions need to be uploaded to this particular board
-#define UCM_NUMBER 5
+#define UCM_NUMBER 4
 
 #if UCM_NUMBER == 1
   #define UCM_ADDRESS CAN_UCM1_BASE_ADDRESS
@@ -195,7 +195,8 @@ void canTX_Digital1() {
 				digitalFrame1.len);
 }
 // Transmit analog message
-void canTX_Analog1() {
+void canTX_Analog1() 
+{
   	can.transmit(UCM_ADDRESS+TS_ANALOGUE_1_ID, 
   				analogFrame1.bytes, 
 				analogFrame1.len);
@@ -243,7 +244,15 @@ void updateDigital() {
 }
 
 // analog update daemon
-void updateAnalog() {
+void updateAnalog() 
+{
+  //float Voltage = (6.144/32767)*(ads.readADC_SingleEnded(0));
+
+  //int VoltageInt = (1000*Voltage);
+
+  //analogFrame1.bytes[5] = (VoltageInt >> 8) & 0xFF;
+  //analogFrame1.bytes[6] = VoltageInt & 0xFF;
+  /*
   // use bitwise operation to split the data
 	int16_t adc[4] = {0};
 	int16_t mapFrom[4][2]  = {{0,65536}, {0,65536}, {0,1023}, {0,1023}};
@@ -258,15 +267,55 @@ void updateAnalog() {
   	for (int i =0; i <= 3; i++) {
     	adc[i] = map(adc[i], mapFrom[i][0], mapFrom[i][1], mapTo[i][0], mapTo[i][1]);
 	}
+ */
+ float Voltage[4] = { 0.0 };
+ int VoltageInt[4] = { 0 };
+ int Thermistor_Resistance[4] = { 0 };
+
+  for(int i = 0; i < 4; i++)
+  {
+    Voltage[i] = (6.144/32767)*(ads.readADC_SingleEnded(i));
+
+    VoltageInt[i] = (1000*Voltage[i]);
+  }
+
+  analogFrame1.bytes[0] = (VoltageInt[0] >> 8) & 0xFF;
+  analogFrame1.bytes[1] = (VoltageInt[0]) & 0xFF;
+  analogFrame1.bytes[2] = (VoltageInt[1] >> 8) & 0xFF;
+  analogFrame1.bytes[3] = (VoltageInt[1]) & 0xFF;
+
+  for(int i = 0; i < 4; i++)
+  {
+    Thermistor_Resistance[i] = (((Voltage[i]/5) - 1)*1000 + ((Voltage[i]/5)*10000))/(1 - (Voltage[i]/5));
+  }
+
+  float Temperature[4] = { 0 };
+  int TemperatureInt[4] = { 0 };
+
+  double A = 0.0008235388853;//0.001552561708;
+  double B = 0.0002632202645;//0.0001121352947;
+  double C = 0.0000001349156215;//0.000001033562221;
+
+  for(int i = 0; i < 4; i++)
+  {
+    Temperature[i] = (1.0/(A + B*log(Thermistor_Resistance[i]) + C*(log(Thermistor_Resistance[i])*log(Thermistor_Resistance[i])*log(Thermistor_Resistance[i])))) - 273.15;
+
+    TemperatureInt[i] = 100*Temperature[i];
+  }
+
+  analogFrame1.bytes[4] = (TemperatureInt[0] >> 8) & 0xFF;
+  analogFrame1.bytes[5] = (TemperatureInt[0]) & 0xFF;
+  analogFrame1.bytes[6] = (TemperatureInt[1] >> 8) & 0xFF;
+  analogFrame1.bytes[7] = (TemperatureInt[1]) & 0xFF;
 
   	// use bitwise to split the data into 2 bytes as needed
 	// &0xFF masks the first 8bits, >>8 shit it 8 bits to the right
-	analogFrame1.bytes[0] = adc[0];
-	analogFrame1.bytes[1] = adc[1];
-	analogFrame1.bytes[2] = (byte)(adc[2] & 0xFF);
-	analogFrame1.bytes[3] = (byte)(adc[2] >> 8);
-  analogFrame1.bytes[4] = (byte)(adc[3] & 0xFF);
-  analogFrame1.bytes[5] = (byte)(adc[3] >> 8);
+	//analogFrame1.bytes[0] = adc[0];
+	//analogFrame1.bytes[1] = adc[1];
+	//analogFrame1.bytes[2] = (byte)(adc[2] & 0xFF);
+	//analogFrame1.bytes[3] = (byte)(adc[2] >> 8);
+  //analogFrame1.bytes[4] = (byte)(adc[3] & 0xFF);
+  //analogFrame1.bytes[5] = 255;//(byte)(adc[3] >> 8);
 }
 
 // update the heart message data
@@ -750,7 +799,7 @@ void setup()
         pinMode(rightFanControlPin, OUTPUT);
         break;
       case 4:
-        Ticker.attach(FlowSensor_Measure, 1000);
+        //Ticker.attach(FlowSensor_Measure, 1000);
         pinMode(inverterFans, OUTPUT);
         pinMode(accumulatorFans, OUTPUT);
         break;
@@ -785,7 +834,8 @@ void loop()
       }
       break;
     case 4:
-      FlowSensorProcess();
+      updateAnalog();
+      //FlowSensorProcess();
       if(canHvActive == 1)
       {
         canMotorTemp();

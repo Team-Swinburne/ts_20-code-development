@@ -53,7 +53,7 @@ BO_ 594 DIGITAL: 8 Vector__XXX
  SG_ DriveStateReq : 16|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ RTDS : 24|8@1+ (1,0) [0|0] "" Vector__XXX
 
-BO_ 596 ANALOGUE: 8 Vector__XXX
+BO_ 596 ANALOGUE_1: 8 Vector__XXX
  SG_ APPS_1 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ APPS_2 : 8|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ APPS_Avg : 16|8@1+ (1,0) [0|0] "" Vector__XXX
@@ -76,6 +76,9 @@ BO_ 547 INV2_SET_POINT: 8 Vector__XXX
 BO_ 563 INV3_SET_POINT: 8 Vector__XXX
 
 BO_ 579 INV4_SET_POINT: 8 Vector__XXX
+
+BO_ 597 ANALOGUE_2: 8 Vector__XXX
+ SG_ LV_Voltage : 7|16@0+ (0.1,0) [0|0] "" Vector__XXX
 
 
 

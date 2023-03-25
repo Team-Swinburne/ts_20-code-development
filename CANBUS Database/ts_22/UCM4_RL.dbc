@@ -38,17 +38,22 @@ BU_:
 
 BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ Low_FlowRate : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ INV_RadTemp : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ INV_FlowRate : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ RL_BellCrank : 8|8@1+ (1,0) [0|0] "" Vector__XXX
 
 BO_ 912 HEARTBEAT: 8 Vector__XXX
  SG_ State : 0|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ Counter : 8|8@1+ (1,0) [0|0] "" Vector__XXX
 
 BO_ 913 ERROR: 8 Vector__XXX
+ SG_ A : 0|8@1+ (1,0) [0|0] "" Vector__XXX
 
 BO_ 916 ANALOGUE: 8 Vector__XXX
- SG_ INV_FlowRate : 0|8@1+ (1,0) [0|0] "" Vector__XXX
- SG_ RL_BellCrank : 8|8@1+ (1,0) [0|0] "" Vector__XXX
- SG_ INV_RadTemp : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ INV_RAD_INLET_TEMP : 7|16@0+ (0.001,0) [0|0] "V" Vector__XXX
+ SG_ INV_RAD_OUTLET_TEMP : 23|16@0+ (0.001,0) [0|0] "V" Vector__XXX
+ SG_ INV_RAD_INLET_TEM : 39|16@0+ (0.01,0) [0|0] "C" Vector__XXX
+ SG_ INV_RAD_OUTLET_TEM : 55|16@0+ (0.01,0) [0|0] "C" Vector__XXX
 
 
 

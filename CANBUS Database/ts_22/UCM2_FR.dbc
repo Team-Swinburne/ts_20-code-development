@@ -36,7 +36,7 @@ BS_:
 BU_:
 
 
-BO_ 880 HEARTBEAT: 8 Vector__XXX
+BO_ 880 HEARTBEAT: 2 Vector__XXX
  SG_ State : 0|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ Counter : 8|8@1+ (1,0) [0|0] "" Vector__XXX
 

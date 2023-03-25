@@ -54,6 +54,8 @@ BO_ 340 ANALOGUE: 8 Vector__XXX
  SG_ Brake1_Percent : 0|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ Brake2_Percent : 8|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ Brake_Average : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Brake1_Voltage : 24|8@1+ (0.1,0) [0|0] "" Vector__XXX
+ SG_ Brake2_Voltage : 32|8@1+ (0.1,0) [0|0] "" Vector__XXX
 
 
 

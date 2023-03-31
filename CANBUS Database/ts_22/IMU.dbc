@@ -1,0 +1,150 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_: BM BMS TM PC DM TPM IMU ECU AM
+
+
+BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
+ SG_ NewSignal_0002 : 7|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ PACK_LowCell_Voltage : 7|8@0+ (1,0) [0|0] "V" Vector__XXX
+ SG_ PACK_HighCell_Voltage : 15|8@0+ (1,0) [0|0] "V" Vector__XXX
+ SG_ PACK_AvgCell_Voltage : 23|8@0+ (1,0) [0|0] "V" Vector__XXX
+ SG_ PACK_LowCell_ID : 31|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ PACK_HighCell_ID : 39|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ BMS_Relay_State : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ BMS_Counter : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ BMS_Temp : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Brake1 : 7|8@0+ (1,0) [0|0] "%" Vector__XXX
+ SG_ Brake2 : 15|8@0+ (1,0) [0|0] "%" Vector__XXX
+ SG_ Brake_Avg : 23|8@0+ (1,0) [0|0] "%" Vector__XXX
+ SG_ Brake1_Raw : 31|16@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Brake2_Raw : 47|16@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ BOTS_OK : 7|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ COCKPIT_OK : 15|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ INERTIA_OK : 23|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ SDN_OK : 31|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ BSPD_OK : 39|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ BM_State : 7|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ BM_Counter : 15|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ TPM_Lowest_Temp : 7|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ TPM_Highest_Temp : 15|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ TPM_Avg_Temp : 23|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ TPM_TempWrite : 31|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ TPM_TempRead : 39|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ OverTemp : 7|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ ZeroValue : 15|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ TPM_State : 7|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ TPM_Counter : 15|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ APPS_1 : 0|8@1+ (1,0) [0|0] "%" Vector__XXX
+ SG_ APPS_2 : 8|8@1+ (1,0) [0|0] "%" Vector__XXX
+ SG_ APPS_Avg : 16|8@1+ (1,0) [0|0] "%" Vector__XXX
+ SG_ PreCharge_Button : 7|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Drive_Button : 15|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ DriveState_Request : 23|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ RTDS : 31|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ APPS_Disagree : 7|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ TrailBreaking_Active : 15|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ BPPS_Disagree : 23|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ TM_State : 7|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ TM_Counter : 15|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Bat_Voltage : 7|16@0+ (1,0) [0|0] "V" Vector__XXX
+ SG_ AIR_Power : 7|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ AIR_NEG_Relay : 15|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ AIR_NEG_Feedback : 23|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ AIR_POS_Relay : 31|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ AIR_POS_Feedback : 39|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ PC_Relay : 47|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ ERROR_1 : 7|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ ERROR_2 : 15|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ WARNING_1 : 23|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ WARNING_2 : 31|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ AMS_OK : 39|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ PDOC_OK : 47|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ IMD_OK : 55|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ PC_State : 7|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ PC_Counter : 15|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ PC_Temp : 23|8@0+ (1,0) [0|0] "°C" Vector__XXX
+ SG_ PACK_Energy : 7|16@0+ (1,0) [0|0] "Ah" Vector__XXX
+ SG_ PACK_SOC : 23|16@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ PACK_Resistance : 39|16@0+ (1,0) [0|0] "Ohms" Vector__XXX
+ SG_ PACK_Voltage : 7|16@0+ (1,0) [0|0] "V" Vector__XXX
+ SG_ PACK_Inst_Voltage : 23|16@0+ (1,0) [0|0] "V" Vector__XXX
+ SG_ PACK_Current : 39|16@0+ (1,0) [0|0] "A" Vector__XXX
+ SG_ PACK_LowTemp : 7|8@0+ (1,0) [0|0] "°C" Vector__XXX
+ SG_ PACK_HighTemp : 15|8@0+ (1,0) [0|0] "°C" Vector__XXX
+ SG_ PACK_AvgTemp : 23|8@0+ (1,0) [0|0] "°C" Vector__XXX
+ SG_ PACK_LowTemp_ID : 31|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ PACK_HighTemp_ID : 39|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Brake1_Min : 7|16@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Brake1_Max : 23|16@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Brake2_Min : 39|16@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Brake2_Max : 55|16@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Steering_Actual : 7|16@0- (0.1,0) [0|0] "°" Vector__XXX
+ SG_ AM_State : 7|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ AM_Counter : 15|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ BS_State : 23|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Steering_State : 31|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ Steering_CMD : 7|16@0- (0.1,0) [0|0] "°" Vector__XXX
+ SG_ Throttle_CMD : 23|8@0+ (1,0) [0|0] "%" Vector__XXX
+ SG_ Brake_CMD : 31|8@0+ (1,0) [0|0] "%" Vector__XXX
+ SG_ Speed : 39|8@0+ (1,0) [0|0] "km/h" Vector__XXX
+ SG_ ECU_State : 7|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ ECU_Counter : 15|8@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ AS_State : 23|8@0+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 1552 IMU_Acceleration: 8 IMU
+ SG_ LongX_Acceleration : 7|16@0- (0.001,0) [0|0] "G" Vector__XXX
+ SG_ LatY_Acceleration : 23|16@0- (0.001,0) [0|0] "G" Vector__XXX
+ SG_ VerticalZ_Acceleration : 39|16@0- (0.001,0) [0|0] "G" Vector__XXX
+
+BO_ 1553 IMU_Rotation: 8 IMU
+ SG_ LongX_Rotation : 7|16@0- (0.1,0) [0|0] "°/s" Vector__XXX
+ SG_ LatY_Rotation : 23|16@0- (0.1,0) [0|0] "°/s" Vector__XXX
+ SG_ VerticalZ_Rotation : 39|16@0- (0.1,0) [0|0] "°/s" Vector__XXX
+
+BO_ 1554 IMU_Compass: 8 IMU
+
+
+
+CM_ BU_ BM "Brake Module";
+CM_ BU_ BMS "Orion BMS (Battery Management System)";
+CM_ BU_ TM "Throttle Module";
+CM_ BU_ PC "PreCharge controller module";
+CM_ BU_ DM "Dash Module";
+CM_ BU_ TPM "TemP Module";
+CM_ BU_ IMU "CDS57213 3 Force combined sensor - Inertial Measurement Unit (IMU)";
+CM_ BU_ ECU "Nvidia Jetson ECU";
+CM_ BU_ AM "Actuation Module";
+

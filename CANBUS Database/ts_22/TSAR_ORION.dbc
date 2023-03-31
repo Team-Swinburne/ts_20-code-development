@@ -57,8 +57,8 @@ BO_ 261 TEMPERATURE: 8 Vector__XXX
 
 BO_ 262 PACK_V_I: 8 Vector__XXX
  SG_ Pack_Summed_Voltage : 7|16@0+ (0.1,0) [0|0] "" Vector__XXX
- SG_ Pack_Inst_Voltage : 16|16@1+ (1,0) [0|0] "" Vector__XXX
- SG_ Pack_Current : 32|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Pack_Inst_Voltage : 23|16@0+ (0.1,0) [0|0] "" Vector__XXX
+ SG_ Pack_Current : 39|16@0+ (0.1,0) [0|0] "" Vector__XXX
 
 BO_ 263 INFORMATION: 8 Vector__XXX
  SG_ Pack_Amorphous : 0|16@1+ (1,0) [0|0] "" Vector__XXX

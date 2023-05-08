@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<Tune Locale="English_Australia.1252" DefaultLocale="C" ZoomDuration="30" Version="102" ShowOverlays="1" ExcludeUntrusted="1" IncludeOverlays="0" GraphTimeFormat="4" RemoveOnChanDblClick="1" SplitterPos="1180">
+ <Resources/>
+ <ValuesWindow GroupMode="0"/>
+ <ChannelItemsWindow/>
+ <DockWindows>
+  <DockWindow Id="Help" Visible="1" IsDocked="1" IsPinned="1" DockOffset="0" DockSide="33" DockIndex="0" Height="110" Width="220"/>
+  <DockWindow Id="Messages" Visible="0" IsDocked="1" IsPinned="0" DockOffset="0" DockSide="0" DockIndex="0" Height="1240" Width="110"/>
+  <DockWindow Id="Alarms" Visible="0" IsDocked="0" Position="424,202,856,518"/>
+  <DockWindow Id="DevMessages" Visible="0" IsDocked="1" IsPinned="1" DockOffset="0.5" DockSide="0" DockIndex="0" Height="160" Width="220"/>
+  <DockWindow Id="QuickLaunch" Visible="1" IsDocked="1" IsPinned="1" DockOffset="0" DockSide="35" DockIndex="0" Height="150" Width="320"/>
+  <DockWindow Id="Layouts" Visible="1" IsDocked="1" IsPinned="1" DockOffset="0" DockSide="35" DockIndex="1" Height="110" Width="220"/>
+  <DockWindow Id="PkgHelp" Visible="0" IsDocked="0" Position="200,200,840,680"/>
+  <DockWindow Id="Channels" Visible="0" IsDocked="1" IsPinned="1" DockOffset="0.5" DockSide="3" DockIndex="0" Height="160" Width="220"/>
+  <DockWindow Id="Support" Visible="0" IsDocked="0" Position="340,140,940,540"/>
+ </DockWindows>
+ <Workbooks Version="100" Name="My Workbooks" Active="Workbook">
+  <Workbook Name="Workbook" XRef="Workbooks\Workbook.mtcwkb"/>
+ </Workbooks>
+ <QuickSelectKeys>
+  <Key Name="F5" Customised="0" Prompted="0">
+   <WorkSheet Name="Fuel" Workbook="Tuning" Search="0"/>
+   <WorkSheet Name="Ignition" Workbook="Tuning" Search="0"/>
+  </Key>
+  <Key Name="F6" Customised="0" Prompted="0"/>
+  <Key Name="F7" Customised="0" Prompted="0"/>
+  <Key Name="F8" Customised="0" Prompted="0"/>
+ </QuickSelectKeys>
+ <TableSettings Version="1" ColorOnlyActive="0" RampRunMax="232,3,0" TargetTolerance="20">
+  <TableOpSite Enabled="1" Style="1" Float="1" Opacity="75"/>
+  <Graph Lighting="1" ShowChannelLegend="1" ShowAxis="1"/>
+ </TableSettings>
+ <Packages/>
+ <MyDevices>
+  <MyDevice SerialNum="11913"/>
+ </MyDevices>
+ <LogRetrieveSettings>
+  <LogSystem Index="0" Retrieve="1" Erase="0"/>
+  <LogSystem Index="1" Retrieve="1" Erase="0"/>
+  <LogSystem Index="2" Retrieve="1" Erase="0"/>
+  <LogSystem Index="3" Retrieve="1" Erase="0"/>
+  <LogSystem Index="4" Retrieve="1" Erase="0"/>
+  <LogSystem Index="5" Retrieve="1" Erase="0"/>
+  <LogSystem Index="6" Retrieve="1" Erase="0"/>
+  <LogSystem Index="7" Retrieve="1" Erase="0"/>
+ </LogRetrieveSettings>
+</Tune>

@@ -1,0 +1,5 @@
+ROOT=.
+DEVICE_ID[/home/studio/workspace/ts_19-20-Dash]=0671FF303435554157112210
+DEVICE_TYPE[/home/studio/workspace/ts_19-20-Dash]=connected
+TARGET=DISCO_F469NI
+TARGET_CODE=0788

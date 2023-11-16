@@ -1,0 +1,8 @@
+^.clangd$
+^.mbed$
+^BUILD$
+^.cache$
+^mbed$
+^compile_commands.json$
+^BSP_DISCO_F469NI$
+^LCD_DISCO_F469NI$

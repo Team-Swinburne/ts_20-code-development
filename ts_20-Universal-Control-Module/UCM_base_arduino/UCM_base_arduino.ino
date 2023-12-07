@@ -102,6 +102,10 @@ struct msgFrame
   uint8_t bytes[8] = {0};
 };
 
+int ASSI_Power;
+int ASSI_flash;
+int ASSI_color;
+
 int inverterMaxTemp;
 //Used for storing AIR status, for green loop activation in pump and fan control.
 bool canHvActive;
@@ -168,10 +172,10 @@ void GPIO_Init()
 	pinMode(PC13, OUTPUT);
   
 	// Configuring the Digital Input Pins.
-  pinMode(pin_DigIn1, INPUT);
-  pinMode(pin_DigIn2, INPUT);
-	pinMode(pin_DigIn3, INPUT);
-	pinMode(pin_DigIn4, INPUT);
+  pinMode(pin_DigIn1, OUTPUT);
+  pinMode(pin_DigIn2, OUTPUT);
+	pinMode(pin_DigIn3, OUTPUT);
+	pinMode(pin_DigIn4, OUTPUT);
 
   //Enable flowrate sensors.
   //for the line below the number corresponds to the aissgned number of flow rate sensors attached to the UCM 
@@ -749,8 +753,49 @@ void fanControlInverter()
   }
 }
 
+void ASSI_control(){
+  //power_select
+  if (ASSI_Power ==1){
+  analogWrite(inverterFans, 254);
+  }
+  else{
+    analogWrite(inverterFans, 0);
+  }
+  if (ASSI_flash == 1){
+     digitalWrite(pin_DigIn1, HIGH);
+  }
+  else{
+    digitalWrite(pin_DigIn1, LOW);
+  }
+  if (ASSI_color == 1){
+     digitalWrite(pin_DigIn2, HIGH);
+  }
+  else{
+    digitalWrite(pin_DigIn2, LOW);
+  }
+  //colour_select
+
+  //flash_select
 
 
+}
+
+void update_ASSI(){
+  if (can.rxMsgLen > -1) 
+  {
+    switch (can.id)
+      {
+        case CAN_ASSI_CONTROL:
+          {
+            //Motor Inverter Temperature:
+            ASSI_Power = can.rxData.bytes[0];
+            ASSI_flash = can.rxData.bytes[1];
+            ASSI_color = can.rxData.bytes[2];
+          break;
+          }
+      }
+  }
+}
 
 /*--------------------------------------------------------------------------- 
 `								SETUP 
@@ -791,7 +836,8 @@ void setup()
   switch (UCM_NUMBER)
   {
       case 1:
-        Ticker.attach(FlowSensor_Measure, 1000);
+
+        Ticker.attach(ASSI_control, 1000);
         break;
       case 2:
         Ticker.attach(FlowSensor_Measure, 1000);
@@ -823,6 +869,7 @@ void loop()
   switch (UCM_NUMBER)
   {
     case 1:
+      update_ASSI();
       break;
       
     case 2:

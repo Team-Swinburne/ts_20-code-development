@@ -67,7 +67,7 @@ to the device.
 
 //Max Inverter Temp, max motor temp (left and right side)
 #define CAN_INVERTER_PASSTHROUGH   0x256
-
+#define CAN_ASSI_CONTROL           0x605 
 
 
  
